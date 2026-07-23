@@ -1,10 +1,11 @@
 "use client";
 
-import { Calendar, MoreHorizontal, Star, Users } from "lucide-react";
+import { Calendar, Globe, Lock, MoreHorizontal, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { formatDistanceToNow } from "date-fns";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,99 +13,53 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const projects = [
-  {
-    id: "1",
-    name: "Vangrex",
-    description:
-      "AI software engineering platform for autonomous development workflows.",
-    status: "Active",
-    members: 8,
-    updated: "2 hours ago",
-    starred: true,
-  },
-  {
-    id: "2",
-    name: "Nodebase",
-    description:
-      "Workflow automation platform for AI agents and business processes.",
-    status: "In Progress",
-    members: 5,
-    updated: "Yesterday",
-    starred: false,
-  },
-  {
-    id: "3",
-    name: "Real Estate Landing",
-    description:
-      "High-converting landing page for premium real estate properties.",
-    status: "Completed",
-    members: 3,
-    updated: "3 days ago",
-    starred: false,
-  },
-  {
-    id: "4",
-    name: "Portfolio",
-    description:
-      "Personal portfolio showcasing projects, blogs, and experience.",
-    status: "Draft",
-    members: 1,
-    updated: "1 week ago",
-    starred: true,
-  },
-  {
-    id: "5",
-    name: "AI CRM",
-    description:
-      "Customer relationship management platform powered by AI insights.",
-    status: "Planning",
-    members: 6,
-    updated: "5 hours ago",
-    starred: false,
-  },
-  {
-    id: "6",
-    name: "Analytics Dashboard",
-    description:
-      "Business analytics dashboard with real-time metrics and reports.",
-    status: "Active",
-    members: 4,
-    updated: "Today",
-    starred: false,
-  },
-];
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useTRPC } from "@/trpc/client";
 
 export function ProjectsList() {
+  const trpc = useTRPC();
+
+  const { data: projects } = useSuspenseQuery(
+    trpc.projects.getProjects.queryOptions(),
+  );
+
+  const deleteProjectMutation = useMutation(
+    trpc.projects.deleteProject.mutationOptions(),
+  );
+
+  console.log(projects);
+
   return (
     <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
       {projects.map((project) => (
-        <Card key={project.id} className="group">
-          <CardHeader className="flex flex-row items-start justify-between space-y-0">
+        <Card
+          key={project.id}
+          className="transition-colors hover:border-primary/30"
+        >
+          <CardHeader className="flex flex-row items-start justify-between">
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-lg">{project.name}</CardTitle>
+              <CardTitle className="line-clamp-1 text-lg">
+                {project.name}
+              </CardTitle>
 
-                {project.starred && (
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                )}
-              </div>
-
-              <Badge variant="secondary">{project.status}</Badge>
+              <Badge variant={project.archived ? "secondary" : "outline"}>
+                {project.archived ? "Archived" : "Active"}
+              </Badge>
             </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost">
-                  <MoreHorizontal className="h-4 w-4" />
+                <Button variant="ghost" size="icon">
+                  <MoreHorizontal className="size-4" />
                 </Button>
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end">
                 <DropdownMenuItem>Open</DropdownMenuItem>
                 <DropdownMenuItem>Edit</DropdownMenuItem>
-                <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                <DropdownMenuItem>Archive</DropdownMenuItem>
+                <DropdownMenuItem>
+                  {project.archived ? "Restore" : "Archive"}
+                </DropdownMenuItem>
                 <DropdownMenuItem className="text-destructive">
                   Delete
                 </DropdownMenuItem>
@@ -113,24 +68,36 @@ export function ProjectsList() {
           </CardHeader>
 
           <CardContent className="space-y-6">
-            <p className="line-clamp-2 text-sm text-muted-foreground">
-              {project.description}
+            <p className="min-h-10 line-clamp-2 text-sm text-muted-foreground">
+              {project.description || "No description provided."}
             </p>
 
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
-                <Users className="h-4 w-4" />
-                {project.members} members
+                {project.visibility === "private" ? (
+                  <Lock className="size-4" />
+                ) : project.visibility === "team" ? (
+                  <Users className="size-4" />
+                ) : (
+                  <Globe className="size-4" />
+                )}
+
+                <span className="capitalize">{project.visibility}</span>
               </div>
 
               <div className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                {project.updated}
+                <Calendar className="size-4" />
+                <span>
+                  {formatDistanceToNow(project.updatedAt, {
+                    addSuffix: true,
+                  })}
+                </span>
               </div>
             </div>
 
             <div className="flex gap-2">
               <Button className="flex-1">Open</Button>
+
               <Button variant="outline" className="flex-1">
                 Settings
               </Button>

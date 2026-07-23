@@ -81,39 +81,7 @@ export const verification = pgTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
-export const relations = defineRelations(
-  { user, session, account, verification },
-  (r) => ({
-    user: {
-      sessions: r.many.session({
-        from: r.user.id,
-        to: r.session.userId,
-      }),
-      accounts: r.many.account({
-        from: r.user.id,
-        to: r.account.userId,
-      }),
-    },
-
-    session: {
-      user: r.one.user({
-        from: r.session.userId,
-        to: r.user.id,
-        optional: false,
-      }),
-    },
-
-    account: {
-      user: r.one.user({
-        from: r.account.userId,
-        to: r.user.id,
-        optional: false,
-      }),
-    },
-  }),
-);
-
-export const projects = pgTable("projects", {
+export const projectsTable = pgTable("projects", {
   id: uuid("id").defaultRandom().primaryKey(),
 
   name: varchar("name", { length: 255 }).notNull(),
@@ -150,3 +118,47 @@ export const projects = pgTable("projects", {
     .$onUpdate(() => new Date())
     .notNull(),
 });
+
+export const relations = defineRelations(
+  { user, session, account, verification, projectsTable },
+  (r) => ({
+    user: {
+      sessions: r.many.session({
+        from: r.user.id,
+        to: r.session.userId,
+      }),
+      accounts: r.many.account({
+        from: r.user.id,
+        to: r.account.userId,
+      }),
+      projects: r.many.projectsTable({
+        from: r.user.id,
+        to: r.projectsTable.ownerId,
+      }),
+    },
+
+    session: {
+      user: r.one.user({
+        from: r.session.userId,
+        to: r.user.id,
+        optional: false,
+      }),
+    },
+
+    account: {
+      user: r.one.user({
+        from: r.account.userId,
+        to: r.user.id,
+        optional: false,
+      }),
+    },
+
+    projects: {
+      owner: r.one.user({
+        from: r.projectsTable.ownerId,
+        to: r.user.id,
+        optional: false,
+      }),
+    },
+  }),
+);

@@ -4,8 +4,9 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { TRPCReactProvider } from "@/trpc/client";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,16 +42,18 @@ export default function RootLayout({
       )}
     >
       <body className="min-h-full flex flex-col">
-        <ThemeProvider
-          attribute={`class`}
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
+        <TRPCReactProvider>
+          <ThemeProvider
+            attribute={`class`}
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
 
-          <Toaster />
-        </ThemeProvider>
+            <Toaster />
+          </ThemeProvider>
+        </TRPCReactProvider>
       </body>
     </html>
   );
