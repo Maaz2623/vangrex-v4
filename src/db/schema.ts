@@ -1,5 +1,13 @@
 import { defineRelations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  index,
+  uuid,
+  varchar,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -104,3 +112,41 @@ export const relations = defineRelations(
     },
   }),
 );
+
+export const projects = pgTable("projects", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  name: varchar("name", { length: 255 }).notNull(),
+
+  description: text("description"),
+
+  icon: varchar("icon", { length: 255 }),
+
+  ownerId: text("owner_id")
+    .notNull()
+    .references(() => user.id, {
+      onDelete: "cascade",
+    }),
+
+  visibility: varchar("visibility", {
+    enum: ["private", "team", "public"],
+    length: 20,
+  })
+    .default("private")
+    .notNull(),
+
+  archived: boolean("archived").default(false).notNull(),
+
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  })
+    .defaultNow()
+    .notNull(),
+
+  updatedAt: timestamp("updated_at", {
+    withTimezone: true,
+  })
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
