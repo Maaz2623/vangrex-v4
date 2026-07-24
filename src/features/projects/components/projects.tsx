@@ -5,6 +5,7 @@ import { ProjectSearch } from "./project-search";
 import { getQueryClient, HydrateClient, prefetch, trpc } from "@/trpc/server";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { ProjectsListSkeleton } from "./project-skeleton";
 
 export const Projects = async () => {
   prefetch(trpc.projects.getProjects.queryOptions());
@@ -19,7 +20,7 @@ export const Projects = async () => {
         />
         <ProjectSearch />
         <ErrorBoundary fallback={<div>Something went wrong</div>}>
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<ProjectsListSkeleton />}>
             <ProjectsList />
           </Suspense>
         </ErrorBoundary>

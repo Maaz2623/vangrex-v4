@@ -1,9 +1,19 @@
-import React from 'react'
+import { Canvas } from "@/features/editor/canvas/canvas";
+import React from "react";
 
-const ProjectPage = () => {
-  return (
-    <div>ProjectPage</div>
-  )
+interface Props {
+  params: Promise<{
+    projectId: string;
+  }>;
 }
 
-export default ProjectPage
+const ProjectPage = async ({ params }: Props) => {
+  const { projectId } = await params;
+  return (
+    <div className="w-full">
+      <Canvas projectId={projectId} />
+    </div>
+  );
+};
+
+export default ProjectPage;

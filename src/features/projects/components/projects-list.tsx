@@ -34,6 +34,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { CreateProject } from "./create-project";
+import Link from "next/link";
 
 export function ProjectsList() {
   const trpc = useTRPC();
@@ -140,7 +141,9 @@ export function ProjectsList() {
             </div>
 
             <div className="flex gap-2">
-              <Button className="flex-1">Open</Button>
+              <Button className="flex-1" asChild>
+                <Link href={`/dashboard/projects/${project.id}`}>Open</Link>
+              </Button>
 
               <Button variant="outline" className="flex-1">
                 Settings

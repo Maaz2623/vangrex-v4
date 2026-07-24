@@ -1,3 +1,4 @@
+import { NodeConfig } from "@/node.config";
 import { defineRelations } from "drizzle-orm";
 import {
   pgTable,
@@ -7,6 +8,9 @@ import {
   index,
   uuid,
   varchar,
+  doublePrecision,
+  jsonb,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
@@ -119,8 +123,51 @@ export const projectsTable = pgTable("projects", {
     .notNull(),
 });
 
+export const nodeTypeEnum = pgEnum("node_type", [
+  "agent",
+  "tool",
+  "knowledge",
+  "logic",
+  "workflow",
+  "human",
+]);
+export const nodesTable = pgTable("nodes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectsTable.id, {
+      onDelete: "cascade",
+    }),
+
+  type: nodeTypeEnum("type").notNull(),
+
+  name: text("name").notNull(),
+
+  description: text("description"),
+
+  positionX: doublePrecision("position_x").notNull().default(0),
+
+  positionY: doublePrecision("position_y").notNull().default(0),
+
+  config: jsonb("config").$type<NodeConfig>().notNull().default({}),
+
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  })
+    .defaultNow()
+    .notNull(),
+
+  updatedAt: timestamp("updated_at", {
+    withTimezone: true,
+  })
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
 export const relations = defineRelations(
-  { user, session, account, verification, projectsTable },
+  { user, session, account, verification, projectsTable, nodesTable },
   (r) => ({
     user: {
       sessions: r.many.session({
@@ -157,6 +204,18 @@ export const relations = defineRelations(
       owner: r.one.user({
         from: r.projectsTable.ownerId,
         to: r.user.id,
+        optional: false,
+      }),
+
+      nodes: r.many.nodesTable({
+        from: r.projectsTable.id,
+        to: r.nodesTable.projectId,
+      }),
+    },
+    nodes: {
+      project: r.one.projectsTable({
+        from: r.nodesTable.projectId,
+        to: r.projectsTable.id,
         optional: false,
       }),
     },
