@@ -42,7 +42,7 @@ export function NavMain({
               asChild
               className={cn(
                 "h-10 pl-3",
-                pathname === item.url && "bg-sidebar-accent",
+                pathname.startsWith(item.url) && "bg-sidebar-accent",
               )}
               tooltip={item.title}
             >

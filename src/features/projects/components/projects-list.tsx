@@ -1,6 +1,15 @@
 "use client";
 
-import { Calendar, Globe, Lock, MoreHorizontal, Users } from "lucide-react";
+import {
+  BoxIcon,
+  Calendar,
+  Globe,
+  Icon,
+  Lock,
+  MoreHorizontal,
+  PlusIcon,
+  Users,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +24,16 @@ import {
 
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
+import { useDeleteProject } from "../hooks/use-projects";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { CreateProject } from "./create-project";
 
 export function ProjectsList() {
   const trpc = useTRPC();
@@ -23,11 +42,29 @@ export function ProjectsList() {
     trpc.projects.getProjects.queryOptions(),
   );
 
-  const deleteProjectMutation = useMutation(
-    trpc.projects.deleteProject.mutationOptions(),
-  );
+  const deleteProject = useDeleteProject();
 
   console.log(projects);
+
+  if (projects.length === 0) {
+    return (
+      <Empty className="border">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <BoxIcon />
+          </EmptyMedia>
+          <EmptyTitle>No Projects Yet</EmptyTitle>
+          <EmptyDescription>
+            You haven't created any projects yet. Get started by creating your
+            first project.
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <CreateProject />
+        </EmptyContent>
+      </Empty>
+    );
+  }
 
   return (
     <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
@@ -60,7 +97,14 @@ export function ProjectsList() {
                 <DropdownMenuItem>
                   {project.archived ? "Restore" : "Archive"}
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive">
+                <DropdownMenuItem
+                  onClick={() =>
+                    deleteProject.mutate({
+                      projectId: project.id,
+                    })
+                  }
+                  className="text-destructive"
+                >
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
