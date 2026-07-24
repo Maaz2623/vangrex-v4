@@ -7,6 +7,37 @@ import { TRPCError } from "@trpc/server";
 import { defaultNodeConfig } from "@/node.config";
 
 export const nodesRouter = createTRPCRouter({
+  deleteNode: protectedProcedure
+    .input(
+      z.object({
+        id: z.uuid(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const [node] = await db
+        .delete(nodesTable)
+        .where(eq(nodesTable.id, input.id))
+        .returning();
+
+      return node.projectId;
+    }),
+  updatePosition: protectedProcedure
+    .input(
+      z.object({
+        id: z.uuid(),
+        positionX: z.number(),
+        positionY: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await db
+        .update(nodesTable)
+        .set({
+          positionX: input.positionX,
+          positionY: input.positionY,
+        })
+        .where(eq(nodesTable.id, input.id));
+    }),
   getNodes: protectedProcedure
     .input(
       z.object({
