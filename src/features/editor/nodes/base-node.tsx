@@ -11,7 +11,7 @@ type Props = {
 
 export const BaseNode = ({ icon, title, description, children }: Props) => {
   return (
-    <Card className="relative min-w-[280px] overflow-hidden rounded-xl border border-border bg-card shadow-lg">
+    <Card className="relative min-w-[280px] overflow-visible rounded-xl border border-border bg-card shadow-lg">
       <NodeHandles />
 
       <div className="flex items-center justify-between border-b px-4 py-3">
