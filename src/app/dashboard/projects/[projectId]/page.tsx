@@ -1,4 +1,3 @@
-import { Canvas } from "@/features/editor/canvas/canvas";
 import React from "react";
 
 interface Props {
@@ -11,7 +10,6 @@ const ProjectPage = async ({ params }: Props) => {
   const { projectId } = await params;
   return (
     <div className="w-full">
-      <Canvas projectId={projectId} />
     </div>
   );
 };
