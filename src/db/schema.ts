@@ -1,4 +1,3 @@
-import { NodeConfig } from "@/node.config";
 import { defineRelations } from "drizzle-orm";
 import {
   pgTable,
@@ -123,16 +122,8 @@ export const projectsTable = pgTable("projects", {
     .notNull(),
 });
 
-export const nodeTypeEnum = pgEnum("node_type", [
-  "agent",
-  "tool",
-  "knowledge",
-  "logic",
-  "workflow",
-  "human",
-]);
-export const nodesTable = pgTable("nodes", {
-  id: uuid("id").primaryKey().defaultRandom(),
+export const workflowsTable = pgTable("workflows", {
+  id: uuid("id").primaryKey().defaultRandom().notNull(),
 
   projectId: uuid("project_id")
     .notNull()
@@ -140,17 +131,13 @@ export const nodesTable = pgTable("nodes", {
       onDelete: "cascade",
     }),
 
-  type: nodeTypeEnum("type").notNull(),
-
-  name: text("name").notNull(),
+  name: varchar("name", {
+    length: 255,
+  }).notNull(),
 
   description: text("description"),
 
-  positionX: doublePrecision("position_x").notNull().default(0),
-
-  positionY: doublePrecision("position_y").notNull().default(0),
-
-  config: jsonb("config").$type<NodeConfig>().notNull().default({}),
+  isEntryPoint: boolean("is_entry_point").notNull().default(false),
 
   createdAt: timestamp("created_at", {
     withTimezone: true,
@@ -167,7 +154,7 @@ export const nodesTable = pgTable("nodes", {
 });
 
 export const relations = defineRelations(
-  { user, session, account, verification, projectsTable, nodesTable },
+  { user, session, account, verification, projectsTable },
   (r) => ({
     user: {
       sessions: r.many.session({
@@ -204,18 +191,6 @@ export const relations = defineRelations(
       owner: r.one.user({
         from: r.projectsTable.ownerId,
         to: r.user.id,
-        optional: false,
-      }),
-
-      nodes: r.many.nodesTable({
-        from: r.projectsTable.id,
-        to: r.nodesTable.projectId,
-      }),
-    },
-    nodes: {
-      project: r.one.projectsTable({
-        from: r.nodesTable.projectId,
-        to: r.projectsTable.id,
         optional: false,
       }),
     },

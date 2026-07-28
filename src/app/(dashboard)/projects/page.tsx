@@ -1,6 +1,9 @@
 import { Projects } from "@/features/projects/components/projects";
+import { requireAuth } from "@/lib/auth-utils";
 
-const ProjectsPage = () => {
+const ProjectsPage = async () => {
+  await requireAuth();
+
   return <Projects />;
 };
 

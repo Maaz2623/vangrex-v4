@@ -1,3 +1,5 @@
+import { requireAuth } from "@/lib/auth-utils";
+
 interface Props {
   params: Promise<{
     projectId: string;
@@ -5,6 +7,8 @@ interface Props {
 }
 
 const ProjectPage = async ({ params }: Props) => {
+  await requireAuth();
+
   const { projectId } = await params;
   return <div className="w-full">Workflows</div>;
 };
