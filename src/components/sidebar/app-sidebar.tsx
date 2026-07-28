@@ -3,17 +3,15 @@
 import * as React from "react";
 import {
   AudioWaveform,
-  BookOpen,
-  Bot,
+  BookOpenIcon,
   Command,
   FolderKanbanIcon,
-  Frame,
   GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
-  SquareTerminal,
+  KeyRoundIcon,
+  SettingsIcon,
+  WorkflowIcon,
 } from "lucide-react";
+
 import {
   Sidebar,
   SidebarContent,
@@ -21,65 +19,100 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
+
 import { TeamSwitcher } from "./team-switcher";
 import { NavMain } from "./nav-main";
-import { NavProjects } from "./nav-projects";
 import { NavUser, NavUserSkeleton } from "./nav-user";
-import { authClient } from "@/lib/auth-client";
-import { Skeleton } from "../ui/skeleton";
 
-// This is sample data.
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams: [
-    {
-      name: "Projects",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
+import { authClient } from "@/lib/auth-client";
+import { useParams } from "next/navigation";
+
+const dashboardData = {
   navMain: [
     {
       title: "Projects",
-      url: "/dashboard/projects",
+      href: "projects",
       icon: FolderKanbanIcon,
-      isActive: true,
     },
   ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+const projectDashboardData = {
+  navMain: [
+    {
+      title: "Workflows",
+      href: "workflows",
+      icon: WorkflowIcon,
+    },
+    {
+      title: "Knowledge",
+      href: "knowledge",
+      icon: BookOpenIcon,
+    },
+    {
+      title: "Secrets",
+      href: "secrets",
+      icon: KeyRoundIcon,
+    },
+  ],
+  navSecondary: [
+    {
+      title: "Settings",
+      href: "settings",
+      icon: SettingsIcon,
+    },
+  ],
+};
+
+const teams = [
+  {
+    name: "Projects",
+    logo: GalleryVerticalEnd,
+    plan: "Workspace",
+  },
+  {
+    name: "Acme Corp.",
+    logo: AudioWaveform,
+    plan: "Startup",
+  },
+  {
+    name: "Evil Corp.",
+    logo: Command,
+    plan: "Enterprise",
+  },
+];
+
+export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
+  const { projectId } = useParams<{ projectId?: string }>();
+
   const session = authClient.useSession();
+
+  const isProjectPage = Boolean(projectId);
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={teams} />
       </SidebarHeader>
+
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain
+          items={
+            isProjectPage ? projectDashboardData.navMain : dashboardData.navMain
+          }
+        />
       </SidebarContent>
+
       <SidebarFooter>
-        {!session || !session.data || !session.data.user ? (
+        {isProjectPage && <NavMain items={projectDashboardData.navSecondary} />}
+
+        {!session.data?.user ? (
           <NavUserSkeleton />
         ) : (
-          <NavUser user={session.data?.user} />
+          <NavUser user={session.data.user} />
         )}
       </SidebarFooter>
+
       <SidebarRail />
     </Sidebar>
   );

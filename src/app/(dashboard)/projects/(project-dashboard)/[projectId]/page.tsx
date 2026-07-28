@@ -1,4 +1,5 @@
 import { requireAuth } from "@/lib/auth-utils";
+import { redirect } from "next/navigation";
 
 interface Props {
   params: Promise<{
@@ -10,7 +11,8 @@ const ProjectPage = async ({ params }: Props) => {
   await requireAuth();
 
   const { projectId } = await params;
-  return <div className="w-full">Workflows</div>;
+
+  redirect(`/projects/${projectId}/workflows`);
 };
 
 export default ProjectPage;

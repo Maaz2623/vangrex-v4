@@ -142,7 +142,7 @@ export function ProjectsList() {
 
             <div className="flex gap-2">
               <Button className="flex-1" asChild>
-                <Link href={`/dashboard/projects/${project.id}`}>Open</Link>
+                <Link href={`/projects/${project.id}`}>Open</Link>
               </Button>
 
               <Button variant="outline" className="flex-1">

@@ -154,7 +154,7 @@ export const workflowsTable = pgTable("workflows", {
 });
 
 export const relations = defineRelations(
-  { user, session, account, verification, projectsTable },
+  { user, session, account, verification, projectsTable, workflowsTable },
   (r) => ({
     user: {
       sessions: r.many.session({
@@ -191,6 +191,18 @@ export const relations = defineRelations(
       owner: r.one.user({
         from: r.projectsTable.ownerId,
         to: r.user.id,
+        optional: false,
+      }),
+      workflows: r.many.projectsTable({
+        from: r.projectsTable.id,
+        to: r.workflowsTable.projectId,
+      }),
+    },
+
+    workflows: {
+      project: r.one.projectsTable({
+        from: r.workflowsTable.projectId,
+        to: r.projectsTable.id,
         optional: false,
       }),
     },

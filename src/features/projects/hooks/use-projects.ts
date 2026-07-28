@@ -15,7 +15,7 @@ export const useDeleteProject = () => {
       onSuccess: () => {
         toast.success("Project Deleted.");
         queryClient.invalidateQueries(trpc.projects.getProjects.queryOptions());
-        router.push(`/dashboard/projects`);
+        router.push(`/projects`);
       },
       onError: (error) => {
         toast.error(error.message);
@@ -36,7 +36,7 @@ export const useCreateProject = () => {
       onSuccess: (data) => {
         toast.success("Project Created.");
         queryClient.invalidateQueries(trpc.projects.getProjects.queryOptions());
-        router.push(`/dashboard/projects/${data}`);
+        router.push(`/projects/${data}`);
       },
       onError: (error) => {
         toast.error(error.message);
