@@ -9,13 +9,11 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div>
+    <div className="bg-muted">
       <SidebarProvider>
         <TooltipProvider>
           <AppSidebar />
-          <div className="w-full flex flex-col  px-10 py-10">
-            {children}
-          </div>
+          <div className="w-full flex flex-col  px-10 py-10">{children}</div>
         </TooltipProvider>
       </SidebarProvider>
     </div>

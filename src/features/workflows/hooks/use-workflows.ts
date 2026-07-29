@@ -33,7 +33,7 @@ export const useCreateWorkflow = () => {
   );
 };
 
-export const useGetWorkflows = (projectId: string) => {
+export const useSuspenseWorkflows = (projectId: string) => {
   const trpc = useTRPC();
 
   return useSuspenseQuery(
