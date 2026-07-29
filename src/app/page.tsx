@@ -7,7 +7,7 @@ const HomePage = async () => {
 
   redirect("/projects");
 
-  return <div>Home Page</div>;
+  return <div>Home Pag</div>;
 };
 
 export default HomePage;
