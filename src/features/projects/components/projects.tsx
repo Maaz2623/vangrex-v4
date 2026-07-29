@@ -11,7 +11,7 @@ export const Projects = async () => {
   prefetch(trpc.projects.getProjects.queryOptions());
 
   return (
-    <div className="w-full flex flex-col space-y-10 px-10 py-10">
+    <div className="space-y-10">
       <HydrateClient>
         <PageHeader
           title="Projects"

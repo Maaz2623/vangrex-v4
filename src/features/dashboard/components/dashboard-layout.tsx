@@ -13,7 +13,9 @@ export default async function DashboardLayout({
       <SidebarProvider>
         <TooltipProvider>
           <AppSidebar />
-          {children}
+          <div className="w-full flex flex-col  px-10 py-10">
+            {children}
+          </div>
         </TooltipProvider>
       </SidebarProvider>
     </div>

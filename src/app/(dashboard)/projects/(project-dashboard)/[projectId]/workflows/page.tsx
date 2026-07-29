@@ -1,6 +1,13 @@
-import { Workflows } from "@/features/workflows/components/workflows";
+import { PageHeader } from "@/components/page-header";
+import {
+  CreateWorkflow,
+  SearchWorkflow,
+  Workflows,
+} from "@/features/workflows/components/workflows";
 import { requireAuth } from "@/lib/auth-utils";
-import { prefetch, trpc } from "@/trpc/server";
+import { HydrateClient, prefetch, trpc } from "@/trpc/server";
+import { Suspense } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 
 type Props = {
   params: Promise<{
@@ -19,7 +26,23 @@ const WorkflowsPage = async ({ params }: Props) => {
     }),
   );
 
-  return <Workflows projectId={projectId} />;
+  return (
+    <div className="space-y-10">
+      <HydrateClient>
+        <PageHeader
+          title="Workflows"
+          description="Create and manage your workflows"
+          action={<CreateWorkflow projectId={projectId} />}
+        />
+        <SearchWorkflow />
+        <ErrorBoundary fallback={<div>Something went wrong</div>}>
+          <Suspense fallback={<div>loading...</div>}>
+            <Workflows projectId={projectId} />
+          </Suspense>
+        </ErrorBoundary>
+      </HydrateClient>
+    </div>
+  );
 };
 
 export default WorkflowsPage;
