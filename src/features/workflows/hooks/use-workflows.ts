@@ -8,6 +8,23 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+export const useGetWorkflow = ({
+  projectId,
+  workflowId,
+}: {
+  projectId: string;
+  workflowId: string;
+}) => {
+  const trpc = useTRPC();
+
+  return useQuery(
+    trpc.workflows.getWorkflow.queryOptions({
+      projectId: projectId,
+      workflowId: workflowId,
+    }),
+  );
+};
+
 export const useGetWorkflowName = ({
   projectId,
   workflowId,
