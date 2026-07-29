@@ -6,6 +6,7 @@ import { useParams, usePathname } from "next/navigation";
 
 import {
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -27,6 +28,9 @@ export function NavMain({ items }: { items: Item[] }) {
 
   return (
     <SidebarGroup>
+      <SidebarGroupLabel>
+        Projects
+      </SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
           const href = projectId

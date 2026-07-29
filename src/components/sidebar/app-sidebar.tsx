@@ -54,8 +54,28 @@ const projectDashboardData = {
       href: "secrets",
       icon: KeyRoundIcon,
     },
+    {
+      title: "Settings",
+      href: "settings",
+      icon: SettingsIcon,
+    },
   ],
   navSecondary: [
+    {
+      title: "Settings",
+      href: "settings",
+      icon: SettingsIcon,
+    },
+    {
+      title: "Settings",
+      href: "settings",
+      icon: SettingsIcon,
+    },
+    {
+      title: "Settings",
+      href: "settings",
+      icon: SettingsIcon,
+    },
     {
       title: "Settings",
       href: "settings",
