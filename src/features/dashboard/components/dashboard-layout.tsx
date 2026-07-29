@@ -1,21 +1,26 @@
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import { DashboardBreadcrumb } from "@/components/dashboard-breadcrumb";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import React from "react";
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="">
-      <SidebarProvider>
-        <TooltipProvider>
-          <AppSidebar />
-          <div className="w-full flex flex-col  px-10 py-10">{children}</div>
-        </TooltipProvider>
-      </SidebarProvider>
-    </div>
+    <SidebarProvider>
+      <TooltipProvider>
+        <AppSidebar />
+
+        <main className="flex-1">
+          <div className="border-b px-8 py-4">
+            <DashboardBreadcrumb />
+          </div>
+
+          <div className="px-8 py-8">{children}</div>
+        </main>
+      </TooltipProvider>
+    </SidebarProvider>
   );
 }

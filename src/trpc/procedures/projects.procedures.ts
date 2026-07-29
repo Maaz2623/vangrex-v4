@@ -3,8 +3,37 @@ import { createTRPCRouter, protectedProcedure } from "../init";
 import { db } from "@/db";
 import { projectsTable } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 
 export const projectsRouter = createTRPCRouter({
+  getProjectName: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const [project] = await db
+        .select()
+        .from(projectsTable)
+        .where(
+          and(
+            eq(projectsTable.id, input.projectId),
+            eq(projectsTable.ownerId, ctx.auth.user.id),
+          ),
+        );
+
+      if (!project) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Project not found.",
+        });
+      }
+
+      return {
+        projectName: project.name,
+      };
+    }),
   deleteProject: protectedProcedure
     .input(
       z.object({

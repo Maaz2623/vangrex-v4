@@ -1,14 +1,25 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import {
+  ArrowLeftIcon,
   AudioWaveform,
+  BlocksIcon,
   BookOpenIcon,
+  BookOpenTextIcon,
   Command,
+  FileIcon,
   FolderKanbanIcon,
   GalleryVerticalEnd,
+  GaugeCircleIcon,
+  HistoryIcon,
   KeyRoundIcon,
+  LogsIcon,
+  PlayIcon,
   SettingsIcon,
+  VariableIcon,
   WorkflowIcon,
 } from "lucide-react";
 
@@ -16,8 +27,13 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarRail,
+  SidebarSeparator,
 } from "@/components/ui/sidebar";
 
 import { TeamSwitcher } from "./team-switcher";
@@ -25,64 +41,90 @@ import { NavMain } from "./nav-main";
 import { NavUser, NavUserSkeleton } from "./nav-user";
 
 import { authClient } from "@/lib/auth-client";
-import { useParams } from "next/navigation";
 
-const dashboardData = {
-  navMain: [
-    {
-      title: "Projects",
-      href: "projects",
-      icon: FolderKanbanIcon,
-    },
-  ],
-};
+const dashboardNav = [
+  {
+    title: "Projects",
+    href: "projects",
+    icon: FolderKanbanIcon,
+  },
+];
 
-const projectDashboardData = {
-  navMain: [
-    {
-      title: "Workflows",
-      href: "workflows",
-      icon: WorkflowIcon,
-    },
-    {
-      title: "Knowledge",
-      href: "knowledge",
-      icon: BookOpenIcon,
-    },
-    {
-      title: "Secrets",
-      href: "secrets",
-      icon: KeyRoundIcon,
-    },
-    {
-      title: "Settings",
-      href: "settings",
-      icon: SettingsIcon,
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      href: "settings",
-      icon: SettingsIcon,
-    },
-    {
-      title: "Settings",
-      href: "settings",
-      icon: SettingsIcon,
-    },
-    {
-      title: "Settings",
-      href: "settings",
-      icon: SettingsIcon,
-    },
-    {
-      title: "Settings",
-      href: "settings",
-      icon: SettingsIcon,
-    },
-  ],
-};
+const projectNav = [
+  {
+    title: "Workflows",
+    href: "workflows",
+    icon: WorkflowIcon,
+  },
+  {
+    title: "Knowledge",
+    href: "knowledge",
+    icon: BookOpenIcon,
+  },
+  {
+    title: "Secrets",
+    href: "secrets",
+    icon: KeyRoundIcon,
+  },
+  {
+    title: "Settings",
+    href: "settings",
+    icon: SettingsIcon,
+  },
+];
+
+const workflowNav = [
+  {
+    title: "Overview",
+    href: "overview",
+    icon: GaugeCircleIcon,
+  },
+  {
+    title: "Canvas",
+    href: "canvas",
+    icon: BlocksIcon,
+  },
+  {
+    title: "Executions",
+    href: "executions",
+    icon: PlayIcon,
+  },
+  {
+    title: "Variables",
+    href: "variables",
+    icon: VariableIcon,
+  },
+  {
+    title: "Secrets",
+    href: "secrets",
+    icon: KeyRoundIcon,
+  },
+  {
+    title: "Knowledge",
+    href: "knowledge",
+    icon: BookOpenTextIcon,
+  },
+  {
+    title: "Files",
+    href: "files",
+    icon: FileIcon,
+  },
+  {
+    title: "Logs",
+    href: "logs",
+    icon: LogsIcon,
+  },
+  {
+    title: "Versions",
+    href: "versions",
+    icon: HistoryIcon,
+  },
+  {
+    title: "Settings",
+    href: "settings",
+    icon: SettingsIcon,
+  },
+];
 
 const teams = [
   {
@@ -103,11 +145,30 @@ const teams = [
 ];
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
-  const { projectId } = useParams<{ projectId?: string }>();
+  const { projectId, workflowId } = useParams<{
+    projectId?: string;
+    workflowId?: string;
+  }>();
 
-  const session = authClient.useSession();
+  const { data } = authClient.useSession();
 
-  const isProjectPage = Boolean(projectId);
+  const navItems = workflowId
+    ? workflowNav
+    : projectId
+      ? projectNav
+      : dashboardNav;
+
+  const backLink = workflowId
+    ? {
+        label: "Back to Project",
+        href: `/projects/${projectId}`,
+      }
+    : projectId
+      ? {
+          label: "Back to Projects",
+          href: "/projects",
+        }
+      : null;
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -116,21 +177,34 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       <SidebarContent>
-        <NavMain
-          items={
-            isProjectPage ? projectDashboardData.navMain : dashboardData.navMain
-          }
-        />
+        {backLink && (
+          <>
+            <SidebarGroup>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                  variant={`outline`}
+                    asChild
+                    className="h-10 bg-muted text-muted-foreground hover:text-foreground"
+                  >
+                    <Link href={backLink.href}>
+                      <ArrowLeftIcon className="size-4" />
+                      <span>{backLink.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroup>
+
+            <SidebarSeparator />
+          </>
+        )}
+
+        <NavMain items={navItems} />
       </SidebarContent>
 
       <SidebarFooter>
-        {isProjectPage && <NavMain items={projectDashboardData.navSecondary} />}
-
-        {!session.data?.user ? (
-          <NavUserSkeleton />
-        ) : (
-          <NavUser user={session.data.user} />
-        )}
+        {data?.user ? <NavUser user={data.user} /> : <NavUserSkeleton />}
       </SidebarFooter>
 
       <SidebarRail />
