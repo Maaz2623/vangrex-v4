@@ -6,6 +6,38 @@ import { and, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 export const workflowsRouter = createTRPCRouter({
+  getWorkflowName: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        workflowId: z.string(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const [project] = await db
+        .select()
+        .from(projectsTable)
+        .where(
+          and(
+            eq(projectsTable.id, input.projectId),
+            eq(projectsTable.ownerId, ctx.auth.user.id),
+          ),
+        );
+
+      if (!project) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Project not found.",
+        });
+      }
+
+      const [workflow] = await db
+        .select()
+        .from(workflowsTable)
+        .where(eq(workflowsTable.id, input.workflowId));
+
+      return workflow.name;
+    }),
   create: protectedProcedure
     .input(
       z.object({

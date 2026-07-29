@@ -157,49 +157,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     : projectId
       ? projectNav
       : dashboardNav;
-
-  const backLink = workflowId
-    ? {
-        label: "Back to Project",
-        href: `/projects/${projectId}`,
-      }
-    : projectId
-      ? {
-          label: "Back to Projects",
-          href: "/projects",
-        }
-      : null;
-
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher teams={teams} />
       </SidebarHeader>
-
       <SidebarContent>
-        {backLink && (
-          <>
-            <SidebarGroup>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                  variant={`outline`}
-                    asChild
-                    className="h-10 bg-muted text-muted-foreground hover:text-foreground"
-                  >
-                    <Link href={backLink.href}>
-                      <ArrowLeftIcon className="size-4" />
-                      <span>{backLink.label}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroup>
-
-            <SidebarSeparator />
-          </>
-        )}
-
         <NavMain items={navItems} />
       </SidebarContent>
 

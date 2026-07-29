@@ -30,9 +30,7 @@ export const projectsRouter = createTRPCRouter({
         });
       }
 
-      return {
-        projectName: project.name,
-      };
+      return project.name;
     }),
   deleteProject: protectedProcedure
     .input(

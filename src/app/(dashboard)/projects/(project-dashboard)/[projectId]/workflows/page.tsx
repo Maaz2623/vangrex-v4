@@ -27,7 +27,7 @@ const WorkflowsPage = async ({ params }: Props) => {
   );
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 px-8 py-8">
       <HydrateClient>
         <PageHeader
           title="Workflows"

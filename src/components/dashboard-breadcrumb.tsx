@@ -11,6 +11,19 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useGetProjectName } from "@/features/projects/hooks/use-projects";
+import { Link2Icon, PenBoxIcon } from "lucide-react";
+import { toast } from "sonner";
+import { useGetWorkflowName } from "@/features/workflows/hooks/use-workflows";
 
 const labels: Record<string, string> = {
   projects: "Projects",
@@ -35,9 +48,27 @@ export function DashboardBreadcrumb() {
     workflowId?: string;
   }>();
 
+  const { data: projectName, isLoading: projectLoading } = useGetProjectName(
+    projectId!,
+  );
+
+  const { data: workflowName, isLoading: workflowLoading } = useGetWorkflowName(
+    {
+      projectId: projectId!,
+      workflowId: workflowId!,
+    },
+  );
+
   const segments = pathname.split("/").filter(Boolean);
 
-  const items = [];
+  const items: {
+    href: string;
+    title: string;
+    isProject: boolean;
+    isWorkflow: boolean;
+    isLoading: boolean;
+  }[] = [];
+
   let href = "";
 
   for (const segment of segments) {
@@ -46,39 +77,89 @@ export function DashboardBreadcrumb() {
     let title = labels[segment] ?? segment;
 
     if (segment === projectId) {
-        
-      // Replace with project name from query later
-      title = "Project";
+      title = projectName ?? "Project";
     }
 
     if (segment === workflowId) {
-      // Replace with workflow name later
-      title = "Workflow";
+      // Replace with workflow name once you have the query
+      title = workflowName ?? "Workflow";
     }
 
     items.push({
       href,
       title,
+      isProject: segment === projectId,
+      isWorkflow: segment === workflowId,
+      isLoading:
+        (segment === projectId && projectLoading) ||
+        (segment === workflowId && workflowLoading),
     });
   }
 
+  const copyLink = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(
+        `${process.env.NEXT_PUBLIC_APP_URL}${url}`,
+      );
+
+      toast.success("Link copied to clipboard.");
+    } catch (error) {
+      toast.error("Failed to copy link.");
+    }
+  };
+
   return (
     <Breadcrumb>
-      <BreadcrumbList>
+      <BreadcrumbList className="text-sm">
         {items.map((item, index) => {
           const last = index === items.length - 1;
+          const editable = item.isProject || item.isWorkflow;
+
+          const breadcrumb = last ? (
+            <BreadcrumbPage>{item.title}</BreadcrumbPage>
+          ) : (
+            <BreadcrumbLink asChild>
+              <Link href={item.href}>{item.title}</Link>
+            </BreadcrumbLink>
+          );
 
           return (
             <div key={item.href} className="flex items-center gap-2">
               {index !== 0 && <BreadcrumbSeparator />}
 
               <BreadcrumbItem>
-                {last ? (
-                  <BreadcrumbPage>{item.title}</BreadcrumbPage>
+                {item.isLoading ? (
+                  <Skeleton className="h-4 w-24 rounded-md" />
+                ) : editable ? (
+                  <ContextMenu>
+                    <ContextMenuTrigger asChild>
+                      {breadcrumb}
+                    </ContextMenuTrigger>
+
+                    <ContextMenuContent className="w-52">
+                      <ContextMenuLabel>
+                        {item.isProject ? "Project" : "Workflow"}
+                      </ContextMenuLabel>
+
+                      <ContextMenuSeparator />
+
+                      <ContextMenuItem
+                        onClick={() => {
+                          copyLink(item.href);
+                        }}
+                      >
+                        <Link2Icon className="mr-2 h-4 w-4" />
+                        Copy Link
+                      </ContextMenuItem>
+
+                      <ContextMenuItem>
+                        <PenBoxIcon className="mr-2 h-4 w-4" />
+                        Rename
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
                 ) : (
-                  <BreadcrumbLink asChild>
-                    <Link href={item.href}>{item.title}</Link>
-                  </BreadcrumbLink>
+                  breadcrumb
                 )}
               </BreadcrumbItem>
             </div>

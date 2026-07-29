@@ -1,10 +1,17 @@
 import { useTRPC } from "@/trpc/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+export const useGetProjectName = (projectId: string) => {
+  const trpc = useTRPC();
 
-
+  return useQuery(
+    trpc.projects.getProjectName.queryOptions({
+      projectId: projectId,
+    }),
+  );
+};
 
 export const useDeleteProject = () => {
   const trpc = useTRPC();
