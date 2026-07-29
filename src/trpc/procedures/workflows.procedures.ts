@@ -77,4 +77,41 @@ export const workflowsRouter = createTRPCRouter({
 
       return workflows;
     }),
+
+  deleteWorkflow: protectedProcedure
+    .input(
+      z.object({
+        workflowId: z.string(),
+        projectId: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const [project] = await db
+        .select()
+        .from(projectsTable)
+        .where(
+          and(
+            eq(projectsTable.id, input.projectId),
+            eq(projectsTable.ownerId, ctx.auth.user.id),
+          ),
+        );
+
+      if (!project) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Project not found.",
+        });
+      }
+
+      const [deletedWorkflow] = await db
+        .delete(workflowsTable)
+        .where(eq(workflowsTable.id, input.workflowId))
+        .returning();
+
+      return {
+        name: deletedWorkflow.name,
+        id: deletedWorkflow.id,
+        projectId: project.id,
+      };
+    }),
 });

@@ -9,7 +9,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-muted">
+    <div className="">
       <SidebarProvider>
         <TooltipProvider>
           <AppSidebar />
