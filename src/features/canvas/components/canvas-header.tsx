@@ -24,12 +24,12 @@ export const CanvasHeader = ({ projectId, workflowId }: Props) => {
   }
 
   return (
-    <header className="border-b bg-background">
-      <div className="flex flex-col gap-5 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
+    <header className="w-[95%] bg-transparent">
+      <div className="flex flex-col gap-5 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
         {/* Left */}
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h1 className="truncate text-2xl font-semibold">
+            <h1 className="truncate text-xl font-semibold">
               {workflow.name ?? "Untitled Workflow"}
             </h1>
 
@@ -42,7 +42,7 @@ export const CanvasHeader = ({ projectId, workflowId }: Props) => {
             </Button>
           </div>
 
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>
               Last updated{" "}
               {formatDistanceToNow(workflow.updatedAt, {
@@ -77,22 +77,19 @@ export const CanvasHeader = ({ projectId, workflowId }: Props) => {
     </header>
   );
 };
-
 export const CanvasHeaderSkeleton = () => {
   return (
-    <header className="border-b bg-background">
-      <div className="flex flex-col gap-5 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
+    <header className="w-[95%] bg-transparent">
+      <div className="flex flex-col gap-5 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
         {/* Left */}
-        <div className="min-w-0 space-y-3">
+        <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <Skeleton className="h-8 w-64 rounded-md" />
+            <Skeleton className="h-7 w-64" />
             <Skeleton className="h-8 w-8 rounded-md" />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <Skeleton className="h-4 w-32 rounded-md" />
-            <Skeleton className="hidden h-4 w-px sm:block" />
-            <Skeleton className="hidden h-6 w-14 rounded-full sm:block" />
+          <div className="mt-2">
+            <Skeleton className="h-4 w-40" />
           </div>
         </div>
 
@@ -100,7 +97,6 @@ export const CanvasHeaderSkeleton = () => {
         <div className="flex flex-wrap items-center gap-2">
           <Skeleton className="h-10 w-24 rounded-md" />
           <Skeleton className="h-10 w-24 rounded-md" />
-          <Skeleton className="h-10 w-28 rounded-md" />
           <Skeleton className="h-10 w-10 rounded-md" />
         </div>
       </div>

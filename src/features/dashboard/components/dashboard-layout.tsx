@@ -20,7 +20,7 @@ export default function DashboardLayout({
             <TopBarActions />
           </div>
 
-          <div className="">{children}</div>
+          <div className="h-[93%]">{children}</div>
         </main>
       </TooltipProvider>
     </SidebarProvider>

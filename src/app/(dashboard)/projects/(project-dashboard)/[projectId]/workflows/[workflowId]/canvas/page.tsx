@@ -1,4 +1,4 @@
-import { CanvasHeader } from "@/features/canvas/components/canvas-header";
+import { CanvasEditor } from "@/features/canvas/components/canvas-editor";
 
 interface Props {
   params: Promise<{
@@ -12,7 +12,7 @@ const CanvasPage = async ({ params }: Props) => {
 
   return (
     <div className="w-full h-full">
-      <CanvasHeader projectId={projectId} workflowId={workflowId} />
+      <CanvasEditor projectId={projectId} workflowId={workflowId} />
     </div>
   );
 };
