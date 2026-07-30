@@ -24,7 +24,7 @@ export const CanvasHeader = ({ projectId, workflowId }: Props) => {
   }
 
   return (
-    <header className="w-[95%] bg-transparent">
+    <header className="w-[95%] bg-background/40 rounded-xl border">
       <div className="flex flex-col gap-5 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
         {/* Left */}
         <div className="min-w-0">
@@ -55,12 +55,12 @@ export const CanvasHeader = ({ projectId, workflowId }: Props) => {
         {/* Right */}
         <div className="flex flex-wrap items-center gap-2">
           <Button>
-            <Play className="mr-2 h-4 w-4" />
+            <Play className="mr-1 h-4 w-4" />
             Run
           </Button>
 
           <Button variant="outline">
-            <Save className="mr-2 h-4 w-4" />
+            <Save className="mr-1 h-4 w-4" />
             Save
           </Button>
           {/* 
