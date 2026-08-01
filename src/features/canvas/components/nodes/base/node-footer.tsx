@@ -1,15 +1,13 @@
-import { cn } from "@/lib/utils";
 import { HTMLAttributes, ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 interface NodeFooterProps extends HTMLAttributes<HTMLDivElement> {
   left?: ReactNode;
-  center?: ReactNode;
   right?: ReactNode;
 }
 
 export const NodeFooter = ({
   left,
-  center,
   right,
   className,
   ...props
@@ -17,16 +15,22 @@ export const NodeFooter = ({
   return (
     <div
       className={cn(
-        "flex items-center justify-between border-t px-4 py-3",
+        "flex items-center justify-between border-t bg-muted/20 px-4 py-2",
         className,
       )}
       {...props}
     >
-      <div className="flex items-center gap-2">{left}</div>
+      <div className="flex items-center gap-2">
+        {left}
 
-      <div className="flex items-center gap-2">{center}</div>
+        <span className="text-xs text-muted-foreground">Input</span>
+      </div>
 
-      <div className="flex items-center gap-2">{right}</div>
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-muted-foreground">Output</span>
+
+        {right}
+      </div>
     </div>
   );
 };

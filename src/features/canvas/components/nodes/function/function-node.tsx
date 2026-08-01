@@ -1,17 +1,27 @@
 import { NodeProps, Position } from "@xyflow/react";
-import { AgentFlowNode, AgentNodeData } from "../types";
+import { AgentFlowNode, AgentNodeData, FunctionFlowNode } from "../types";
 import { BaseNode } from "../base/base-node";
 import { NodeHeader } from "../base/node-header";
-import { BotIcon, Copy, Play, Settings2, Trash2 } from "lucide-react";
+import {
+  BotIcon,
+  Copy,
+  FunctionSquareIcon,
+  Play,
+  Settings2,
+  Trash2,
+} from "lucide-react";
 import { NodeStatus } from "../base/node-status";
 import { NodeBody } from "../base/node-body";
-import { AgentNodePreview } from "./agent-node-preview";
 import { NodeFooter } from "../base/node-footer";
 import { NodeHandle } from "../base/node-handle";
 import { NodeToolbar } from "../base/node-toolbar";
 import { NodeToolbarButton } from "../base/node-toolbar-button";
+import { FunctionNodePreview } from "./function-node-preview";
 
-export const AgentNode = ({ data, selected }: NodeProps<AgentFlowNode>) => {
+export const FunctionNode = ({
+  data,
+  selected,
+}: NodeProps<FunctionFlowNode>) => {
   return (
     <BaseNode selected={selected}>
       <NodeToolbar>
@@ -25,14 +35,14 @@ export const AgentNode = ({ data, selected }: NodeProps<AgentFlowNode>) => {
       </NodeToolbar>
 
       <NodeHeader
-        icon={<BotIcon className="h-5 w-5" />}
+        icon={<FunctionSquareIcon className="h-5 w-5" />}
         title={data.title}
-        subtitle={"AI Agent"}
+        subtitle={"Function Node"}
         rightSection={<NodeStatus status={data.metadata.status} />}
       />
 
       <NodeBody>
-        <AgentNodePreview data={data} />
+        <FunctionNodePreview data={data} />
       </NodeBody>
 
       <NodeFooter

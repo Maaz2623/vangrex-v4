@@ -7,7 +7,15 @@ export interface BaseNodeData<TConfig = unknown> extends Record<
   title: string;
   description?: string;
 
-  status?: NodeStatusType;
-
   config: TConfig;
+
+  metadata: {
+    status?: NodeStatusType;
+
+    disabled: boolean;
+
+    collapsed: boolean;
+
+    locked: boolean;
+  };
 }
