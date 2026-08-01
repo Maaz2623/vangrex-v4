@@ -5,6 +5,8 @@ import "@xyflow/react/dist/style.css";
 import { CanvasHeader } from "./canvas-header";
 import { CanvasContextMenu } from "./canvas-context-menu";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
+import { nodes } from "@/nodes";
+import { nodeTypes } from "./nodes/node-registry";
 
 type Props = {
   projectId: string;
@@ -17,7 +19,7 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <div className="h-full w-full">
-            <ReactFlow colorMode="dark">
+            <ReactFlow colorMode="dark" nodes={nodes} nodeTypes={nodeTypes}>
               <MiniMap />
               <Background color="skyblue" />
               <Controls />
