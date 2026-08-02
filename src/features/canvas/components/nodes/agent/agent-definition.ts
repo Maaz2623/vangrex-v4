@@ -10,7 +10,6 @@ export const agentDefinition: NodeDefinition<AgentConfig> = {
   name: "AI Agent",
   description: "Run prompts using LLM.",
   icon: BotIcon,
-  category: NodeCategory.AI,
   component: AgentNode,
   defaultConfig: defaultAgentConfig,
   handles: [
