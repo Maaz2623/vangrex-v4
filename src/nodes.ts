@@ -1,5 +1,5 @@
-import { Node } from "@xyflow/react";
 import { AppFlowNode } from "./features/canvas/components/nodes/node-config";
+import { NodeCategory } from "./features/canvas/components/nodes/types/node-definition";
 
 export const initialNodes: AppFlowNode[] = [
   {
@@ -11,10 +11,11 @@ export const initialNodes: AppFlowNode[] = [
     },
     data: {
       title: "Customer Agent",
-      description: "Handles support",
+      description: "Handles customer support",
       config: {
         model: "Gemini 2.5 Flash",
-        prompt: "You are a helpful assistant.",
+        prompt:
+          "You are a helpful customer support assistant. Use available tools whenever necessary.",
         temperature: 0.7,
         maxTokens: 4096,
       },
@@ -29,20 +30,16 @@ export const initialNodes: AppFlowNode[] = [
 
   {
     id: "2",
-    type: "function",
+    type: "tool-call",
     position: {
       x: 500,
       y: 100,
     },
     data: {
-      title: "Transform Data",
-      description: "Process workflow data",
+      title: "Weather Tool",
+      description: "Returns the current weather for a given city.",
       config: {
-        language: "typescript",
-        runtime: "node",
-        code: `export default async function(input) {
-  return input;
-}`,
+        implementation: "weather",
       },
       metadata: {
         status: "idle",

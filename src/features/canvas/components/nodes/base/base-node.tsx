@@ -1,14 +1,19 @@
 import { HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
+import { NodeHandle } from "../types/node-handle";
+import { NodePorts } from "./node-ports";
+import { NodeDefinition } from "../types/node-definition";
 
 interface BaseNodeProps extends HTMLAttributes<HTMLDivElement> {
   selected?: boolean;
+  definition: NodeDefinition<any>;
 }
 
 export const BaseNode = ({
   selected,
   className,
   children,
+  definition,
   ...props
 }: BaseNodeProps) => {
   return (
@@ -21,6 +26,7 @@ export const BaseNode = ({
       )}
       {...props}
     >
+      <NodePorts handles={definition.handles} />
       {children}
     </div>
   );

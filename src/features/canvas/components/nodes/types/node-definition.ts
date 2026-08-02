@@ -2,6 +2,7 @@ import { NodeProps } from "@xyflow/react";
 import { ComponentType } from "react";
 import { FlowNode } from "./flow-node";
 import { LucideIcon } from "lucide-react";
+import { NodeHandle } from "./node-handle";
 
 export interface NodeDefinition<TConfig> {
   /**
@@ -28,7 +29,9 @@ export interface NodeDefinition<TConfig> {
   /**
    * React Flow component.
    */
-  component: ComponentType<NodeProps<FlowNode<TConfig>>>;
+  component: ComponentType<any>;
+
+  handles: NodeHandle[];
 
   /**
    * Default configuration.
@@ -38,7 +41,6 @@ export interface NodeDefinition<TConfig> {
   /**
    * Sidebar category.
    */
-  category: "AI" | "Logic" | "Data" | "Flow" | "Tools" | "Input" | "Output";
 }
 
 export const NodeCategory = {

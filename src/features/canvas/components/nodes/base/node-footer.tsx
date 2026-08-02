@@ -1,17 +1,9 @@
-import { HTMLAttributes, ReactNode } from "react";
+import { HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-interface NodeFooterProps extends HTMLAttributes<HTMLDivElement> {
-  left?: ReactNode;
-  right?: ReactNode;
-}
+interface NodeFooterProps extends HTMLAttributes<HTMLDivElement> {}
 
-export const NodeFooter = ({
-  left,
-  right,
-  className,
-  ...props
-}: NodeFooterProps) => {
+export const NodeFooter = ({ className, ...props }: NodeFooterProps) => {
   return (
     <div
       className={cn(
@@ -20,17 +12,9 @@ export const NodeFooter = ({
       )}
       {...props}
     >
-      <div className="flex items-center gap-2">
-        {left}
+      <span className="text-xs text-muted-foreground">Ready</span>
 
-        <span className="text-xs text-muted-foreground">Input</span>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-muted-foreground">Output</span>
-
-        {right}
-      </div>
+      <span className="text-xs text-muted-foreground">v1</span>
     </div>
   );
 };

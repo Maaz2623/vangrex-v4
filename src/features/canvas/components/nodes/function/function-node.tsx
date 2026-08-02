@@ -13,51 +13,33 @@ import {
 import { NodeStatus } from "../base/node-status";
 import { NodeBody } from "../base/node-body";
 import { NodeFooter } from "../base/node-footer";
-import { NodeHandle } from "../base/node-handle";
 import { NodeToolbar } from "../base/node-toolbar";
 import { NodeToolbarButton } from "../base/node-toolbar-button";
 import { FunctionNodePreview } from "./function-node-preview";
+import { NodeShell } from "../base/node-shell";
+import { functionDefinition } from "./function-definition";
 
 export const FunctionNode = ({
   data,
   selected,
 }: NodeProps<FunctionFlowNode>) => {
   return (
-    <BaseNode selected={selected}>
-      <NodeToolbar>
-        <NodeToolbarButton icon={Settings2} />
+    <NodeShell
+      definition={functionDefinition}
+      data={data}
+      selected={selected}
+      preview={<FunctionNodePreview data={data} />}
+      toolbar={
+        <>
+          <NodeToolbarButton icon={Settings2} />
 
-        <NodeToolbarButton icon={Play} />
+          <NodeToolbarButton icon={Play} />
 
-        <NodeToolbarButton icon={Copy} />
+          <NodeToolbarButton icon={Copy} />
 
-        <NodeToolbarButton icon={Trash2} />
-      </NodeToolbar>
-
-      <NodeHeader
-        icon={<FunctionSquareIcon className="h-5 w-5" />}
-        title={data.title}
-        subtitle={"Function Node"}
-        rightSection={<NodeStatus status={data.metadata.status} />}
-      />
-
-      <NodeBody>
-        <FunctionNodePreview data={data} />
-      </NodeBody>
-
-      <NodeFooter
-        left={
-          <NodeHandle
-            label="Output"
-            id={`input`}
-            type="target"
-            position={Position.Left}
-          />
-        }
-        right={
-          <NodeHandle id={`output`} type="source" position={Position.Right} />
-        }
-      />
-    </BaseNode>
+          <NodeToolbarButton icon={Trash2} />
+        </>
+      }
+    />
   );
 };

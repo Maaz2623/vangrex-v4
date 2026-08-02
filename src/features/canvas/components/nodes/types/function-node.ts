@@ -10,4 +10,4 @@ export interface FunctionConfig extends NodeConfig {
 
 export type FunctionNodeData = BaseNodeData<FunctionConfig>;
 
-export type FunctionFlowNode = FlowNode<FunctionConfig>;
+export type FunctionFlowNode = FlowNode<FunctionConfig, "function">;

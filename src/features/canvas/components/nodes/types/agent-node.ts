@@ -8,9 +8,8 @@ export interface AgentConfig extends NodeConfig {
   prompt: string;
   temperature: number;
   maxTokens: number;
-  category: NodeCategory;
 }
 
 export type AgentNodeData = BaseNodeData<AgentConfig>;
 
-export type AgentFlowNode = FlowNode<AgentConfig>;
+export type AgentFlowNode = FlowNode<AgentConfig, "agent">;
