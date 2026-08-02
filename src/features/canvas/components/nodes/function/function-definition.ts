@@ -14,8 +14,6 @@ export const functionDefinition: NodeDefinition<FunctionConfig> = {
 
   description: "Execute custom JavaScript/TypeScript code.",
 
-  category: NodeCategory.Tools,
-
   icon: FunctionSquareIcon,
 
   component: FunctionNode,
