@@ -6,7 +6,7 @@ import { Position } from "@xyflow/react";
 import { ToolNode } from "./tool-node";
 
 export const toolDefinition: NodeDefinition<ToolConfig> = {
-  type: "tool",
+  type: "tool-call",
 
   name: "Tool",
 

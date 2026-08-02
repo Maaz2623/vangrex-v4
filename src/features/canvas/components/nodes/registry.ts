@@ -6,5 +6,5 @@ import { NodeDefinition } from "./types/node-definition";
 export const registry: NodeDefinition<any>[] = [
   agentDefinition,
   toolDefinition,
-  // functionDefinition,
+  functionDefinition,
 ];

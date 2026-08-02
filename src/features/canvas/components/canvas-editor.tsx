@@ -20,7 +20,9 @@ import { nodeTypes } from "./nodes/node-registry";
 import { useCanvasStore } from "../store/canvas-store";
 import { edgeTypes } from "./edges/edge-definitions/edge-types";
 import { initialEdges } from "@/edges";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
+import { getConnectedTools } from "../services/graph/tool-resolver";
+import { executeAgent } from "../services/execution/agent-executor";
 
 type Props = {
   projectId: string;
@@ -31,7 +33,16 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-  const { setSelectedNode } = useCanvasStore();
+  const { setSelectedNode, executeAgentId, setExecuteAgentId } =
+    useCanvasStore();
+
+  useEffect(() => {
+    if (!executeAgentId) return;
+
+    executeAgent(executeAgentId, nodes, edges);
+
+    setExecuteAgentId(null);
+  }, [executeAgentId, nodes, edges]);
 
   const onConnect = useCallback(
     (connection: Connection) => {
@@ -53,13 +64,15 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
           edges,
         );
 
-        console.log(next);
-
         return next;
       });
     },
     [setEdges],
   );
+
+  const tools = getConnectedTools("1", nodes, edges);
+
+  console.log(tools);
 
   return (
     <div className="h-full w-full">
@@ -77,7 +90,7 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               nodeTypes={nodeTypes}
-              // edgeTypes={edgeTypes}
+              edgeTypes={edgeTypes}
             >
               <MiniMap />
               <Background color="skyblue" />
