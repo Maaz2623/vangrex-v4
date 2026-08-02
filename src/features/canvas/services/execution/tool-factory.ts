@@ -7,11 +7,7 @@ export function createTool(toolNode: ToolFlowNode) {
     description: toolNode.data.description,
     inputSchema: z.object({}),
     execute: async () => {
-      console.log(`Executing tool: ${toolNode.data.title}`);
-
-      return {
-        success: true,
-      };
+      return "Weather is very sunnny but it is rainy!";
     },
   });
 }

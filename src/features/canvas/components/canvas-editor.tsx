@@ -23,6 +23,7 @@ import { initialEdges } from "@/edges";
 import { useCallback, useEffect } from "react";
 import { getConnectedTools } from "../services/graph/tool-resolver";
 import { executeAgent } from "../services/execution/agent-executor";
+import { AgentFlowNode } from "./nodes/types";
 
 type Props = {
   projectId: string;
@@ -35,14 +36,6 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
 
   const { setSelectedNode, executeAgentId, setExecuteAgentId } =
     useCanvasStore();
-
-  useEffect(() => {
-    if (!executeAgentId) return;
-
-    executeAgent(executeAgentId, nodes, edges);
-
-    setExecuteAgentId(null);
-  }, [executeAgentId, nodes, edges]);
 
   const onConnect = useCallback(
     (connection: Connection) => {
@@ -70,9 +63,22 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
     [setEdges],
   );
 
-  const tools = getConnectedTools("1", nodes, edges);
+  useEffect(() => {
+    if (!executeAgentId) return;
 
-  console.log(tools);
+    const agent = nodes.find(
+      (node): node is AgentFlowNode =>
+        node.id === executeAgentId && node.type === "agent",
+    );
+
+    if (!agent) return;
+
+    executeAgent(agent, nodes, edges);
+
+    setExecuteAgentId(null);
+  }, [executeAgentId, nodes, edges, setExecuteAgentId]);
+
+  const tools = getConnectedTools("1", nodes, edges);
 
   return (
     <div className="h-full w-full">

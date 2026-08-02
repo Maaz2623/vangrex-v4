@@ -14,8 +14,7 @@ export const initialNodes: AppFlowNode[] = [
       description: "Handles customer support",
       config: {
         model: "Gemini 2.5 Flash",
-        prompt:
-          "You are a helpful customer support assistant. Use available tools whenever necessary.",
+        prompt: "What is the weather in bangalore?",
         temperature: 0.7,
         maxTokens: 4096,
       },

@@ -16,6 +16,8 @@ import { useCanvasStore } from "@/features/canvas/store/canvas-store";
 export const AgentNode = ({ id, data, selected }: NodeProps<AgentFlowNode>) => {
   const { setExecuteAgentId } = useCanvasStore();
 
+  
+
   return (
     <NodeShell
       definition={agentDefinition}
