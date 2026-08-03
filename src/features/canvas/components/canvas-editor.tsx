@@ -23,7 +23,8 @@ import { initialEdges } from "@/edges";
 import { useCallback, useEffect } from "react";
 import { getConnectedTools } from "../services/graph/tool-resolver";
 import { executeAgent } from "../services/execution/agent-executor";
-import { AgentFlowNode } from "./nodes/types";
+import { AgentFlowNode, NodeStatusType } from "./nodes/types";
+import { executionEvents } from "../services/execution/execution-events";
 
 type Props = {
   projectId: string;
@@ -62,6 +63,46 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
     },
     [setEdges],
   );
+
+  const updateNodeStatus = (nodeId: string, status: NodeStatusType) => {
+    // @ts-ignore
+    setNodes((nodes) =>
+      nodes.map((node) =>
+        node.id === nodeId
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                metadata: {
+                  ...node.data.metadata,
+                  status,
+                },
+              },
+            }
+          : node,
+      ),
+    );
+  };
+
+  useEffect(() => {
+    const unsubscribe = executionEvents.subscribe((event) => {
+      switch (event.type) {
+        case "node:start":
+          updateNodeStatus(event.nodeId, "running");
+          break;
+
+        case "node:success":
+          updateNodeStatus(event.nodeId, "success");
+          break;
+
+        case "node:error":
+          updateNodeStatus(event.nodeId, "error");
+          break;
+      }
+    });
+
+    return unsubscribe;
+  }, []);
 
   useEffect(() => {
     if (!executeAgentId) return;
