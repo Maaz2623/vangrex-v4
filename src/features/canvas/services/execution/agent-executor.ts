@@ -7,6 +7,7 @@ import { defaultModel } from "./model";
 import { AgentFlowNode } from "../../components/nodes/types";
 import { executionEvents } from "./execution-events";
 import { delay } from "@/lib/delay";
+import { getConnectingEdge } from "../graph/get-connecting-edge";
 
 export async function executeAgent(
   agent: AgentFlowNode,
@@ -20,38 +21,78 @@ export async function executeAgent(
   executionEvents.emit({
     type: "node:start",
     nodeId: agent.id,
+    timestamp: Date.now(),
   });
 
-  await delay(3000);
+  await delay(1000);
 
   const connectedTools = getConnectedTools(agent.id, nodes, edges);
-
   const tools = createTools(connectedTools);
 
+  console.log("Connected tools:", connectedTools);
+  console.log("Edges:", edges);
+
+  const edge =
+    connectedTools.length > 0
+      ? getConnectingEdge(agent.id, connectedTools[0].id, edges)
+      : undefined;
+
+  console.log("Edge found:", edge);
+
+  if (edge) {
+    console.log("EMITTING EDGE START");
+    executionEvents.emit({
+      type: "edge:start",
+      edgeId: edge.id,
+      timestamp: Date.now(),
+    });
+
+    await delay(500);
+  }
+
   try {
-    const result = generateText({
+    const result = await generateText({
       model: defaultModel,
       prompt: agent.data.config.prompt,
       tools,
     });
 
-    const text = (await result).content;
+    console.log(result.content);
 
-    console.log(text);
+    if (edge) {
+      await delay(500);
 
-    await delay(3000);
+      executionEvents.emit({
+        type: "edge:success",
+        edgeId: edge.id,
+        timestamp: Date.now(),
+      });
+    }
+
+    await delay(1000);
 
     executionEvents.emit({
       type: "node:success",
       nodeId: agent.id,
+      timestamp: Date.now(),
     });
   } catch (error) {
+    if (edge) {
+      executionEvents.emit({
+        type: "edge:error",
+        edgeId: edge.id,
+        error: error instanceof Error ? error : new Error(String(error)),
+        timestamp: Date.now(),
+      });
+    }
+
     executionEvents.emit({
       type: "node:error",
       nodeId: agent.id,
       error: error instanceof Error ? error : new Error(String(error)),
+      timestamp: Date.now(),
     });
 
-    console.log(error);
+    throw error;
   }
 }

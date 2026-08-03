@@ -30,4 +30,20 @@ export type ExecutionEvent =
       nodeId: string;
       error: Error;
       timestamp: number;
+    }
+  | {
+      type: "edge:start";
+      edgeId: string;
+      timestamp: number;
+    }
+  | {
+      type: "edge:success";
+      edgeId: string;
+      timestamp: number;
+    }
+  | {
+      type: "edge:error";
+      edgeId: string;
+      error: Error;
+      timestamp: number;
     };

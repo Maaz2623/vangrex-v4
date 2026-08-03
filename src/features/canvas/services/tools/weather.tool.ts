@@ -1,13 +1,10 @@
-// weather.tool.ts
-
 import { tool } from "ai";
 import { z } from "zod";
 import { ToolFlowNode } from "../../components/nodes/types/tool-node";
-import { executionEvents } from "../execution/execution-events";
-import { delay } from "@/lib/delay";
+import { executeTool } from "../execution/execute-tool";
 
 export interface WeatherToolParameters {
-  unitls: "metric" | "imperial";
+  units: "metric" | "imperial";
 }
 
 export function createWeatherTool(node: ToolFlowNode) {
@@ -21,39 +18,15 @@ export function createWeatherTool(node: ToolFlowNode) {
       city: z.string(),
     }),
 
-    execute: async ({ city }) => {
-      await delay(3000);
-
-      executionEvents.emit({
-        type: "tool:start",
-        nodeId: node.id,
-        timestamp: Date.now(),
-      });
-
-      await delay(3000);
-
-      try {
-        // logic goes here
-
-        executionEvents.emit({
-          type: "tool:success",
-          nodeId: node.id,
-          timestamp: Date.now(),
-        });
-
+    // weather.tool.ts
+    execute: async ({ city }) =>
+      executeTool(node, async () => {
         return {
           city,
           temperature: 28,
           condition: "Cloudy",
+          units: parameters.units,
         };
-      } catch (error) {
-        executionEvents.emit({
-          type: "tool:error",
-          nodeId: node.id,
-          error: error instanceof Error ? error : new Error(String(error)),
-          timestamp: Date.now(),
-        });
-      }
-    },
+      }),
   });
 }

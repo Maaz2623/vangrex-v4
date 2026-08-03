@@ -1,9 +1,15 @@
 import { Edge } from "@xyflow/react";
+import { EdgeExecutionState } from "./edge-status";
 
 export interface BaseEdgeMetadata {
+  executionState: EdgeExecutionState
+
   animated: boolean;
+
   executionCount: number;
+
   disabled: boolean;
+
   lastExecutedAt?: Date;
 }
 

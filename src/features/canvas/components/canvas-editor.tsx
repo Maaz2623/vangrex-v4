@@ -25,6 +25,8 @@ import { getConnectedTools } from "../services/graph/tool-resolver";
 import { executeAgent } from "../services/execution/agent-executor";
 import { AgentFlowNode, NodeStatusType } from "./nodes/types";
 import { executionEvents } from "../services/execution/execution-events";
+import { EdgeExecutionState } from "./edges/types/edge-status";
+import { useExecutionStore } from "../store/execution-store";
 
 type Props = {
   projectId: string;
@@ -37,6 +39,30 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
 
   const { setSelectedNode, executeAgentId, setExecuteAgentId } =
     useCanvasStore();
+
+  const updateEdgeStatus = (edgeId: string, status: EdgeExecutionState) => {
+    console.log(edgeId, status);
+    setEdges((edges) =>
+      edges.map((edge) => {
+        if (edge.id !== edgeId) return edge;
+
+        const data = edge.data!;
+
+        return {
+          ...edge,
+          animated: status === "running",
+          data: {
+            ...data,
+            metadata: {
+              ...data.metadata,
+              executionState: status,
+              animated: status === "running",
+            },
+          },
+        };
+      }),
+    );
+  };
 
   const onConnect = useCallback(
     (connection: Connection) => {
@@ -52,6 +78,7 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
                 animated: false,
                 disabled: false,
                 executionCount: 0,
+                executionState: "idle",
               },
             },
           },
@@ -83,9 +110,11 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
       ),
     );
   };
+  const { addLog } = useExecutionStore();
 
   useEffect(() => {
     const unsubscribe = executionEvents.subscribe((event) => {
+      addLog(event);
       switch (event.type) {
         case "node:start":
           updateNodeStatus(event.nodeId, "running");
@@ -109,6 +138,19 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
 
         case "tool:error":
           updateNodeStatus(event.nodeId, "error");
+          break;
+
+        case "edge:start":
+          console.log("EDGE START", event.edgeId);
+          updateEdgeStatus(event.edgeId, "running");
+          break;
+
+        case "edge:success":
+          updateEdgeStatus(event.edgeId, "success");
+          break;
+
+        case "edge:error":
+          updateEdgeStatus(event.edgeId, "error");
           break;
       }
     });

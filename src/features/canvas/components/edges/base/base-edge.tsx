@@ -4,6 +4,7 @@ import {
   EdgeProps,
   getBezierPath,
 } from "@xyflow/react";
+import { DefaultFlowEdge } from "../types/default-edge";
 
 export const BaseWorkflowEdge = ({
   id,
@@ -13,7 +14,11 @@ export const BaseWorkflowEdge = ({
   targetY,
   sourcePosition,
   targetPosition,
-}: EdgeProps) => {
+  animated,
+  data,
+  markerEnd,
+  style,
+}: EdgeProps<DefaultFlowEdge>) => {
   const [path, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
@@ -23,9 +28,15 @@ export const BaseWorkflowEdge = ({
     targetPosition,
   });
 
+  console.log({
+    id,
+    animated,
+    executionState: data?.metadata?.executionState,
+  });
+
   return (
     <>
-      <BaseEdge id={id} path={path} />
+      <BaseEdge id={id} path={path} markerEnd={markerEnd} style={style} />
 
       <EdgeLabelRenderer>
         <div
