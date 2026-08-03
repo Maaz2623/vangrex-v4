@@ -26,7 +26,10 @@ export async function executeAgent(
     nodeNames: Object.fromEntries(
       nodes.map((node) => [node.id, node.data.title]),
     ),
+    outputs: {},
   };
+
+  const started = performance.now();
 
   executionEvents.emit({
     type: "node:start",
@@ -68,7 +71,9 @@ export async function executeAgent(
       tools,
     });
 
-    console.log(result.content);
+    context.outputs[agent.id] = result;
+
+    console.log(context.outputs);
 
     if (edge) {
       await delay(500);
@@ -82,11 +87,14 @@ export async function executeAgent(
 
     await delay(1000);
 
+    const duration = performance.now() - started;
+
     executionEvents.emit({
       type: "node:success",
       nodeId: agent.id,
       timestamp: Date.now(),
       nodeName: context.nodeNames[agent.id],
+      duration,
     });
   } catch (error) {
     if (edge) {
@@ -98,12 +106,15 @@ export async function executeAgent(
       });
     }
 
+    const duration = performance.now() - started;
+
     executionEvents.emit({
       type: "node:error",
       nodeId: agent.id,
       error: error instanceof Error ? error : new Error(String(error)),
       timestamp: Date.now(),
       nodeName: context.nodeNames[agent.id],
+      duration,
     });
 
     throw error;

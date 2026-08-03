@@ -14,17 +14,14 @@ export const ExecutionLogItem = ({ log }: Props) => {
       case "node:start":
         return `> Starting node ${log.event.nodeName}`;
 
-      case "node:success":
-        return `✓ Node ${log.event.nodeName} completed`;
-
       case "node:error":
-        return `✗ Node ${log.event.nodeName} failed`;
+        return `✗ Node ${log.event.nodeName} failed (${Math.round(log.event.duration)})`;
 
       case "tool:start":
         return `> Executing tool ${log.event.nodeName}`;
 
-      case "tool:success":
-        return `✓ Tool ${log.event.nodeName} completed`;
+      case "node:success":
+        return `✓ ${log.event.nodeName} completed (${Math.round(log.event.duration)} ms)`;
 
       case "tool:error":
         return `✗ Tool ${log.event.nodeName} failed`;
@@ -39,7 +36,7 @@ export const ExecutionLogItem = ({ log }: Props) => {
         return `✗ Edge failed`;
 
       default:
-        return log.event;
+        return "Return unknown event";
     }
   };
 

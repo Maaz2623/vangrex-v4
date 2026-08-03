@@ -7,6 +7,8 @@ export async function executeTool(
   context: ExecutionContext,
   execute: () => Promise<unknown>,
 ) {
+  const started = performance.now();
+
   executionEvents.emit({
     type: "tool:start",
     nodeId: toolNode.id,
@@ -17,6 +19,10 @@ export async function executeTool(
   try {
     const result = await execute();
 
+    const duration = performance.now() - started;
+
+    context.outputs[toolNode.id] = result;
+
     executionEvents.emit({
       type: "tool:success",
       nodeId: toolNode.id,
@@ -26,6 +32,8 @@ export async function executeTool(
 
     return result;
   } catch (error) {
+    const duration = performance.now() - started;
+
     executionEvents.emit({
       type: "tool:error",
       nodeId: toolNode.id,

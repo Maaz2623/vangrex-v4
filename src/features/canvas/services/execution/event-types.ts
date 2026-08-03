@@ -10,6 +10,7 @@ export type ExecutionEvent =
       nodeId: string;
       nodeName: string;
       timestamp: number;
+      duration: number;
     }
   | {
       type: "node:error";
@@ -17,6 +18,7 @@ export type ExecutionEvent =
       nodeName: string;
       error: Error;
       timestamp: number;
+      duration: number;
     }
   | {
       type: "tool:start";

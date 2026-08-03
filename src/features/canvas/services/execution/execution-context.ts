@@ -3,4 +3,6 @@ export interface ExecutionContext {
   startedAt: number;
 
   nodeNames: Record<string, string>;
+
+  outputs: Record<string, unknown>;
 }
