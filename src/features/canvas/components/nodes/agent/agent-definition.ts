@@ -27,5 +27,12 @@ export const agentDefinition: NodeDefinition<AgentConfig> = {
       position: Position.Right,
       dataType: "text",
     },
+    {
+      id: "tool",
+      name: "Tool",
+      direction: "source",
+      position: Position.Bottom,
+      dataType: "tool-call",
+    },
   ],
 } as const;

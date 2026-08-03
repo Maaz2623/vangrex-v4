@@ -48,4 +48,28 @@ export const initialNodes: AppFlowNode[] = [
       },
     },
   },
+  {
+    id: "3",
+    type: "agent",
+    position: {
+      x: 100,
+      y: 350,
+    },
+    data: {
+      title: "Customer Agent 2",
+      description: "Handles customer support",
+      config: {
+        model: "Gemini 2.5 Flash",
+        prompt: "What is the weather in bangalore?",
+        temperature: 0.7,
+        maxTokens: 4096,
+      },
+      metadata: {
+        status: "idle",
+        disabled: false,
+        collapsed: false,
+        locked: false,
+      },
+    },
+  },
 ];

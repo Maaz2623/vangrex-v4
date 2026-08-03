@@ -28,7 +28,14 @@ import { executionEvents } from "../services/execution/execution-events";
 import { EdgeExecutionState } from "./edges/types/edge-status";
 import { ExecutionLog, useExecutionStore } from "../store/execution-store";
 import { ExecutionPanel } from "../services/execution/execution-panel";
-import { ArrowRight, CheckCircle2, PlayIcon, WrenchIcon, XCircle } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  PlayIcon,
+  WrenchIcon,
+  XCircle,
+} from "lucide-react";
+import { ExecutionManager } from "../services/execution/execution-manager";
 
 type Props = {
   projectId: string;
@@ -170,12 +177,14 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
 
     if (!agent) return;
 
-    executeAgent(agent, nodes, edges);
+    const manager = new ExecutionManager();
+
+    console.log("Starting execution");
+
+    manager.execute(nodes, edges);
 
     setExecuteAgentId(null);
   }, [executeAgentId, nodes, edges, setExecuteAgentId]);
-
-  
 
   return (
     <div className="flex h-full w-full">

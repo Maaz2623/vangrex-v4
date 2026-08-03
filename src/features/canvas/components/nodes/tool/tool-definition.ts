@@ -20,13 +20,13 @@ export const toolDefinition: NodeDefinition<ToolConfig> = {
 
   handles: [
     {
-      id: "tool",
+      id: "input",
 
       name: "Tool",
 
-      direction: "source",
+      direction: "target",
 
-      position: Position.Right,
+      position: Position.Top,
 
       dataType: "tool-call",
     },

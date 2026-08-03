@@ -9,25 +9,17 @@ import { executionEvents } from "./execution-events";
 import { delay } from "@/lib/delay";
 import { getConnectingEdge } from "../graph/get-connecting-edge";
 import { ExecutionContext } from "./execution-context";
+import { getNextExecutionNodes } from "../graph/get-next-execution-nodes";
 
 export async function executeAgent(
   agent: AgentFlowNode,
   nodes: AppFlowNode[],
   edges: FlowEdge[],
+  context: ExecutionContext,
 ) {
   if (!agent) {
     throw new Error("Agent not found");
   }
-
-  const context: ExecutionContext = {
-    workflowId: "temp",
-    startedAt: Date.now(),
-
-    nodeNames: Object.fromEntries(
-      nodes.map((node) => [node.id, node.data.title]),
-    ),
-    outputs: {},
-  };
 
   const started = performance.now();
 
@@ -42,6 +34,11 @@ export async function executeAgent(
 
   const connectedTools = getConnectedTools(agent.id, nodes, edges);
   const tools = createTools(connectedTools, context);
+
+  console.log(
+    "Next execution nodes: ",
+    getNextExecutionNodes(agent.id, nodes, edges),
+  );
 
   console.log("Connected tools:", connectedTools);
   console.log("Edges:", edges);

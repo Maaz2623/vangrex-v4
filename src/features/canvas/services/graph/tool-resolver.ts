@@ -9,8 +9,8 @@ export function getConnectedTools(
   edges: Edge[],
 ): ToolFlowNode[] {
   const connectedToolIds = edges
-    .filter((edge) => edge.target === agentId)
-    .map((edge) => edge.source);
+    .filter((edge) => edge.source === agentId && edge.sourceHandle === "tool")
+    .map((edge) => edge.target);
 
   return nodes.filter(
     (node): node is ToolFlowNode =>

@@ -26,6 +26,9 @@ export const ExecutionLogItem = ({ log }: Props) => {
       case "tool:error":
         return `✗ Tool ${log.event.nodeName} failed`;
 
+      case "tool:success":
+        return `✓ Tool ${log.event.nodeName} completed`;
+
       case "edge:start":
         return `> Traversing edge`;
 
