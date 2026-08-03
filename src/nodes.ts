@@ -39,6 +39,7 @@ export const initialNodes: AppFlowNode[] = [
       description: "Returns the current weather for a given city.",
       config: {
         implementation: "weather",
+        parameters: {},
       },
       metadata: {
         status: "idle",
