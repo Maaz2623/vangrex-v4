@@ -2,8 +2,12 @@ import z from "zod";
 import { ToolFlowNode } from "../../components/nodes/types/tool-node";
 import { tool } from "ai";
 import { toolRegistry } from "../tools";
+import { ExecutionContext } from "./execution-context";
 
-export function createTools(toolNodes: ToolFlowNode[]) {
+export function createTools(
+  toolNodes: ToolFlowNode[],
+  context: ExecutionContext,
+) {
   return Object.fromEntries(
     toolNodes.map((toolNode) => {
       const implementation = toolNode.data.config.implementation;
@@ -14,7 +18,7 @@ export function createTools(toolNodes: ToolFlowNode[]) {
         throw new Error(`Unknown tool: ${implementation}`);
       }
 
-      return [implementation, factory(toolNode)];
+      return [implementation, factory(toolNode, context)];
     }),
   );
 }

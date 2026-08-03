@@ -26,7 +26,9 @@ import { executeAgent } from "../services/execution/agent-executor";
 import { AgentFlowNode, NodeStatusType } from "./nodes/types";
 import { executionEvents } from "../services/execution/execution-events";
 import { EdgeExecutionState } from "./edges/types/edge-status";
-import { useExecutionStore } from "../store/execution-store";
+import { ExecutionLog, useExecutionStore } from "../store/execution-store";
+import { ExecutionPanel } from "../services/execution/execution-panel";
+import { ArrowRight, CheckCircle2, PlayIcon, WrenchIcon, XCircle } from "lucide-react";
 
 type Props = {
   projectId: string;
@@ -173,39 +175,47 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
     setExecuteAgentId(null);
   }, [executeAgentId, nodes, edges, setExecuteAgentId]);
 
-  const tools = getConnectedTools("1", nodes, edges);
+  
 
   return (
-    <div className="h-full w-full">
-      <ContextMenu>
-        <ContextMenuTrigger asChild>
-          <div className="h-full w-full">
-            <ReactFlow
-              onSelectionChange={({ nodes }) => {
-                setSelectedNode(nodes[0]?.id ?? null);
-              }}
-              onConnect={onConnect}
-              colorMode="dark"
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              nodeTypes={nodeTypes}
-              edgeTypes={edgeTypes}
-            >
-              <MiniMap />
-              <Background color="skyblue" />
-              <Controls />
+    <div className="flex h-full w-full">
+      {/* Canvas */}
+      <div className="flex-1">
+        <ContextMenu>
+          <ContextMenuTrigger asChild>
+            <div className="h-full w-full">
+              <ReactFlow
+                onSelectionChange={({ nodes }) => {
+                  setSelectedNode(nodes[0]?.id ?? null);
+                }}
+                onConnect={onConnect}
+                colorMode="dark"
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
+              >
+                <MiniMap />
+                <Background color="skyblue" />
+                <Controls />
 
-              {/* <Panel position="top-left" className="w-full">
-                <CanvasHeader projectId={projectId} workflowId={workflowId} />
-              </Panel> */}
-            </ReactFlow>
-          </div>
-        </ContextMenuTrigger>
+                <Panel position="top-left" className="w-full">
+                  <CanvasHeader projectId={projectId} workflowId={workflowId} />
+                </Panel>
+              </ReactFlow>
+            </div>
+          </ContextMenuTrigger>
 
-        <CanvasContextMenu />
-      </ContextMenu>
+          <CanvasContextMenu />
+        </ContextMenu>
+      </div>
+
+      {/* Execution Panel */}
+      <aside className="w-80 border-l bg-background">
+        <ExecutionPanel />
+      </aside>
     </div>
   );
 };

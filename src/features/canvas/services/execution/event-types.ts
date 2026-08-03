@@ -2,32 +2,38 @@ export type ExecutionEvent =
   | {
       type: "node:start";
       nodeId: string;
+      nodeName: string;
       timestamp: number;
     }
   | {
       type: "node:success";
       nodeId: string;
+      nodeName: string;
       timestamp: number;
     }
   | {
       type: "node:error";
       nodeId: string;
+      nodeName: string;
       error: Error;
       timestamp: number;
     }
   | {
       type: "tool:start";
       nodeId: string;
+      nodeName: string;
       timestamp: number;
     }
   | {
       type: "tool:success";
       nodeId: string;
+      nodeName: string;
       timestamp: number;
     }
   | {
       type: "tool:error";
       nodeId: string;
+      nodeName: string;
       error: Error;
       timestamp: number;
     }
