@@ -98,6 +98,18 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
         case "node:error":
           updateNodeStatus(event.nodeId, "error");
           break;
+
+        case "tool:start":
+          updateNodeStatus(event.nodeId, "running");
+          break;
+
+        case "tool:success":
+          updateNodeStatus(event.nodeId, "success");
+          break;
+
+        case "tool:error":
+          updateNodeStatus(event.nodeId, "error");
+          break;
       }
     });
 
@@ -143,9 +155,9 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
               <Background color="skyblue" />
               <Controls />
 
-              <Panel position="top-left" className="w-full">
+              {/* <Panel position="top-left" className="w-full">
                 <CanvasHeader projectId={projectId} workflowId={workflowId} />
-              </Panel>
+              </Panel> */}
             </ReactFlow>
           </div>
         </ContextMenuTrigger>
