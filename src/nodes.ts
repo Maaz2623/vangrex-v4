@@ -36,7 +36,11 @@ export const initialNodes: AppFlowNode[] = [
       description: "Handles customer support",
       config: {
         model: "Gemini 2.5 Flash",
-        prompt: "What is the weather in bangalore?",
+        prompt: `
+What is the current weather in Bangalore?
+
+Use the Weather Tool and tell the user.
+`.trim(),
         temperature: 0.7,
         maxTokens: 4096,
       },
@@ -57,10 +61,16 @@ export const initialNodes: AppFlowNode[] = [
     },
     data: {
       title: "Customer Agent 2",
-      description: "Handles customer support",
+      description: "Summarizes the previous agent's response",
       config: {
         model: "Gemini 2.5 Flash",
-        prompt: "What is the weather in bangalore?",
+        prompt: `
+You are a summarization agent.
+
+Summarize the following response in exactly one sentence.
+
+{{Customer Agent}}
+      `.trim(),
         temperature: 0.7,
         maxTokens: 4096,
       },

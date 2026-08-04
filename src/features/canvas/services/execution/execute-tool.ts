@@ -21,7 +21,10 @@ export async function executeTool(
 
     const duration = performance.now() - started;
 
-    context.outputs[toolNode.id] = result;
+    context.outputs[toolNode.id] = {
+      type: "tool",
+      value: result,
+    };
 
     executionEvents.emit({
       type: "tool:success",

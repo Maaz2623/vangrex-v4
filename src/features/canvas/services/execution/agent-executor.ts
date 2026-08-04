@@ -1,4 +1,4 @@
-import { streamText, generateText } from "ai";
+import { generateText } from "ai";
 import { FlowEdge } from "../../components/edges/types/base-edge";
 import { AppFlowNode } from "../../components/nodes/node-config";
 import { getConnectedTools } from "../graph/tool-resolver";
@@ -10,6 +10,7 @@ import { delay } from "@/lib/delay";
 import { getConnectingEdge } from "../graph/get-connecting-edge";
 import { ExecutionContext } from "./execution-context";
 import { getNextExecutionNodes } from "../graph/get-next-execution-nodes";
+import { interpolatePrompt } from "./prompt-interpolator";
 
 export async function executeAgent(
   agent: AgentFlowNode,
@@ -62,15 +63,22 @@ export async function executeAgent(
   }
 
   try {
+    const prompt = interpolatePrompt(agent.data.config.prompt, context);
+
     const result = await generateText({
       model: defaultModel,
-      prompt: agent.data.config.prompt,
+      prompt: prompt,
       tools,
+      stopWhen: ({ steps }) => {
+        return steps.length >= 2;
+      },
+      instructions: "Always reply in a sentence",
     });
 
-    context.outputs[agent.id] = result;
-
-    console.log(context.outputs);
+    context.outputs[agent.id] = {
+      type: "agent",
+      text: result.text,
+    };
 
     if (edge) {
       await delay(500);
