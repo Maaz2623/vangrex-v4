@@ -24,33 +24,11 @@ export const CanvasHeader = ({ projectId, workflowId }: Props) => {
   }
 
   return (
-    <header className="w-[95%] bg-background/40 rounded-xl border">
-      <div className="flex flex-col gap-5 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+    <header className="w-[95%] bg-transparent rounded-xl">
+      <div className="flex flex-col gap-5 px-4 lg:flex-row lg:items-center lg:justify-between">
         {/* Left */}
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h1 className="truncate text-xl font-semibold">
-              {workflow.name ?? "Untitled Workflow"}
-            </h1>
 
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
-            >
-              <PenLine className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <span>
-              Last updated{" "}
-              {formatDistanceToNow(workflow.updatedAt, {
-                addSuffix: true,
-              })}
-            </span>
-          </div>
-        </div>
+        <div />
 
         {/* Right */}
         <div className="flex flex-wrap items-center gap-2">
