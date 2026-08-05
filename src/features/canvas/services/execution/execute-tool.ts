@@ -1,5 +1,6 @@
 import { ToolFlowNode } from "../../components/nodes/types/tool-node";
 import { ExecutionContext } from "./execution-context";
+import { ExecutionContextManager } from "./execution-context-manager";
 import { executionEvents } from "./execution-events";
 
 export async function executeTool(
@@ -8,6 +9,11 @@ export async function executeTool(
   execute: () => Promise<unknown>,
 ) {
   const started = performance.now();
+
+  const contextManager = new ExecutionContextManager(context);
+
+  contextManager.incrementNodesExecuted();
+  contextManager.incrementToolsExecuted();
 
   executionEvents.emit({
     type: "tool:start",
@@ -35,7 +41,7 @@ export async function executeTool(
 
     return result;
   } catch (error) {
-    const duration = performance.now() - started;
+    contextManager.incrementErrors();
 
     executionEvents.emit({
       type: "tool:error",

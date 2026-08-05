@@ -8,7 +8,6 @@ import { GraphExecutor } from "./graph-executor";
 
 export class ExecutionManager {
   async execute(nodes: AppFlowNode[], edges: FlowEdge[]) {
-    
     const context: ExecutionContext = {
       workflowId: "temp",
       startedAt: Date.now(),
@@ -18,14 +17,33 @@ export class ExecutionManager {
       ),
 
       outputs: {},
-      
+
       variables: {},
 
-      metadata: {},
-    };
-    
-    const contextManager = new ExecutionContextManager(context);
+      artifacts: [],
 
+      metadata: {},
+
+      executionId: crypto.randomUUID(),
+
+      nodeStates: Object.fromEntries(
+        nodes.map((node) => [
+          node.id,
+          {
+            nodeId: node.id,
+            status: "pending",
+          },
+        ]),
+      ),
+
+      stats: {
+        nodesExecuted: 0,
+        agentsExecuted: 0,
+        toolsExecuted: 0,
+        errors: 0,
+        startedAt: Date.now(),
+      },
+    };
 
     const startAgent = nodes.find(
       (node): node is AgentFlowNode => node.type === "agent",
@@ -38,5 +56,7 @@ export class ExecutionManager {
     const graph = new GraphExecutor();
 
     await graph.execute(startAgent, nodes, edges, context);
+
+    console.table(context.stats);
   }
 }

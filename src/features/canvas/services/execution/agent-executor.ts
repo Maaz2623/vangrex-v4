@@ -11,6 +11,7 @@ import { getConnectingEdge } from "../graph/get-connecting-edge";
 import { ExecutionContext } from "./execution-context";
 import { getNextExecutionNodes } from "../graph/get-next-execution-nodes";
 import { interpolatePrompt } from "./prompt-interpolator";
+import { ExecutionContextManager } from "./execution-context-manager";
 
 export async function executeAgent(
   agent: AgentFlowNode,
@@ -21,6 +22,13 @@ export async function executeAgent(
   if (!agent) {
     throw new Error("Agent not found");
   }
+
+  const contextManager = new ExecutionContextManager(context);
+
+  contextManager.startNode(agent.id);
+
+  contextManager.incrementNodesExecuted();
+  contextManager.incrementAgentsExecuted();
 
   const started = performance.now();
 
@@ -75,10 +83,10 @@ export async function executeAgent(
       instructions: "Always reply in a sentence",
     });
 
-    context.outputs[agent.id] = {
+    contextManager.setOutput(agent.id, {
       type: "agent",
       text: result.text,
-    };
+    });
 
     if (edge) {
       await delay(500);
@@ -94,6 +102,8 @@ export async function executeAgent(
 
     const duration = performance.now() - started;
 
+    contextManager.finishNode(agent.id);
+
     executionEvents.emit({
       type: "node:success",
       nodeId: agent.id,
@@ -102,6 +112,8 @@ export async function executeAgent(
       duration,
     });
   } catch (error) {
+    contextManager.incrementErrors();
+    contextManager.failNode(agent.id);
     if (edge) {
       executionEvents.emit({
         type: "edge:error",

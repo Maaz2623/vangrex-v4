@@ -41,4 +41,64 @@ export class ExecutionContextManager {
 
     return this.context.artifacts.filter((a) => a.nodeId === nodeId);
   }
+
+  startNode(nodeId: string) {
+    const state = this.context.nodeStates[nodeId];
+
+    state.status = "running";
+    state.startedAt = Date.now();
+  }
+
+  finishNode(nodeId: string) {
+    const state = this.context.nodeStates[nodeId];
+
+    state.status = "success";
+    state.completedAt = Date.now();
+
+    if (state.startedAt) {
+      state.duration = state.completedAt - state.startedAt;
+    }
+  }
+
+  failNode(nodeId: string) {
+    const state = this.context.nodeStates[nodeId];
+
+    state.status = "error";
+    state.completedAt = Date.now();
+
+    if (state.startedAt) {
+      state.duration = state.completedAt - state.startedAt;
+    }
+  }
+
+  getNodeState(nodeId: string) {
+    return this.context.nodeStates[nodeId];
+  }
+
+  incrementNodesExecuted() {
+    this.context.stats.nodesExecuted++;
+  }
+
+  incrementAgentsExecuted() {
+    this.context.stats.agentsExecuted++;
+  }
+
+  incrementToolsExecuted() {
+    this.context.stats.toolsExecuted++;
+  }
+
+  incrementErrors() {
+    this.context.stats.errors++;
+  }
+
+  finishExecution() {
+    this.context.stats.completedAt = Date.now();
+
+    this.context.stats.duration =
+      this.context.stats.completedAt - this.context.stats.startedAt;
+  }
+
+  getStats() {
+    return this.context.stats;
+  }
 }
