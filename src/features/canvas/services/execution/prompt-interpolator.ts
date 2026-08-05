@@ -1,4 +1,5 @@
 import { ExecutionContext } from "./execution-context";
+import { formatExecutionOutput } from "./output-formatter";
 
 export function interpolatePrompt(
   prompt: string,
@@ -18,18 +19,9 @@ export function interpolatePrompt(
     const output = context.outputs[nodeId];
 
     if (!output) {
-      return `{{${nodeName}}}`;
+      return ``;
     }
 
-    switch (output.type) {
-      case "agent":
-        return output.text;
-
-      case "tool":
-        return JSON.stringify(output.value, null, 2);
-
-      default:
-        return `{{${nodeName}}}`;
-    }
+    return formatExecutionOutput(output);
   });
 }

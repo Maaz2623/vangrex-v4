@@ -3,10 +3,12 @@ import { AppFlowNode } from "../../components/nodes/node-config";
 import { AgentFlowNode } from "../../components/nodes/types";
 import { executeAgent } from "./agent-executor";
 import { ExecutionContext } from "./execution-context";
+import { ExecutionContextManager } from "./execution-context-manager";
 import { GraphExecutor } from "./graph-executor";
 
 export class ExecutionManager {
   async execute(nodes: AppFlowNode[], edges: FlowEdge[]) {
+    
     const context: ExecutionContext = {
       workflowId: "temp",
       startedAt: Date.now(),
@@ -16,7 +18,14 @@ export class ExecutionManager {
       ),
 
       outputs: {},
+      
+      variables: {},
+
+      metadata: {},
     };
+    
+    const contextManager = new ExecutionContextManager(context);
+
 
     const startAgent = nodes.find(
       (node): node is AgentFlowNode => node.type === "agent",

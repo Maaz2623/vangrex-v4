@@ -1,3 +1,4 @@
+import { ExecutionArtifact } from "./execution-artifact";
 import { ExecutionOutput } from "./execution-output";
 
 export interface ExecutionContext {
@@ -7,4 +8,12 @@ export interface ExecutionContext {
   nodeNames: Record<string, string>;
 
   outputs: Record<string, ExecutionOutput>;
+
+  artifacts: ExecutionArtifact[]
+
+  variables: Record<string, unknown>;
+
+  metadata: Record<string, unknown>;
+
+
 }
