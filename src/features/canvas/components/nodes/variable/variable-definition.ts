@@ -2,15 +2,13 @@ import { Variable } from "lucide-react";
 import { NodeCategory, NodeDefinition } from "../types/node-definition";
 import { VariableConfig } from "../types/variable-node";
 import { Position } from "@xyflow/react";
+import { VariableNode } from "./variable-node";
 
 export const variableDefinition: NodeDefinition<VariableConfig> = {
   type: "variable",
-
-  title: "Variable",
-
+  name: "Variable",
   description: "Stores a value in the execution context.",
-
-  category: NodeCategory.Data,
+  component: VariableNode,
 
   icon: Variable,
 
@@ -18,9 +16,9 @@ export const variableDefinition: NodeDefinition<VariableConfig> = {
     {
       id: "output",
       name: "Output",
-      direction: "source"
+      direction: "source",
       position: Position.Right,
-      dataType: "",
+      dataType: "any",
     },
   ],
 
