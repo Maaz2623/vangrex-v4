@@ -153,8 +153,71 @@ export const workflowsTable = pgTable("workflows", {
     .notNull(),
 });
 
+export const nodesTable = pgTable("nodes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  workflowId: text("workflow_id")
+    .references(() => workflowsTable.id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
+
+  type: text("type").notNull(),
+
+  title: text("title").notNull(),
+
+  description: text("description"),
+
+  positionX: doublePrecision("position_x").notNull(),
+
+  positionY: doublePrecision("position_y").notNull(),
+
+  config: jsonb("config").$type<Record<string, unknown>>().notNull(),
+
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull(),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+export const edgesTable = pgTable("edges", {
+  id: uuid("id").primaryKey().defaultRandom(),
+
+  workflowId: text("workflow_id")
+    .references(() => workflowsTable.id, {
+      onDelete: "cascade",
+    })
+    .notNull(),
+
+  source: text("source").notNull(),
+
+  target: text("target").notNull(),
+
+  sourceHandle: text("source_handle"),
+
+  targetHandle: text("target_handle"),
+
+  config: jsonb("config").$type<Record<string, unknown>>().notNull(),
+
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull(),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const relations = defineRelations(
-  { user, session, account, verification, projectsTable, workflowsTable },
+  {
+    user,
+    session,
+    account,
+    verification,
+    projectsTable,
+    workflowsTable,
+    nodesTable,
+    edgesTable,
+  },
   (r) => ({
     user: {
       sessions: r.many.session({
@@ -204,6 +267,15 @@ export const relations = defineRelations(
         from: r.workflowsTable.projectId,
         to: r.projectsTable.id,
         optional: false,
+      }),
+      nodes: r.many.nodesTable({
+        from: r.workflowsTable.id,
+        to: r.nodesTable.workflowId,
+      }),
+
+      edges: r.many.edgesTable({
+        from: r.workflowsTable.id,
+        to: r.edgesTable.workflowId,
       }),
     },
   }),
