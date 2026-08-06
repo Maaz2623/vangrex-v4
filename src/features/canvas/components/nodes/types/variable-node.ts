@@ -1,7 +1,8 @@
+import { NodeConfig } from "../node-config";
 import { BaseNodeData } from "./base-node";
 import { FlowNode } from "./flow-node";
 
-export interface VariableConfig {
+export interface VariableConfig extends NodeConfig {
   name: string;
   value: string;
 }

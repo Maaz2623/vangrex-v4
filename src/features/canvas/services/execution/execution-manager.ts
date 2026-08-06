@@ -4,6 +4,7 @@ import { AgentFlowNode } from "../../components/nodes/types";
 import { executeAgent } from "./agent-executor";
 import { ExecutionContext } from "./execution-context";
 import { ExecutionContextManager } from "./execution-context-manager";
+import { getStartNodes } from "./get-start-nodes";
 import { GraphExecutor } from "./graph-executor";
 
 export class ExecutionManager {
@@ -45,18 +46,16 @@ export class ExecutionManager {
       },
     };
 
-    const startAgent = nodes.find(
-      (node): node is AgentFlowNode => node.type === "agent",
-    );
-
-    if (!startAgent) {
-      throw new Error("No start agent found");
-    }
-
     const graph = new GraphExecutor();
 
-    await graph.execute(startAgent, nodes, edges, context);
+    const startNodes = getStartNodes  (nodes, edges);
 
-    console.table(context.stats);
+    if (startNodes.length === 0) {
+      throw new Error("No start nodes found");
+    }
+
+    for (const startNode of startNodes) {
+      await graph.execute(startNode, nodes, edges, context);
+    }
   }
 }

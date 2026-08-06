@@ -1,15 +1,17 @@
 import { generateText } from "ai";
+
+import { delay } from "@/lib/delay";
+
 import { FlowEdge } from "../../components/edges/types/base-edge";
 import { AppFlowNode } from "../../components/nodes/node-config";
+import { AgentFlowNode } from "../../components/nodes/types";
+
 import { getConnectedTools } from "../graph/tool-resolver";
+import { getConnectingEdge } from "../graph/get-connecting-edge";
+
 import { createTools } from "./tool-factory";
 import { defaultModel } from "./model";
-import { AgentFlowNode } from "../../components/nodes/types";
 import { executionEvents } from "./execution-events";
-import { delay } from "@/lib/delay";
-import { getConnectingEdge } from "../graph/get-connecting-edge";
-import { ExecutionContext } from "./execution-context";
-import { getNextExecutionNodes } from "../graph/get-next-execution-nodes";
 import { interpolatePrompt } from "./prompt-interpolator";
 import { ExecutionContextManager } from "./execution-context-manager";
 
@@ -17,18 +19,12 @@ export async function executeAgent(
   agent: AgentFlowNode,
   nodes: AppFlowNode[],
   edges: FlowEdge[],
-  context: ExecutionContext,
+  contextManager: ExecutionContextManager,
 ) {
-  if (!agent) {
-    throw new Error("Agent not found");
-  }
-
-  const contextManager = new ExecutionContextManager(context);
+  const context = contextManager.getContext();
 
   contextManager.startNode(agent.id);
-
-  contextManager.incrementNodesExecuted();
-  contextManager.incrementAgentsExecuted();
+  contextManager.recordAgentExecution();
 
   const started = performance.now();
 
@@ -44,23 +40,12 @@ export async function executeAgent(
   const connectedTools = getConnectedTools(agent.id, nodes, edges);
   const tools = createTools(connectedTools, context);
 
-  console.log(
-    "Next execution nodes: ",
-    getNextExecutionNodes(agent.id, nodes, edges),
-  );
-
-  console.log("Connected tools:", connectedTools);
-  console.log("Edges:", edges);
-
   const edge =
     connectedTools.length > 0
       ? getConnectingEdge(agent.id, connectedTools[0].id, edges)
       : undefined;
 
-  console.log("Edge found:", edge);
-
   if (edge) {
-    console.log("EMITTING EDGE START");
     executionEvents.emit({
       type: "edge:start",
       edgeId: edge.id,
@@ -75,11 +60,9 @@ export async function executeAgent(
 
     const result = await generateText({
       model: defaultModel,
-      prompt: prompt,
+      prompt,
       tools,
-      stopWhen: ({ steps }) => {
-        return steps.length >= 2;
-      },
+      stopWhen: ({ steps }) => steps.length >= 2,
       instructions: "Always reply in a sentence",
     });
 
@@ -100,8 +83,6 @@ export async function executeAgent(
 
     await delay(1000);
 
-    const duration = performance.now() - started;
-
     contextManager.finishNode(agent.id);
 
     executionEvents.emit({
@@ -109,11 +90,12 @@ export async function executeAgent(
       nodeId: agent.id,
       timestamp: Date.now(),
       nodeName: context.nodeNames[agent.id],
-      duration,
+      duration: performance.now() - started,
     });
   } catch (error) {
     contextManager.incrementErrors();
     contextManager.failNode(agent.id);
+
     if (edge) {
       executionEvents.emit({
         type: "edge:error",
@@ -123,15 +105,13 @@ export async function executeAgent(
       });
     }
 
-    const duration = performance.now() - started;
-
     executionEvents.emit({
       type: "node:error",
       nodeId: agent.id,
+      nodeName: context.nodeNames[agent.id],
       error: error instanceof Error ? error : new Error(String(error)),
       timestamp: Date.now(),
-      nodeName: context.nodeNames[agent.id],
-      duration,
+      duration: performance.now() - started,
     });
 
     throw error;

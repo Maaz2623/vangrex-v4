@@ -6,6 +6,10 @@ import { ExecutionArtifact } from "./execution-artifact";
 export class ExecutionContextManager {
   constructor(private readonly context: ExecutionContext) {}
 
+  getContext(): ExecutionContext {
+    return this.context;
+  }
+
   getOutput(nodeId: string): ExecutionOutput | undefined {
     return this.context.outputs[nodeId];
   }
@@ -85,6 +89,16 @@ export class ExecutionContextManager {
 
   incrementToolsExecuted() {
     this.context.stats.toolsExecuted++;
+  }
+
+  recordAgentExecution() {
+    this.incrementNodesExecuted();
+    this.incrementAgentsExecuted();
+  }
+
+  recordToolExecution() {
+    this.incrementNodesExecuted();
+    this.incrementToolsExecuted();
   }
 
   incrementErrors() {
