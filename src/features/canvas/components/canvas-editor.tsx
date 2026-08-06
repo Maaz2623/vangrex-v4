@@ -36,6 +36,9 @@ import {
   XCircle,
 } from "lucide-react";
 import { ExecutionManager } from "../services/execution/execution-manager";
+import { useNodeSettingsStore } from "../store/node-settings-store";
+import { NodeSettingsSheet } from "./nodes/settings/node-settings-sheet";
+import { AppFlowNode } from "./nodes/node-config";
 
 type Props = {
   projectId: string;
@@ -186,6 +189,19 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
     setExecuteAgentId(null);
   }, [executeAgentId, nodes, edges, setExecuteAgentId]);
 
+  const { selectedNodeId } = useNodeSettingsStore();
+
+  const selectedNode = nodes.find((node) => node.id === selectedNodeId) ?? null;
+
+  const updateNode = (
+    nodeId: string,
+    updater: (node: AppFlowNode) => AppFlowNode,
+  ) => {
+    setNodes((node) =>
+      nodes.map((node) => (node.id === nodeId ? updater(node) : node)),
+    );
+  };
+
   return (
     <div className="flex h-full w-full">
       {/* Canvas */}
@@ -222,8 +238,9 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
       </div>
 
       {/* Execution Panel */}
-      <aside className="w-80 border-l bg-background">
-        <ExecutionPanel />
+      <aside className=" border-l bg-background">
+        {/* <ExecutionPanel /> */}
+        <NodeSettingsSheet node={selectedNode} updateNode={updateNode} />
       </aside>
     </div>
   );

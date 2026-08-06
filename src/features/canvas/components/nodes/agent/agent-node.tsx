@@ -12,11 +12,12 @@ import { NodeToolbarButton } from "../base/node-toolbar-button";
 import { agentDefinition } from "./agent-definition";
 import { NodeShell } from "../base/node-shell";
 import { useCanvasStore } from "@/features/canvas/store/canvas-store";
+import { useNodeSettingsStore } from "@/features/canvas/store/node-settings-store";
 
 export const AgentNode = ({ id, data, selected }: NodeProps<AgentFlowNode>) => {
   const { setExecuteAgentId } = useCanvasStore();
 
-  
+  const { open } = useNodeSettingsStore();
 
   return (
     <NodeShell
@@ -26,7 +27,7 @@ export const AgentNode = ({ id, data, selected }: NodeProps<AgentFlowNode>) => {
       preview={<AgentNodePreview data={data} />}
       toolbar={
         <>
-          <NodeToolbarButton icon={Settings2} />
+          <NodeToolbarButton icon={Settings2} onClick={() => open(id)} />
 
           <NodeToolbarButton
             icon={Play}

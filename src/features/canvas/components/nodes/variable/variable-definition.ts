@@ -3,6 +3,7 @@ import { NodeCategory, NodeDefinition } from "../types/node-definition";
 import { VariableConfig } from "../types/variable-node";
 import { Position } from "@xyflow/react";
 import { VariableNode } from "./variable-node";
+import { defaultVariableConfig } from "./defaults";
 
 export const variableDefinition: NodeDefinition<VariableConfig> = {
   type: "variable",
@@ -22,8 +23,5 @@ export const variableDefinition: NodeDefinition<VariableConfig> = {
     },
   ],
 
-  defaultConfig: {
-    name: "",
-    value: "",
-  },
+  defaultConfig: defaultVariableConfig,
 };

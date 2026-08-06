@@ -7,11 +7,15 @@ import { NodeToolbarButton } from "../base/node-toolbar-button";
 import { VariableFlowNode } from "../types/variable-node";
 import { variableDefinition } from "./variable-definition";
 import { VariableNodePreview } from "./variable-node-preview";
+import { useNodeSettingsStore } from "@/features/canvas/store/node-settings-store";
 
 export const VariableNode = ({
+  id,
   data,
   selected,
 }: NodeProps<VariableFlowNode>) => {
+  const { open } = useNodeSettingsStore();
+
   return (
     <NodeShell
       definition={variableDefinition}
@@ -20,7 +24,7 @@ export const VariableNode = ({
       preview={<VariableNodePreview data={data} />}
       toolbar={
         <>
-          <NodeToolbarButton icon={Settings2} />
+          <NodeToolbarButton icon={Settings2} onClick={() => open(id)} />
 
           <NodeToolbarButton icon={Copy} />
 

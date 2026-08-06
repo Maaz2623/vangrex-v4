@@ -10,7 +10,9 @@ interface VariableNodePreviewProps {
 }
 
 export const VariableNodePreview = ({ data }: VariableNodePreviewProps) => {
-  const { name, value } = data.config;
+  const { name, value, type, editable, global, secret } = data.config;
+
+  const displayValue = secret ? "••••••••" : value;
 
   return (
     <>
@@ -26,7 +28,16 @@ export const VariableNodePreview = ({ data }: VariableNodePreviewProps) => {
 
       <Section title="Value">
         <InfoCard>
-          <InfoRow label="Value" value={value || "No value"} />
+          <InfoRow label="Value" value={displayValue || "No value"} />
+        </InfoCard>
+      </Section>
+
+      <Section title="Configuration">
+        <InfoCard className="space-y-2">
+          <InfoRow label="Type" value={type} />
+          <InfoRow label="Editable" value={editable ? "Yes" : "No"} />
+          <InfoRow label="Global" value={global ? "Yes" : "No"} />
+          <InfoRow label="Secret" value={secret ? "Yes" : "No"} />
         </InfoCard>
       </Section>
     </>
