@@ -18,8 +18,14 @@ export interface HumanOutput<T = unknown> {
   value: T;
 }
 
+export interface ResultOutput<T = unknown> {
+  type: "output";
+  text: string;
+}
+
 export type ExecutionOutput =
   | AgentOutput
   | ToolOutput
   | KnowledgeOutput
-  | HumanOutput;
+  | HumanOutput
+  | ResultOutput;

@@ -106,4 +106,64 @@ Summarize the following response in exactly one sentence.
       },
     },
   },
+
+  {
+    id: "4",
+    type: "output",
+    position: {
+      x: 1500,
+      y: 100,
+    },
+    data: {
+      title: "Result Node",
+      description: "Shows the result of the node connected",
+      config: {},
+      metadata: {
+        status: "idle",
+        disabled: false,
+        collapsed: false,
+        locked: false,
+      },
+    },
+  },
+
+  {
+    id: "5",
+    type: "output",
+    position: {
+      x: 1900,
+      y: 100,
+    },
+    data: {
+      title: "Result Node",
+      description: "Shows the result of the node connected",
+      config: {},
+      metadata: {
+        status: "idle",
+        disabled: false,
+        collapsed: false,
+        locked: false,
+      },
+    },
+  },
+
+  {
+    id: "6",
+    type: "output",
+    position: {
+      x: 1500,
+      y: 500,
+    },
+    data: {
+      title: "Result Node",
+      description: "Shows the result of the node connected",
+      config: {},
+      metadata: {
+        status: "idle",
+        disabled: false,
+        collapsed: false,
+        locked: false,
+      },
+    },
+  },
 ];

@@ -2,6 +2,7 @@ import { ExecuteConfig } from "@neondatabase/serverless";
 import { ExecutionContext } from "./execution-context";
 import { ExecutionOutput } from "./execution-output";
 import { ExecutionArtifact } from "./execution-artifact";
+import { useExecutionStore } from "../../store/execution-store";
 
 export class ExecutionContextManager {
   constructor(private readonly context: ExecutionContext) {}
@@ -16,6 +17,8 @@ export class ExecutionContextManager {
 
   setOutput(nodeId: string, output: ExecutionOutput) {
     this.context.outputs[nodeId] = output;
+
+    useExecutionStore.getState().setOutput(nodeId, output);
   }
 
   getVariable<T = unknown>(name: string): T | undefined {

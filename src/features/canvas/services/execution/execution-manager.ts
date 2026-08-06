@@ -1,6 +1,7 @@
 import { FlowEdge } from "../../components/edges/types/base-edge";
 import { AppFlowNode } from "../../components/nodes/node-config";
 import { AgentFlowNode } from "../../components/nodes/types";
+import { useExecutionStore } from "../../store/execution-store";
 import { executeAgent } from "./agent-executor";
 import { ExecutionContext } from "./execution-context";
 import { ExecutionContextManager } from "./execution-context-manager";
@@ -9,6 +10,7 @@ import { GraphExecutor } from "./graph-executor";
 
 export class ExecutionManager {
   async execute(nodes: AppFlowNode[], edges: FlowEdge[]) {
+    useExecutionStore.getState().clear();
     const context: ExecutionContext = {
       workflowId: "temp",
       startedAt: Date.now(),
@@ -48,7 +50,7 @@ export class ExecutionManager {
 
     const graph = new GraphExecutor();
 
-    const startNodes = getStartNodes  (nodes, edges);
+    const startNodes = getStartNodes(nodes, edges);
 
     if (startNodes.length === 0) {
       throw new Error("No start nodes found");
