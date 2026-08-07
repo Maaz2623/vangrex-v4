@@ -193,13 +193,50 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
    * ------------------------------------------------------------
    */
 
+  const updateTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>(
+    {},
+  );
+
+  const pendingNodeUpdates = useRef<Record<string, AppFlowNode>>({});
+
   const updateNode = useCallback(
     (nodeId: string, updater: (node: AppFlowNode) => AppFlowNode) => {
-      setNodes((currentNodes) =>
-        currentNodes.map((node) => (node.id === nodeId ? updater(node) : node)),
-      );
+      setNodes((currentNodes) => {
+        const nextNodes = currentNodes.map((node) => {
+          if (node.id !== nodeId) {
+            return node;
+          }
+
+          const updatedNode = updater(node);
+
+          pendingNodeUpdates.current[nodeId] = updatedNode;
+
+          return updatedNode;
+        });
+
+        return nextNodes;
+      });
+
+      const existingTimer = updateTimers.current[nodeId];
+
+      if (existingTimer) {
+        clearTimeout(existingTimer);
+      }
+
+      updateTimers.current[nodeId] = setTimeout(() => {
+        const node = pendingNodeUpdates.current[nodeId];
+
+        if (!node) return;
+
+        updateNodeMutation.mutate({
+          id: node.id,
+        });
+
+        delete pendingNodeUpdates.current[nodeId];
+        delete updateTimers.current[nodeId];
+      }, 500);
     },
-    [setNodes],
+    [setNodes, updateNodeMutation],
   );
 
   /*
@@ -281,6 +318,14 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
    * CONNECTION
    * ------------------------------------------------------------
    */
+
+  useEffect(() => {
+    return () => {
+      Object.values(updateTimers.current).forEach((timer) =>
+        clearTimeout(timer),
+      );
+    };
+  }, []);
 
   const onConnect = useCallback(
     (connection: Connection) => {

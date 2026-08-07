@@ -22,6 +22,7 @@ import {
   ClipboardPasteIcon,
   ScanSearch,
   Trash2,
+  VariableIcon,
 } from "lucide-react";
 import { useCreateNode } from "../hooks/node.hooks";
 import { useCallback } from "react";
@@ -52,28 +53,41 @@ export const CanvasContextMenu = ({ addNode }: Props) => {
           Add Node
         </ContextMenuSubTrigger>
 
-        <ContextMenuSubContent
-          onClick={() =>
-            addNode("agent", {
-              x: 0,
-              y: 0,
-            })
-          }
-          className="w-56"
-        >
-          <ContextMenuItem>
+        <ContextMenuSubContent className="w-56">
+          <ContextMenuItem
+            onClick={() =>
+              addNode("agent", {
+                x: 0,
+                y: 0,
+              })
+            }
+          >
             <Bot className="mr-2 h-4 w-4" />
             Agent
           </ContextMenuItem>
 
-          <ContextMenuItem>
+          <ContextMenuItem
+            onClick={() =>
+              addNode("tool-call", {
+                x: 0,
+                y: 0,
+              })
+            }
+          >
             <Boxes className="mr-2 h-4 w-4" />
             Tool
           </ContextMenuItem>
 
-          <ContextMenuItem>
-            <Database className="mr-2 h-4 w-4" />
-            Knowledge
+          <ContextMenuItem
+            onClick={() =>
+              addNode("variable", {
+                x: 0,
+                y: 0,
+              })
+            }
+          >
+            <VariableIcon className="mr-2 h-4 w-4" />
+            Variable
           </ContextMenuItem>
 
           <ContextMenuItem>
