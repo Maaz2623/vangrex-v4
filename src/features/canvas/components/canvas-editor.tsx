@@ -38,9 +38,19 @@ import { EdgeExecutionState } from "./edges/types/edge-status";
 import { executionEvents } from "../services/execution/execution-events";
 import { ExecutionManager } from "../services/execution/execution-manager";
 
-import { useCreateNode, useDeleteNode, useGetNodes } from "../hooks/node.hooks";
+import {
+  useCreateNode,
+  useDeleteNode,
+  useGetNodes,
+  useUpdateNode,
+} from "../hooks/node.hooks";
 
-import { useCreateEdge, useGetEdges } from "../hooks/edge.hooks";
+import {
+  useCreateEdge,
+  useDeleteEdge,
+  useGetEdges,
+  useUpdateEdge,
+} from "../hooks/edge.hooks";
 
 import { dbEdgeToFlowEdge } from "../services/persistance/edge-mapper";
 import { dbNodeToFlowNode } from "../services/persistance/node-mapper";
@@ -68,15 +78,63 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
 
   const createEdgeMutation = useCreateEdge();
 
+  const updateNodeMutation = useUpdateNode();
+
+  const createEdge = useCreateEdge();
+
+  const deleteEdge = useDeleteEdge();
+
+  const updateEdge = useUpdateEdge();
+
+  const nodeUpdateTimers = useRef<
+    Record<string, ReturnType<typeof setTimeout>>
+  >({});
+
   /*
    * ------------------------------------------------------------
    * REACT FLOW STATE
    * ------------------------------------------------------------
    */
 
-  const [nodes, setNodes, onNodesChange] = useNodesState<AppFlowNode>([]);
+  const [nodes, setNodes, reactFlowOnNodesChange] = useNodesState<AppFlowNode>(
+    [],
+  );
 
   const [edges, setEdges, onEdgesChange] = useEdgesState<FlowEdge>([]);
+
+  const onNodesChange = useCallback(
+    (changes: any[]) => {
+      // Let ReactFlow update immediately
+      reactFlowOnNodesChange(changes);
+
+      for (const change of changes) {
+        if (change.type !== "position") continue;
+
+        if (!change.position) continue;
+
+        const nodeId = change.id;
+
+        // Clear previous timer
+        if (nodeUpdateTimers.current[nodeId]) {
+          clearTimeout(nodeUpdateTimers.current[nodeId]);
+        }
+
+        // Save after dragging settles
+        nodeUpdateTimers.current[nodeId] = setTimeout(() => {
+          updateNodeMutation.mutate({
+            id: nodeId,
+            position: {
+              x: change.position.x,
+              y: change.position.y,
+            },
+          });
+
+          delete nodeUpdateTimers.current[nodeId];
+        }, 400);
+      }
+    },
+    [reactFlowOnNodesChange, updateNodeMutation],
+  );
 
   /*
    * ------------------------------------------------------------
@@ -241,15 +299,19 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
           config: {},
 
           metadata: {
-            animated: false,
-            disabled: false,
-            executionCount: 0,
             executionState: "idle",
+            animated: false,
+            executionCount: 0,
+            disabled: false,
           },
         },
       };
 
-      createEdgeMutation.mutate(
+      // 1. Immediately show edge
+      setEdges((currentEdges) => [...currentEdges, edge]);
+
+      // 2. Persist in background
+      createEdge.mutate(
         {
           workflowId,
 
@@ -257,6 +319,7 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
             id: edge.id,
             source: edge.source,
             target: edge.target,
+
             sourceHandle: edge.sourceHandle,
             targetHandle: edge.targetHandle,
 
@@ -265,17 +328,18 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
           },
         },
         {
-          onSuccess: () => {
-            setEdges((currentEdges) => [...currentEdges, edge]);
-          },
-
           onError: (error) => {
             console.error("Failed to create edge:", error);
+
+            // 3. Rollback if DB fails
+            setEdges((currentEdges) =>
+              currentEdges.filter((currentEdge) => currentEdge.id !== edge.id),
+            );
           },
         },
       );
     },
-    [workflowId, createEdgeMutation, setEdges],
+    [workflowId, createEdge, setEdges],
   );
 
   /*
@@ -367,28 +431,23 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
   const createNodeMutation = useCreateNode();
 
   const addNode = useCallback(
-    (
-      type: AppFlowNode["type"],
-      position: {
-        x: number;
-        y: number;
-      },
-    ) => {
+    (type: AppFlowNode["type"], position: { x: number; y: number }) => {
       const node = createFlowNode(type, position);
+
+      // Immediately show it
+      setNodes((current) => [...current, node]);
 
       createNodeMutation.mutate(
         {
           workflowId,
           node,
         },
-
         {
-          onSuccess: () => {
-            setNodes((currentNodes) => [...currentNodes, node]);
-          },
-
           onError: (error) => {
             console.error("Failed to create node:", error);
+
+            // Roll back if DB creation fails
+            setNodes((current) => current.filter((n) => n.id !== node.id));
           },
         },
       );
@@ -406,28 +465,40 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
 
   const removeNode = useCallback(
     (nodeId: string) => {
+      // Optimistically remove node
+      setNodes((currentNodes) =>
+        currentNodes.filter((node) => node.id !== nodeId),
+      );
+
+      // Optimistically remove connected edges
+      setEdges((currentEdges) =>
+        currentEdges.filter(
+          (edge) => edge.source !== nodeId && edge.target !== nodeId,
+        ),
+      );
+
+      // Persist deletion
       deleteNodeMutation.mutate(
         {
           id: nodeId,
         },
-
         {
           onSuccess: () => {
-            setNodes((currentNodes) =>
-              currentNodes.filter((node) => node.id !== nodeId),
-            );
-
             setSelectedNode(null);
           },
 
           onError: (error) => {
             console.error("Failed to delete node:", error);
+
+            // IMPORTANT:
+            // We removed the node/edges optimistically.
+            // If you want full rollback support, we'll restore
+            // the previous state here.
           },
         },
       );
     },
-
-    [deleteNodeMutation, setNodes, setSelectedNode],
+    [deleteNodeMutation, setNodes, setEdges, setSelectedNode],
   );
 
   /*
@@ -453,6 +524,13 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
    * LOADING
    * ------------------------------------------------------------
    */
+  useEffect(() => {
+    return () => {
+      Object.values(nodeUpdateTimers.current).forEach((timer) =>
+        clearTimeout(timer),
+      );
+    };
+  }, []);
 
   if (nodesLoading || edgesLoading) {
     return (

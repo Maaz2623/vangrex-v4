@@ -22,9 +22,7 @@ export const useCreateNode = () => {
 
   return useMutation(
     trpc.nodes.create.mutationOptions({
-      onSuccess: (data) => {
-        toast.success("Node created.");
-      },
+      onSuccess: (data) => {},
       onError: (error) => {
         toast.error(error.message);
       },
@@ -37,9 +35,7 @@ export const useUpdateNode = () => {
 
   return useMutation(
     trpc.nodes.update.mutationOptions({
-      onSuccess: () => {
-        toast.success(`Node Updated.`);
-      },
+      onSuccess: () => {},
       onError: (error) => {
         toast.error(error.message);
       },
