@@ -23,8 +23,23 @@ import {
   ScanSearch,
   Trash2,
 } from "lucide-react";
+import { useCreateNode } from "../hooks/node.hooks";
+import { useCallback } from "react";
+import { AppFlowNode } from "./nodes/node-config";
+import { createFlowNode } from "../services/nodes/create-node";
+import { useCanvasStore } from "../store/canvas-store";
 
-export const CanvasContextMenu = () => {
+interface Props {
+  addNode: (
+    type: "tool-call" | "agent" | "variable" | "output",
+    position: {
+      x: number;
+      y: number;
+    },
+  ) => void;
+}
+
+export const CanvasContextMenu = ({ addNode }: Props) => {
   return (
     <ContextMenuContent className="w-64">
       <ContextMenuLabel>Canvas</ContextMenuLabel>
@@ -37,7 +52,15 @@ export const CanvasContextMenu = () => {
           Add Node
         </ContextMenuSubTrigger>
 
-        <ContextMenuSubContent className="w-56">
+        <ContextMenuSubContent
+          onClick={() =>
+            addNode("agent", {
+              x: 0,
+              y: 0,
+            })
+          }
+          className="w-56"
+        >
           <ContextMenuItem>
             <Bot className="mr-2 h-4 w-4" />
             Agent

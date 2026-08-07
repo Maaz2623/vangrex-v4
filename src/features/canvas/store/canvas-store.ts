@@ -5,6 +5,8 @@ interface CanvasStore {
   setSelectedNode: (id: string | null) => void;
   executeAgentId: string | null;
   setExecuteAgentId: (id: string | null) => void;
+  deleteNode: (nodeId: string) => void;
+  setDeleteNode: (handler: (nodeId: string) => void) => void;
 }
 
 export const useCanvasStore = create<CanvasStore>((set) => ({
@@ -21,5 +23,12 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
   setExecuteAgentId: (id) =>
     set({
       executeAgentId: id,
+    }),
+
+  deleteNode: () => {},
+
+  setDeleteNode: (handler) =>
+    set({
+      deleteNode: handler,
     }),
 }));

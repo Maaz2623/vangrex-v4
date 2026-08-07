@@ -15,7 +15,7 @@ import { useCanvasStore } from "@/features/canvas/store/canvas-store";
 import { useNodeSettingsStore } from "@/features/canvas/store/node-settings-store";
 
 export const AgentNode = ({ id, data, selected }: NodeProps<AgentFlowNode>) => {
-  const { setExecuteAgentId } = useCanvasStore();
+  const { setExecuteAgentId, deleteNode } = useCanvasStore();
 
   const { open } = useNodeSettingsStore();
 
@@ -38,7 +38,7 @@ export const AgentNode = ({ id, data, selected }: NodeProps<AgentFlowNode>) => {
 
           <NodeToolbarButton icon={Copy} />
 
-          <NodeToolbarButton icon={Trash2} />
+          <NodeToolbarButton icon={Trash2} onClick={() => deleteNode(id)} />
         </>
       }
     />

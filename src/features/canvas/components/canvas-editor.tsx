@@ -11,34 +11,43 @@ import {
   Connection,
   addEdge,
 } from "@xyflow/react";
+
 import "@xyflow/react/dist/style.css";
+
+import { useCallback, useEffect, useRef } from "react";
+
+import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
+
 import { CanvasHeader } from "./canvas-header";
 import { CanvasContextMenu } from "./canvas-context-menu";
-import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
-import { initialNodes } from "@/nodes";
+
 import { nodeTypes } from "./nodes/node-registry";
-import { useCanvasStore } from "../store/canvas-store";
 import { edgeTypes } from "./edges/edge-definitions/edge-types";
-import { initialEdges } from "@/edges";
-import { useCallback, useEffect } from "react";
-import { getConnectedTools } from "../services/graph/tool-resolver";
-import { executeAgent } from "../services/execution/agent-executor";
-import { AgentFlowNode, NodeStatusType } from "./nodes/types";
-import { executionEvents } from "../services/execution/execution-events";
-import { EdgeExecutionState } from "./edges/types/edge-status";
-import { ExecutionLog, useExecutionStore } from "../store/execution-store";
-import { ExecutionPanel } from "../services/execution/execution-panel";
-import {
-  ArrowRight,
-  CheckCircle2,
-  PlayIcon,
-  WrenchIcon,
-  XCircle,
-} from "lucide-react";
-import { ExecutionManager } from "../services/execution/execution-manager";
+
+import { useCanvasStore } from "../store/canvas-store";
 import { useNodeSettingsStore } from "../store/node-settings-store";
+import { useExecutionStore } from "../store/execution-store";
+
 import { NodeSettingsSheet } from "./nodes/settings/node-settings-sheet";
+
+import { AgentFlowNode, NodeStatusType } from "./nodes/types";
 import { AppFlowNode } from "./nodes/node-config";
+
+import { EdgeExecutionState } from "./edges/types/edge-status";
+
+import { executionEvents } from "../services/execution/execution-events";
+import { ExecutionManager } from "../services/execution/execution-manager";
+
+import { useCreateNode, useDeleteNode, useGetNodes } from "../hooks/node.hooks";
+
+import { useGetEdges } from "../hooks/edge.hooks";
+
+import { dbEdgeToFlowEdge } from "../services/persistance/edge-mapper";
+import { dbNodeToFlowNode } from "../services/persistance/node-mapper";
+
+import { createFlowNode } from "../services/nodes/create-node";
+
+import type { FlowEdge } from "./edges/types/base-edge";
 
 type Props = {
   projectId: string;
@@ -46,46 +55,184 @@ type Props = {
 };
 
 export const CanvasEditor = ({ projectId, workflowId }: Props) => {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  /*
+   * ------------------------------------------------------------
+   * DATABASE DATA
+   * ------------------------------------------------------------
+   */
 
-  const { setSelectedNode, executeAgentId, setExecuteAgentId } =
+  const { data: dbNodes, isLoading: nodesLoading } = useGetNodes(workflowId);
+
+  const { data: dbEdges, isLoading: edgesLoading } = useGetEdges(workflowId);
+
+  /*
+   * ------------------------------------------------------------
+   * REACT FLOW STATE
+   * ------------------------------------------------------------
+   */
+
+  const [nodes, setNodes, onNodesChange] = useNodesState<AppFlowNode>([]);
+
+  const [edges, setEdges, onEdgesChange] = useEdgesState<FlowEdge>([]);
+
+  /*
+   * ------------------------------------------------------------
+   * LOAD NODES FROM DATABASE
+   * ------------------------------------------------------------
+   */
+
+  useEffect(() => {
+    if (!dbNodes) return;
+
+    setNodes(dbNodes.map(dbNodeToFlowNode));
+  }, [dbNodes, setNodes]);
+
+  /*
+   * ------------------------------------------------------------
+   * LOAD EDGES FROM DATABASE
+   * ------------------------------------------------------------
+   */
+
+  useEffect(() => {
+    if (!dbEdges) return;
+
+    setEdges(dbEdges.map(dbEdgeToFlowEdge));
+  }, [dbEdges, setEdges]);
+
+  /*
+   * ------------------------------------------------------------
+   * CANVAS STORE
+   * ------------------------------------------------------------
+   */
+
+  const { setSelectedNode, executeAgentId, setExecuteAgentId, setDeleteNode } =
     useCanvasStore();
 
-  const updateEdgeStatus = (edgeId: string, status: EdgeExecutionState) => {
-    console.log(edgeId, status);
-    setEdges((edges) =>
-      edges.map((edge) => {
-        if (edge.id !== edgeId) return edge;
+  /*
+   * ------------------------------------------------------------
+   * NODE SETTINGS
+   * ------------------------------------------------------------
+   */
 
-        const data = edge.data!;
+  const { selectedNodeId } = useNodeSettingsStore();
 
-        return {
-          ...edge,
-          animated: status === "running",
-          data: {
-            ...data,
-            metadata: {
-              ...data.metadata,
-              executionState: status,
-              animated: status === "running",
+  const selectedNode = nodes.find((node) => node.id === selectedNodeId) ?? null;
+
+  /*
+   * ------------------------------------------------------------
+   * EXECUTION STORE
+   * ------------------------------------------------------------
+   */
+
+  const { addLog } = useExecutionStore();
+
+  /*
+   * ------------------------------------------------------------
+   * UPDATE NODE
+   * ------------------------------------------------------------
+   */
+
+  const updateNode = useCallback(
+    (nodeId: string, updater: (node: AppFlowNode) => AppFlowNode) => {
+      setNodes((currentNodes) =>
+        currentNodes.map((node) => (node.id === nodeId ? updater(node) : node)),
+      );
+    },
+    [setNodes],
+  );
+
+  /*
+   * ------------------------------------------------------------
+   * UPDATE NODE STATUS
+   * ------------------------------------------------------------
+   */
+
+  const updateNodeStatus = useCallback(
+    (nodeId: string, status: NodeStatusType) => {
+      setNodes((currentNodes) =>
+        currentNodes.map((node) => {
+          if (node.id !== nodeId) {
+            return node;
+          }
+
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              metadata: {
+                ...node.data.metadata,
+                status,
+              },
             },
-          },
-        };
-      }),
-    );
-  };
+          } as AppFlowNode;
+        }),
+      );
+    },
+    [setNodes],
+  );
+
+  /*
+   * ------------------------------------------------------------
+   * UPDATE EDGE STATUS
+   * ------------------------------------------------------------
+   */
+
+  const updateEdgeStatus = useCallback(
+    (edgeId: string, status: EdgeExecutionState) => {
+      setEdges((currentEdges) =>
+        currentEdges.map((edge) => {
+          if (edge.id !== edgeId) {
+            return edge;
+          }
+
+          const data = edge.data;
+
+          if (!data) {
+            return edge;
+          }
+
+          const isRunning = status === "running";
+
+          return {
+            ...edge,
+
+            animated: isRunning,
+
+            data: {
+              ...data,
+
+              metadata: {
+                ...data.metadata,
+
+                executionState: status,
+                animated: isRunning,
+              },
+            },
+          };
+        }),
+      );
+    },
+    [setEdges],
+  );
+
+  /*
+   * ------------------------------------------------------------
+   * CONNECTION
+   * ------------------------------------------------------------
+   */
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      console.log("Connected:", connection);
-      setEdges((edges) => {
-        const next = addEdge(
+      setEdges((currentEdges) =>
+        addEdge(
           {
             ...connection,
+
             type: "default",
+
             data: {
               config: {},
+
               metadata: {
                 animated: false,
                 disabled: false,
@@ -94,39 +241,24 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
               },
             },
           },
-          edges,
-        );
 
-        return next;
-      });
+          currentEdges,
+        ),
+      );
     },
     [setEdges],
   );
 
-  const updateNodeStatus = (nodeId: string, status: NodeStatusType) => {
-    // @ts-ignore
-    setNodes((nodes) =>
-      nodes.map((node) =>
-        node.id === nodeId
-          ? {
-              ...node,
-              data: {
-                ...node.data,
-                metadata: {
-                  ...node.data.metadata,
-                  status,
-                },
-              },
-            }
-          : node,
-      ),
-    );
-  };
-  const { addLog } = useExecutionStore();
+  /*
+   * ------------------------------------------------------------
+   * EXECUTION EVENTS
+   * ------------------------------------------------------------
+   */
 
   useEffect(() => {
     const unsubscribe = executionEvents.subscribe((event) => {
       addLog(event);
+
       switch (event.type) {
         case "node:start":
           updateNodeStatus(event.nodeId, "running");
@@ -153,7 +285,6 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
           break;
 
         case "edge:start":
-          console.log("EDGE START", event.edgeId);
           updateEdgeStatus(event.edgeId, "running");
           break;
 
@@ -168,62 +299,174 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
     });
 
     return unsubscribe;
-  }, []);
+  }, [addLog, updateNodeStatus, updateEdgeStatus]);
+
+  /*
+   * ------------------------------------------------------------
+   * EXECUTE AGENT
+   * ------------------------------------------------------------
+   */
 
   useEffect(() => {
-    if (!executeAgentId) return;
+    if (!executeAgentId) {
+      return;
+    }
 
     const agent = nodes.find(
       (node): node is AgentFlowNode =>
         node.id === executeAgentId && node.type === "agent",
     );
 
-    if (!agent) return;
+    if (!agent) {
+      setExecuteAgentId(null);
+      return;
+    }
 
     const manager = new ExecutionManager();
-
-    console.log("Starting execution");
 
     manager.execute(nodes, edges);
 
     setExecuteAgentId(null);
   }, [executeAgentId, nodes, edges, setExecuteAgentId]);
 
-  const { selectedNodeId } = useNodeSettingsStore();
+  /*
+   * ------------------------------------------------------------
+   * CREATE NODE
+   * ------------------------------------------------------------
+   */
 
-  const selectedNode = nodes.find((node) => node.id === selectedNodeId) ?? null;
+  const createNodeMutation = useCreateNode();
 
-  const updateNode = (
-    nodeId: string,
-    updater: (node: AppFlowNode) => AppFlowNode,
-  ) => {
-    setNodes((node) =>
-      nodes.map((node) => (node.id === nodeId ? updater(node) : node)),
+  const addNode = useCallback(
+    (
+      type: AppFlowNode["type"],
+      position: {
+        x: number;
+        y: number;
+      },
+    ) => {
+      const node = createFlowNode(type, position);
+
+      createNodeMutation.mutate(
+        {
+          workflowId,
+          node,
+        },
+
+        {
+          onSuccess: () => {
+            setNodes((currentNodes) => [...currentNodes, node]);
+          },
+
+          onError: (error) => {
+            console.error("Failed to create node:", error);
+          },
+        },
+      );
+    },
+    [workflowId, createNodeMutation, setNodes],
+  );
+
+  /*
+   * ------------------------------------------------------------
+   * DELETE NODE
+   * ------------------------------------------------------------
+   */
+
+  const deleteNodeMutation = useDeleteNode();
+
+  const removeNode = useCallback(
+    (nodeId: string) => {
+      deleteNodeMutation.mutate(
+        {
+          id: nodeId,
+        },
+
+        {
+          onSuccess: () => {
+            setNodes((currentNodes) =>
+              currentNodes.filter((node) => node.id !== nodeId),
+            );
+
+            setSelectedNode(null);
+          },
+
+          onError: (error) => {
+            console.error("Failed to delete node:", error);
+          },
+        },
+      );
+    },
+
+    [deleteNodeMutation, setNodes, setSelectedNode],
+  );
+
+  /*
+   * ------------------------------------------------------------
+   * REGISTER DELETE HANDLER
+   * ------------------------------------------------------------
+   */
+
+  const deleteNodeRef = useRef(removeNode);
+
+  useEffect(() => {
+    deleteNodeRef.current = removeNode;
+  }, [removeNode]);
+
+  useEffect(() => {
+    setDeleteNode((nodeId: string) => {
+      deleteNodeRef.current(nodeId);
+    });
+  }, [setDeleteNode]);
+
+  /*
+   * ------------------------------------------------------------
+   * LOADING
+   * ------------------------------------------------------------
+   */
+
+  if (nodesLoading || edgesLoading) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <p className="text-sm text-muted-foreground">Loading workflow...</p>
+      </div>
     );
-  };
+  }
+
+  /*
+   * ------------------------------------------------------------
+   * RENDER
+   * ------------------------------------------------------------
+   */
 
   return (
     <div className="flex h-full w-full">
-      {/* Canvas */}
+      {/* ------------------------------------------------------- */}
+      {/* CANVAS */}
+      {/* ------------------------------------------------------- */}
+
       <div className="flex-1">
         <ContextMenu>
           <ContextMenuTrigger asChild>
             <div className="h-full w-full">
               <ReactFlow
-                onSelectionChange={({ nodes }) => {
-                  setSelectedNode(nodes[0]?.id ?? null);
-                }}
-                onConnect={onConnect}
-                colorMode="dark"
                 nodes={nodes}
                 edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                onSelectionChange={({ nodes: selectedNodes }) => {
+                  setSelectedNode(selectedNodes[0]?.id ?? null);
+                }}
+                colorMode="dark"
+                fitView
               >
                 <MiniMap />
-                <Background color="skyblue" />
+
+                <Background />
+
                 <Controls />
 
                 <Panel position="top-left" className="w-full">
@@ -233,13 +476,15 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
             </div>
           </ContextMenuTrigger>
 
-          <CanvasContextMenu />
+          <CanvasContextMenu addNode={addNode} />
         </ContextMenu>
       </div>
 
-      {/* Execution Panel */}
-      <aside className=" border-l bg-background">
-        {/* <ExecutionPanel /> */}
+      {/* ------------------------------------------------------- */}
+      {/* SETTINGS PANEL */}
+      {/* ------------------------------------------------------- */}
+
+      <aside className="border-l bg-background">
         <NodeSettingsSheet node={selectedNode} updateNode={updateNode} />
       </aside>
     </div>
