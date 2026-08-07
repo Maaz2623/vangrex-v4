@@ -8,6 +8,7 @@ import { createTRPCRouter, protectedProcedure } from "../init";
 
 import { assertWorkflowOwner } from "../utils/assert-workflow-owner";
 import { TRPCError } from "@trpc/server";
+import { BaseEdgeMetadata } from "@/features/canvas/components/edges/types/base-edge";
 
 export const edgesRouter = createTRPCRouter({
   // --------------------------------------------------
@@ -28,7 +29,7 @@ export const edgesRouter = createTRPCRouter({
           targetHandle: z.string().nullable().optional(),
 
           config: z.record(z.string(), z.unknown()),
-          metadata: z.record(z.string(), z.unknown()),
+          metadata: z.custom<BaseEdgeMetadata>(),
         }),
       }),
     )
@@ -72,7 +73,7 @@ export const edgesRouter = createTRPCRouter({
           targetHandle: z.string().nullable().optional(),
 
           config: z.record(z.string(), z.unknown()),
-          metadata: z.record(z.string(), z.unknown()),
+          metadata: z.custom<BaseEdgeMetadata>(),
         }),
       }),
     )

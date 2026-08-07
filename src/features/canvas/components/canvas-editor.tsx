@@ -40,7 +40,7 @@ import { ExecutionManager } from "../services/execution/execution-manager";
 
 import { useCreateNode, useDeleteNode, useGetNodes } from "../hooks/node.hooks";
 
-import { useGetEdges } from "../hooks/edge.hooks";
+import { useCreateEdge, useGetEdges } from "../hooks/edge.hooks";
 
 import { dbEdgeToFlowEdge } from "../services/persistance/edge-mapper";
 import { dbNodeToFlowNode } from "../services/persistance/node-mapper";
@@ -48,6 +48,7 @@ import { dbNodeToFlowNode } from "../services/persistance/node-mapper";
 import { createFlowNode } from "../services/nodes/create-node";
 
 import type { FlowEdge } from "./edges/types/base-edge";
+import { defaultEdgeMetadata } from "./edges/default/defaults";
 
 type Props = {
   projectId: string;
@@ -64,6 +65,8 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
   const { data: dbNodes, isLoading: nodesLoading } = useGetNodes(workflowId);
 
   const { data: dbEdges, isLoading: edgesLoading } = useGetEdges(workflowId);
+
+  const createEdgeMutation = useCreateEdge();
 
   /*
    * ------------------------------------------------------------
@@ -223,30 +226,56 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      setEdges((currentEdges) =>
-        addEdge(
-          {
-            ...connection,
+      const edge: FlowEdge = {
+        id: crypto.randomUUID(),
 
-            type: "default",
+        source: connection.source,
+        target: connection.target,
 
-            data: {
-              config: {},
+        sourceHandle: connection.sourceHandle ?? null,
+        targetHandle: connection.targetHandle ?? null,
 
-              metadata: {
-                animated: false,
-                disabled: false,
-                executionCount: 0,
-                executionState: "idle",
-              },
-            },
+        type: "default",
+
+        data: {
+          config: {},
+
+          metadata: {
+            animated: false,
+            disabled: false,
+            executionCount: 0,
+            executionState: "idle",
+          },
+        },
+      };
+
+      createEdgeMutation.mutate(
+        {
+          workflowId,
+
+          edge: {
+            id: edge.id,
+            source: edge.source,
+            target: edge.target,
+            sourceHandle: edge.sourceHandle,
+            targetHandle: edge.targetHandle,
+
+            config: edge.data?.config ?? {},
+            metadata: edge.data?.metadata ?? defaultEdgeMetadata,
+          },
+        },
+        {
+          onSuccess: () => {
+            setEdges((currentEdges) => [...currentEdges, edge]);
           },
 
-          currentEdges,
-        ),
+          onError: (error) => {
+            console.error("Failed to create edge:", error);
+          },
+        },
       );
     },
-    [setEdges],
+    [workflowId, createEdgeMutation, setEdges],
   );
 
   /*

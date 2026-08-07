@@ -1,3 +1,4 @@
+import { BaseEdgeMetadata } from "@/features/canvas/components/edges/types/base-edge";
 import { defineRelations } from "drizzle-orm";
 import {
   pgTable,
@@ -155,7 +156,7 @@ export const workflowsTable = pgTable("workflows", {
 
 export const nodesTable = pgTable("nodes", {
   id: uuid("id").primaryKey().defaultRandom(),
-  workflowId: text("workflow_id")
+  workflowId: uuid("workflow_id")
     .references(() => workflowsTable.id, {
       onDelete: "cascade",
     })
@@ -186,7 +187,7 @@ export const nodesTable = pgTable("nodes", {
 export const edgesTable = pgTable("edges", {
   id: uuid("id").primaryKey().defaultRandom(),
 
-  workflowId: text("workflow_id")
+  workflowId: uuid("workflow_id")
     .references(() => workflowsTable.id, {
       onDelete: "cascade",
     })
@@ -202,7 +203,7 @@ export const edgesTable = pgTable("edges", {
 
   config: jsonb("config").$type<Record<string, unknown>>().notNull(),
 
-  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull(),
+  metadata: jsonb("metadata").$type<BaseEdgeMetadata>().notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
