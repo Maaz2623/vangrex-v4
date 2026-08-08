@@ -13,20 +13,15 @@ export async function executeVariable(
     nodeName: node.data.title,
   });
 
-  context.incrementNodesExecuted()
+  context.incrementNodesExecuted();
 
-  context.setVariable(
-    node.data.config.name,
-    node.data.config.value
-  )
-
+  context.setVariable(node.data.config.name, node.data.config.value);
 
   executionEvents.emit({
     type: "node:success",
     nodeId: node.id,
     timestamp: Date.now(),
     nodeName: node.data.title,
-    duration: 0
-  })
-
+    duration: 0,
+  });
 }
