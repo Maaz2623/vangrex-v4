@@ -1,6 +1,6 @@
 import { ExecutionOutput } from "./execution-output";
 
-export function formatExecutionOutput(output: ExecutionOutput): string {
+export function formatExecutionOutput(output: ExecutionOutput) {
   switch (output.type) {
     case "agent":
       return output.text;
