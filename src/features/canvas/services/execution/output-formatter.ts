@@ -1,6 +1,6 @@
 import { ExecutionOutput } from "./execution-output";
 
-export function formatExecutionOutput(output: ExecutionOutput) {
+export function formatExecutionOutput(output: ExecutionOutput): string {
   switch (output.type) {
     case "agent":
       return output.text;
@@ -10,5 +10,7 @@ export function formatExecutionOutput(output: ExecutionOutput) {
       return output.documents.join("\n");
     case "human":
       return String(output.value);
+    default:
+      throw new Error(`Unsupported execution output type: ${output.type}`);
   }
 }
