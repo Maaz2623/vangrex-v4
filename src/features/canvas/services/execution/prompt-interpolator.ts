@@ -5,23 +5,28 @@ export function interpolatePrompt(
   prompt: string,
   context: ExecutionContext,
 ): string {
-  return prompt.replace(/\{\{(.*?)\}\}/g, (_, rawName: string) => {
-    const nodeName = rawName.trim();
+  return prompt.replace(
+    /{{(.*?)}}/g,
+    (_match: string, rawName: string): string => {
+      const nodeName = rawName.trim();
 
-    const nodeId = Object.entries(context.nodeNames).find(
-      ([, name]) => name === nodeName,
-    )?.[0];
+      const nodeId = Object.entries(context.nodeNames).find(
+        ([, name]) => name === nodeName,
+      )?.[0];
 
-    if (!nodeId) {
-      return `{{${nodeName}}}`;
-    }
+      // Keep unresolved variables untouched
+      if (!nodeId) {
+        return `{{${nodeName}}}`;
+      }
 
-    const output = context.outputs[nodeId];
+      const output = context.outputs[nodeId];
 
-    if (!output) {
-      return ``;
-    }
+      // Node exists but hasn't produced output yet
+      if (!output) {
+        return "";
+      }
 
-    return formatExecutionOutput(output);
-  });
+      return formatExecutionOutput(output);
+    },
+  );
 }
