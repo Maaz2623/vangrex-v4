@@ -12,9 +12,10 @@ import { NodeShell } from "../base/node-shell";
 import { toolDefinition } from "./tool-definition";
 import { ToolFlowNode } from "../types/tool-node";
 import { ToolNodePreview } from "./tool-node-preview";
+import { useNodeSettingsStore } from "@/features/canvas/store/node-settings-store";
 
-export const ToolNode = ({ data, selected }: NodeProps<ToolFlowNode>) => {
-  const Icon = toolDefinition.icon;
+export const ToolNode = ({ id, data, selected }: NodeProps<ToolFlowNode>) => {
+  const { open } = useNodeSettingsStore();
 
   return (
     <NodeShell
@@ -24,7 +25,7 @@ export const ToolNode = ({ data, selected }: NodeProps<ToolFlowNode>) => {
       preview={<ToolNodePreview data={data} />}
       toolbar={
         <>
-          <NodeToolbarButton icon={Settings2} />
+          <NodeToolbarButton icon={Settings2} onClick={() => open(id)} />
 
           <NodeToolbarButton icon={Play} />
 
