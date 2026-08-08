@@ -26,6 +26,8 @@ import {
 
 import { Switch } from "@/components/ui/switch";
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 interface ToolSettingsProps {
   node: ToolFlowNode;
 
@@ -44,17 +46,19 @@ export const ToolSettings = ({ node, updateNode }: ToolSettingsProps) => {
         return current;
       }
 
+      const tool = current as ToolFlowNode;
+
       const nextConfig: ToolConfig = {
-        ...current.data.config,
+        ...tool.data.config,
         ...partial,
       };
 
       return {
-        ...current,
+        ...tool,
         data: {
-          ...current.data,
-          title: nextConfig.name || "Tool",
-          description: nextConfig.description,
+          ...tool.data,
+          title: current.data.title || "Tool",
+          description: current.data.description || "",
           config: nextConfig,
         },
       };
@@ -62,7 +66,7 @@ export const ToolSettings = ({ node, updateNode }: ToolSettingsProps) => {
   };
 
   return (
-    <Card className="h-full rounded-none border-0">
+    <Card className="border-0 shadow-none">
       <CardHeader>
         <CardTitle>Tool</CardTitle>
 
@@ -71,187 +75,228 @@ export const ToolSettings = ({ node, updateNode }: ToolSettingsProps) => {
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-6 p-6">
-        {/* General */}
+      <CardContent className="p-0">
+        <Tabs defaultValue="general" className="h-full">
+          <TabsList className="grid w-full grid-cols-3 rounded-none border-b bg-transparent">
+            <TabsTrigger value="general">General</TabsTrigger>
 
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-sm font-medium">General</h3>
+            <TabsTrigger value="parameters">Parameters</TabsTrigger>
 
-            <p className="text-sm text-muted-foreground">
-              Define what this tool does and how the agent should use it.
-            </p>
-          </div>
+            <TabsTrigger value="advanced">Advanced</TabsTrigger>
+          </TabsList>
 
-          {/* Name */}
+          {/* ---------------- GENERAL ---------------- */}
 
-          <div className="space-y-2">
-            <Label htmlFor="tool-name">Tool Name</Label>
-
-            <Input
-              id="tool-name"
-              value={node.data.title}
-              placeholder="get_weather"
-              onChange={(e) =>
-                updateConfig({
-                  name: e.target.value,
-                })
-              }
-            />
-          </div>
-
-          {/* Description */}
-
-          <div className="space-y-2">
-            <Label htmlFor="tool-description">Description</Label>
-
-            <Textarea
-              id="tool-description"
-              value={node.data.description}
-              placeholder="Gets the current weather for a city."
-              rows={4}
-              onChange={(e) =>
-                updateConfig({
-                  description: e.target.value,
-                })
-              }
-            />
-
-            <p className="text-xs text-muted-foreground">
-              The AI uses this description to decide when the tool should be
-              called.
-            </p>
-          </div>
-
-          {/* Implementation */}
-
-          <div className="space-y-2">
-            <Label>Implementation</Label>
-
-            <Select
-              value={config.implementation}
-              onValueChange={(value) =>
-                updateConfig({
-                  implementation: value as ToolConfig["implementation"],
-                })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value={ToolImplementations.WEATHER}>
-                  Weather
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Parameters */}
-
-        <div className="space-y-4 border-t pt-6">
-          <div>
-            <h3 className="text-sm font-medium">Parameters</h3>
-
-            <p className="text-sm text-muted-foreground">
-              Define the information the AI must provide when calling this tool.
-            </p>
-          </div>
-
-          <div className="rounded-lg border bg-muted/40 p-4">
-            <p className="text-sm font-medium">Weather parameters</p>
-
-            <div className="mt-3 space-y-2">
-              <Label>City</Label>
+          <TabsContent value="general" className="mt-0 space-y-6 p-6">
+            <div className="space-y-2">
+              <Label htmlFor="tool-name">Tool Name</Label>
 
               <Input
-                value={String(config.parameters?.city ?? "")}
-                placeholder="Bangalore"
+                id="tool-name"
+                value={node.data.title ?? ""}
+                placeholder="get_weather"
                 onChange={(e) =>
                   updateConfig({
-                    parameters: {
-                      ...config.parameters,
-                      city: e.target.value,
-                    },
+                    name: e.target.value,
                   })
                 }
               />
             </div>
-          </div>
-        </div>
 
-        {/* Advanced */}
+            <div className="space-y-2">
+              <Label htmlFor="tool-description">Description</Label>
 
-        <div className="space-y-4 border-t pt-6">
-          <div>
-            <h3 className="text-sm font-medium">Advanced</h3>
-
-            <p className="text-sm text-muted-foreground">
-              Configure execution behavior.
-            </p>
-          </div>
-
-          {/* Enabled */}
-
-          <div className="flex items-center justify-between rounded-lg border p-4">
-            <div>
-              <Label>Enabled</Label>
+              <Textarea
+                id="tool-description"
+                value={node.data.description ?? ""}
+                placeholder="Gets the current weather for a city."
+                rows={6}
+                onChange={(e) =>
+                  updateConfig({
+                    description: e.target.value,
+                  })
+                }
+              />
 
               <p className="text-sm text-muted-foreground">
-                Allow agents to use this tool.
+                The AI uses this description to decide when this tool should be
+                called.
               </p>
             </div>
 
-            <Switch
-              checked={true}
-              onCheckedChange={(checked) =>
-                updateConfig({
-                  enabled: checked,
-                })
-              }
-            />
-          </div>
+            <div className="space-y-2">
+              <Label>Implementation</Label>
 
-          {/* Timeout */}
+              <Select
+                value={config.implementation}
+                onValueChange={(value) =>
+                  updateConfig({
+                    implementation: value as ToolConfig["implementation"],
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select implementation" />
+                </SelectTrigger>
 
-          <div className="space-y-2">
-            <Label htmlFor="tool-timeout">Timeout (ms)</Label>
+                <SelectContent>
+                  <SelectItem value={ToolImplementations.WEATHER}>
+                    Weather
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </TabsContent>
 
-            <Input
-              id="tool-timeout"
-              type="number"
-              value={30000}
-              onChange={(e) =>
-                updateConfig({
-                  timeout: Number(e.target.value),
-                })
-              }
-            />
-          </div>
+          {/* ---------------- PARAMETERS ---------------- */}
 
-          {/* Retry */}
-
-          <div className="flex items-center justify-between rounded-lg border p-4">
+          <TabsContent value="parameters" className="mt-0 space-y-6 p-6">
             <div>
-              <Label>Retry on failure</Label>
+              <h3 className="text-sm font-medium">Tool Parameters</h3>
 
-              <p className="text-sm text-muted-foreground">
-                Automatically retry failed tool executions.
+              <p className="mt-1 text-sm text-muted-foreground">
+                Define the information the AI must provide when calling this
+                tool.
               </p>
             </div>
 
-            <Switch
-              checked={false}
-              onCheckedChange={(checked) =>
-                updateConfig({
-                  retry: checked,
-                })
-              }
-            />
-          </div>
-        </div>
+            {config.implementation === ToolImplementations.WEATHER && (
+              <div className="space-y-4 rounded-lg border bg-muted/40 p-4">
+                <div>
+                  <h4 className="font-medium">Weather</h4>
+
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Parameters required by the weather tool.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="weather-city">City</Label>
+
+                  <Input
+                    id="weather-city"
+                    value={String(config.parameters?.city ?? "")}
+                    placeholder="Bangalore"
+                    onChange={(e) =>
+                      updateConfig({
+                        parameters: {
+                          ...config.parameters,
+                          city: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* ---------------- ADVANCED ---------------- */}
+
+          <TabsContent value="advanced" className="mt-0 space-y-6 p-6">
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div>
+                <Label>Disabled</Label>
+
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Prevent this tool from being used by agents.
+                </p>
+              </div>
+
+              <Switch
+                checked={node.data.metadata.disabled}
+                onCheckedChange={(checked) => {
+                  updateNode(node.id, (current) => {
+                    if (current.type !== "tool-call") {
+                      return current;
+                    }
+
+                    const tool = current as ToolFlowNode;
+
+                    return {
+                      ...tool,
+                      data: {
+                        ...tool.data,
+                        metadata: {
+                          ...tool.data.metadata,
+                          disabled: checked,
+                        },
+                      },
+                    };
+                  });
+                }}
+              />
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div>
+                <Label>Locked</Label>
+
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Prevent accidental changes to this node.
+                </p>
+              </div>
+
+              <Switch
+                checked={node.data.metadata.locked}
+                onCheckedChange={(checked) => {
+                  updateNode(node.id, (current) => {
+                    if (current.type !== "tool-call") {
+                      return current;
+                    }
+
+                    const tool = current as ToolFlowNode;
+
+                    return {
+                      ...tool,
+                      data: {
+                        ...tool.data,
+                        metadata: {
+                          ...tool.data.metadata,
+                          locked: checked,
+                        },
+                      },
+                    };
+                  });
+                }}
+              />
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div>
+                <Label>Collapsed</Label>
+
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Collapse the tool preview on the canvas.
+                </p>
+              </div>
+
+              <Switch
+                checked={node.data.metadata.collapsed}
+                onCheckedChange={(checked) => {
+                  updateNode(node.id, (current) => {
+                    if (current.type !== "tool-call") {
+                      return current;
+                    }
+
+                    const tool = current as ToolFlowNode;
+
+                    return {
+                      ...tool,
+                      data: {
+                        ...tool.data,
+                        metadata: {
+                          ...tool.data.metadata,
+                          collapsed: checked,
+                        },
+                      },
+                    };
+                  });
+                }}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
