@@ -5,28 +5,71 @@ export function interpolatePrompt(
   prompt: string,
   context: ExecutionContext,
 ): string {
-  return prompt.replace(
-    /{{(.*?)}}/g,
-    (_match: string, rawName: string): string => {
-      const nodeName = rawName.trim();
+  return prompt.replace(/{{(.*?)}}/g, (_, rawName: string) => {
+    const expression = rawName.trim();
 
-      const nodeId = Object.entries(context.nodeNames).find(
-        ([, name]) => name === nodeName,
-      )?.[0];
+    // -----------------------------------------
+    // INPUT / WEBHOOK DATA
+    // -----------------------------------------
 
-      // Keep unresolved variables untouched
-      if (!nodeId) {
-        return `{{${nodeName}}}`;
-      }
+    if (expression.startsWith("input.")) {
+      const path = expression.slice("input.".length);
 
-      const output = context.outputs[nodeId];
+      const input = context.metadata?.input;
 
-      // Node exists but hasn't produced output yet
-      if (!output) {
+      if (
+        typeof input !== "object" ||
+        input === null ||
+        Array.isArray(input)
+      ) {
         return "";
       }
 
-      return formatExecutionOutput(output);
-    },
-  );
+      const value = path
+        .split(".")
+        .reduce<unknown>((current, key) => {
+          if (
+            typeof current === "object" &&
+            current !== null &&
+            key in current
+          ) {
+            return (current as Record<string, unknown>)[key];
+          }
+
+          return undefined;
+        }, input);
+
+      if (value === undefined || value === null) {
+        return "";
+      }
+
+      if (typeof value === "object") {
+        return JSON.stringify(value);
+      }
+
+      return String(value);
+    }
+
+    // -----------------------------------------
+    // NODE OUTPUT
+    // -----------------------------------------
+
+    const nodeName = expression;
+
+    const nodeId = Object.entries(context.nodeNames).find(
+      ([, name]) => name === nodeName,
+    )?.[0];
+
+    if (!nodeId) {
+      return `{{${nodeName}}}`;
+    }
+
+    const output = context.outputs[nodeId];
+
+    if (!output) {
+      return "";
+    }
+
+    return formatExecutionOutput(output);
+  });
 }

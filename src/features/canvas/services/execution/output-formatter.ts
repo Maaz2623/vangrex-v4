@@ -10,7 +10,9 @@ export function formatExecutionOutput(output: ExecutionOutput): string {
       return output.documents.join("\n");
     case "human":
       return String(output.value);
+    case "output":
+      return output.text;
     default:
-      throw new Error(`Unsupported execution output type: ${output.type}`);
+      throw new Error(`Unsupported execution output type: ${output}`);
   }
 }

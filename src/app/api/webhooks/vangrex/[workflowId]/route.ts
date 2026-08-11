@@ -1,5 +1,8 @@
 import { db } from "@/db";
-import { workflowsTable } from "@/db/schema";
+import { edgesTable, nodesTable, workflowsTable } from "@/db/schema";
+import { mapDbNodeToAppFlowNode } from "@/features/canvas/services/db-node-mapper";
+import { ExecutionManager } from "@/features/canvas/services/execution/execution-manager";
+import { formatExecutionOutput } from "@/features/canvas/services/execution/output-formatter";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -45,9 +48,54 @@ export async function POST(
     body,
   });
 
-  return NextResponse.json({
-    success: true,
-    received: true,
-    workflowId,
-  });
+  const dbNodes = await db
+    .select()
+    .from(nodesTable)
+    .where(eq(nodesTable.workflowId, workflow.id));
+
+  const nodes = dbNodes.map(mapDbNodeToAppFlowNode);
+
+  const edges = await db
+    .select()
+    .from(edgesTable)
+    .where(eq(edgesTable.workflowId, workflow.id));
+
+  try {
+    const executionManager = new ExecutionManager();
+
+    const result = await executionManager.execute(nodes, edges as any, {
+      workflowId,
+      input: body,
+    });
+
+    const outputs = result.context.outputs;
+
+    const outputEntries = Object.entries(outputs);
+
+    const finalOutput =
+      outputEntries.length > 0
+        ? outputEntries[outputEntries.length - 1][1]
+        : null;
+
+    return NextResponse.json({
+      success: true,
+      executionId: result.executionId,
+      workflowId,
+      result: finalOutput ? formatExecutionOutput(finalOutput) : null,
+    });
+  } catch (error) {
+    console.log("Webhook failed");
+
+    return NextResponse.json(
+      {
+        success: true,
+        workflowId,
+        error:
+          error instanceof Error ? error.message : "Workflow execution failed.",
+      },
+      {
+        status: 500,
+      },
+    );
+  }
 }
