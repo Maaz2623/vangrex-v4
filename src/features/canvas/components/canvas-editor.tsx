@@ -59,6 +59,7 @@ import { createFlowNode } from "../services/nodes/create-node";
 
 import type { FlowEdge } from "./edges/types/base-edge";
 import { defaultEdgeMetadata } from "./edges/default/defaults";
+import { useExecutionEvents } from "../hooks/use-execution-events";
 
 type Props = {
   projectId: string;
@@ -66,6 +67,7 @@ type Props = {
 };
 
 export const CanvasEditor = ({ projectId, workflowId }: Props) => {
+  useExecutionEvents();
   /*
    * ------------------------------------------------------------
    * DATABASE DATA
@@ -99,6 +101,9 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
   const [nodes, setNodes, reactFlowOnNodesChange] = useNodesState<AppFlowNode>(
     [],
   );
+
+  const nodeStates = useExecutionStore((state) => state.nodeStates);
+  const edgeStates = useExecutionStore((state) => state.edgeStates);
 
   const [edges, setEdges, onEdgesChange] = useEdgesState<FlowEdge>([]);
 
@@ -198,6 +203,29 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
   );
 
   const pendingNodeUpdates = useRef<Record<string, AppFlowNode>>({});
+
+  useEffect(() => {
+    setNodes((currentNodes) =>
+      currentNodes.map((node) => {
+        const status = nodeStates[node.id];
+
+        if (!status) {
+          return node;
+        }
+
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            metadata: {
+              ...node.data.metadata,
+              status,
+            },
+          },
+        } as AppFlowNode;
+      }),
+    );
+  }, [nodeStates, setNodes]);
 
   const updateNode = useCallback(
     (nodeId: string, updater: (node: AppFlowNode) => AppFlowNode) => {
