@@ -109,6 +109,8 @@ export const projectsTable = pgTable("projects", {
 
   archived: boolean("archived").default(false).notNull(),
 
+  svixAppId: text("svix_app_id"),
+
   createdAt: timestamp("created_at", {
     withTimezone: true,
   })

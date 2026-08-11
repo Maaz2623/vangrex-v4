@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { projectsTable } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { createSvixApplication } from "@/features/webhooks/services/svix-application";
 
 export const projectsRouter = createTRPCRouter({
   getProjectName: protectedProcedure
@@ -73,6 +74,19 @@ export const projectsRouter = createTRPCRouter({
         })
         .returning();
 
-      return project.id;
+      const svixApp = await createSvixApplication({
+        projectId: project.id,
+        projectName: project.name,
+      });
+
+      const [updatedProject] = await db
+        .update(projectsTable)
+        .set({
+          svixAppId: svixApp.id,
+        })
+        .where(eq(projectsTable.id, project.id))
+        .returning();
+
+      return updatedProject.id;
     }),
 });
