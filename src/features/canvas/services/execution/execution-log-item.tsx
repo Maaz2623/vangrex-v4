@@ -17,26 +17,26 @@ export const ExecutionLogItem = ({ log }: Props) => {
       case "node:error":
         return `✗ Node ${log.event.nodeName} failed (${Math.round(log.event.duration)})`;
 
-      case "tool:start":
-        return `> Executing tool ${log.event.nodeName}`;
+      // case "tool:start":
+      //   return `> Executing tool ${log.event.nodeName}`;
 
-      case "node:success":
-        return `✓ ${log.event.nodeName} completed (${Math.round(log.event.duration)} ms)`;
+      // case "node:success":
+      //   return `✓ ${log.event.nodeName} completed (${Math.round(log.event.duration)} ms)`;
 
-      case "tool:error":
-        return `✗ Tool ${log.event.nodeName} failed`;
+      // case "tool:error":
+      //   return `✗ Tool ${log.event.nodeName} failed`;
 
-      case "tool:success":
-        return `✓ Tool ${log.event.nodeName} completed`;
+      // case "tool:success":
+      //   return `✓ Tool ${log.event.nodeName} completed`;
 
-      case "edge:start":
-        return `> Traversing edge`;
+      // case "edge:start":
+      //   return `> Traversing edge`;
 
-      case "edge:success":
-        return `✓ Edge completed`;
+      // case "edge:success":
+      //   return `✓ Edge completed`;
 
-      case "edge:error":
-        return `✗ Edge failed`;
+      // case "edge:error":
+      //   return `✗ Edge failed`;
 
       default:
         return "Return unknown event";
@@ -46,14 +46,14 @@ export const ExecutionLogItem = ({ log }: Props) => {
   const getColor = () => {
     switch (log.event.type) {
       case "node:error":
-      case "tool:error":
-      case "edge:error":
-        return "text-red-500";
+      // case "tool:error":
+      // case "edge:error":
+      //   return "text-red-500";
 
-      case "node:success":
-      case "tool:success":
-      case "edge:success":
-        return "text-green-500";
+      // case "node:success":
+      // case "tool:success":
+      // case "edge:success":
+      //   return "text-green-500";
 
       default:
         return "text-muted-foreground";
