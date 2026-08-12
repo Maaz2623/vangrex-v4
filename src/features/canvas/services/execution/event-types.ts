@@ -1,7 +1,7 @@
 export type ExecutionEvent =
   | {
       type: "node:start";
-      executionId: string;
+      executionId?: string;
       nodeId: string;
       nodeType: string;
       nodeName: string;
@@ -9,7 +9,7 @@ export type ExecutionEvent =
     }
   | {
       type: "node:success";
-      executionId: string;
+      executionId?: string;
       nodeId: string;
       nodeType: string;
       nodeName: string;
@@ -18,7 +18,7 @@ export type ExecutionEvent =
     }
   | {
       type: "node:error";
-      executionId: string;
+      executionId?: string;
       nodeId: string;
       nodeType: string;
       nodeName: string;

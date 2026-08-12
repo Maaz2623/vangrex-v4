@@ -4,7 +4,7 @@ import { ExecutionOutput } from "./execution-output";
 import { ExecutionStats } from "./execution-stats";
 
 export interface ExecutionContext {
-  executionId: string;
+  executionId?: string;
 
   workflowId: string;
   startedAt: number;

@@ -9,10 +9,10 @@ export class ExecutionManager {
   async execute(
     nodes: AppFlowNode[],
     edges: FlowEdge[],
-    options: {
+    options?: {
       workflowId?: string;
       input?: unknown;
-      executionId: string;
+      executionId?: string;
     },
   ) {
     useExecutionStore.getState().clear();
