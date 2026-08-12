@@ -23,6 +23,7 @@ import {
   ScanSearch,
   Trash2,
   VariableIcon,
+  FolderOutputIcon,
 } from "lucide-react";
 import { useCreateNode } from "../hooks/node.hooks";
 import { useCallback } from "react";
@@ -90,9 +91,16 @@ export const CanvasContextMenu = ({ addNode }: Props) => {
             Variable
           </ContextMenuItem>
 
-          <ContextMenuItem>
-            <GitBranch className="mr-2 h-4 w-4" />
-            Logic
+          <ContextMenuItem
+            onClick={() =>
+              addNode("output", {
+                x: 0,
+                y: 0,
+              })
+            }
+          >
+            <FolderOutputIcon className="mr-2 h-4 w-4" />
+            Output
           </ContextMenuItem>
 
           <ContextMenuItem>
