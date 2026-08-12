@@ -1,3 +1,5 @@
+
+
 import { generateText } from "ai";
 
 import { delay } from "@/lib/delay";
@@ -29,6 +31,8 @@ export async function executeAgent(
   const started = performance.now();
 
   executionEvents.emit({
+    executionId: context.executionId,
+    nodeType: "agent",
     type: "node:start",
     nodeId: agent.id,
     timestamp: Date.now(),
@@ -45,15 +49,15 @@ export async function executeAgent(
       ? getConnectingEdge(agent.id, connectedTools[0].id, edges)
       : undefined;
 
-  if (edge) {
-    executionEvents.emit({
-      type: "edge:start",
-      edgeId: edge.id,
-      timestamp: Date.now(),
-    });
+  // if (edge) {
+  //   executionEvents.emit({
+  //     type: "edge:start",
+  //     edgeId: edge.id,
+  //     timestamp: Date.now(),
+  //   });
 
-    await delay(500);
-  }
+  //   await delay(500);
+  // }
 
   try {
     console.log("AGENT VARIABLES:", context.variables);
@@ -73,21 +77,23 @@ export async function executeAgent(
       text: result.text,
     });
 
-    if (edge) {
-      await delay(500);
+    // if (edge) {
+    //   await delay(500);
 
-      executionEvents.emit({
-        type: "edge:success",
-        edgeId: edge.id,
-        timestamp: Date.now(),
-      });
-    }
+    //   executionEvents.emit({
+    //     type: "edge:success",
+    //     edgeId: edge.id,
+    //     timestamp: Date.now(),
+    //   });
+    // }
 
     await delay(1000);
 
     contextManager.finishNode(agent.id);
 
     executionEvents.emit({
+      executionId: context.executionId,
+      nodeType: "agent",
       type: "node:success",
       nodeId: agent.id,
       timestamp: Date.now(),
@@ -98,16 +104,18 @@ export async function executeAgent(
     contextManager.incrementErrors();
     contextManager.failNode(agent.id);
 
-    if (edge) {
-      executionEvents.emit({
-        type: "edge:error",
-        edgeId: edge.id,
-        error: error instanceof Error ? error : new Error(String(error)),
-        timestamp: Date.now(),
-      });
-    }
+    // if (edge) {
+    //   executionEvents.emit({
+    //     type: "edge:error",
+    //     edgeId: edge.id,
+    //     error: error instanceof Error ? error : new Error(String(error)),
+    //     timestamp: Date.now(),
+    //   });
+    // }
 
     executionEvents.emit({
+      executionId: context.executionId,
+      nodeType: "agent",
       type: "node:error",
       nodeId: agent.id,
       nodeName: context.nodeNames[agent.id],

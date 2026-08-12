@@ -1,3 +1,5 @@
+
+
 import { VariableFlowNode } from "../../components/nodes/types";
 import { ExecutionContextManager } from "./execution-context-manager";
 import { executionEvents } from "./execution-events";
@@ -13,7 +15,9 @@ export async function executeVariable(
 
   executionEvents.emit({
     type: "node:start",
+    executionId: context.executionId,
     nodeId: node.id,
+    nodeType: "variable",
     timestamp: Date.now(),
     nodeName: node.data.title,
   });
@@ -26,7 +30,9 @@ export async function executeVariable(
 
   executionEvents.emit({
     type: "node:success",
+    executionId: context.executionId,
     nodeId: node.id,
+    nodeType: "variable",
     timestamp: Date.now(),
     nodeName: node.data.title,
     duration: 0,

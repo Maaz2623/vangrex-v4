@@ -1,7 +1,9 @@
 import { db } from "@/db";
 import { edgesTable, nodesTable, workflowsTable } from "@/db/schema";
 import { mapDbNodeToAppFlowNode } from "@/features/canvas/services/db-node-mapper";
+import { initializeExecutionSystem } from "@/features/canvas/services/execution/execution-bootstrap";
 import { ExecutionManager } from "@/features/canvas/services/execution/execution-manager";
+import { createExecution } from "@/features/canvas/services/execution/execution-persistance";
 import { formatExecutionOutput } from "@/features/canvas/services/execution/output-formatter";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
@@ -63,9 +65,20 @@ export async function POST(
   try {
     const executionManager = new ExecutionManager();
 
-    const result = await executionManager.execute(nodes, edges as any, {
+    initializeExecutionSystem();
+
+    const executionId = crypto.randomUUID();
+
+    await createExecution({
+      id: executionId,
       workflowId,
       input: body,
+    });
+
+    const result = await executionManager.execute(nodes, edges, {
+      workflowId,
+      input: body,
+      executionId,
     });
 
     const outputs = result.context.outputs;

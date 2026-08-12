@@ -1,3 +1,4 @@
+
 import { ToolFlowNode } from "../../components/nodes/types/tool-node";
 import { ExecutionContext } from "./execution-context";
 import { ExecutionContextManager } from "./execution-context-manager";
@@ -16,16 +17,17 @@ export async function executeTool(
   contextManager.incrementToolsExecuted();
 
   executionEvents.emit({
-    type: "tool:start",
+    executionId: context.executionId,
+    nodeType: "tool",
+    type: "node:start",
     nodeId: toolNode.id,
     nodeName: context.nodeNames[toolNode.id],
     timestamp: Date.now(),
   });
 
+  const duration = performance.now() - started;
   try {
     const result = await execute();
-
-    const duration = performance.now() - started;
 
     context.outputs[toolNode.id] = {
       type: "tool",
@@ -33,7 +35,10 @@ export async function executeTool(
     };
 
     executionEvents.emit({
-      type: "tool:success",
+      executionId: context.executionId,
+      nodeType: "tool",
+      type: "node:success",
+      duration: duration,
       nodeId: toolNode.id,
       nodeName: context.nodeNames[toolNode.id],
       timestamp: Date.now(),
@@ -44,7 +49,10 @@ export async function executeTool(
     contextManager.incrementErrors();
 
     executionEvents.emit({
-      type: "tool:error",
+      executionId: context.executionId,
+      nodeType: "tool",
+      type: "node:error",
+      duration: duration,
       nodeId: toolNode.id,
       nodeName: context.nodeNames[toolNode.id],
       error: error instanceof Error ? error : new Error(String(error)),

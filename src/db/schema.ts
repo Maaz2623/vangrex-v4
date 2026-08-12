@@ -79,17 +79,24 @@ export const executionNodesTable = pgTable(
         onDelete: "cascade",
       }),
 
-    nodeId: uuid("node_id")
+    nodeId: uuid("node_id").notNull(),
+
+    nodeType: text("node_type").notNull(),
+
+    nodeTitle: text("node_title").notNull(),
+
+    status: varchar("status", {
+      enum: ["pending", "running", "success", "error", "skipped"],
+      length: 20,
+    })
       .notNull()
-      .references(() => nodesTable.id, {
-        onDelete: "cascade",
-      }),
+      .default("pending"),
 
-    status: executionNodeStatusEnum("status").notNull().default("pending"),
+    input: jsonb("input").$type<Record<string, unknown> | null>().default(null),
 
-    input: jsonb("input").$type<unknown>().default(null),
-
-    output: jsonb("output").$type<unknown>().default(null),
+    output: jsonb("output")
+      .$type<Record<string, unknown> | null>()
+      .default(null),
 
     error: text("error"),
 

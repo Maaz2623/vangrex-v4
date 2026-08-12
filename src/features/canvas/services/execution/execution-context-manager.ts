@@ -7,6 +7,10 @@ import { useExecutionStore } from "../../store/execution-store";
 export class ExecutionContextManager {
   constructor(private readonly context: ExecutionContext) {}
 
+  get executionId() {
+    return this.context.executionId;
+  }
+
   getContext(): ExecutionContext {
     return this.context;
   }

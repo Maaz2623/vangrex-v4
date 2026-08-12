@@ -438,29 +438,29 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
           updateNodeStatus(event.nodeId, "error");
           break;
 
-        case "tool:start":
-          updateNodeStatus(event.nodeId, "running");
-          break;
+        // case "tool:node":
+        //   updateNodeStatus(event.nodeId, "running");
+        //   break;
 
-        case "tool:success":
-          updateNodeStatus(event.nodeId, "success");
-          break;
+        // case "tool:success":
+        //   updateNodeStatus(event.nodeId, "success");
+        //   break;
 
-        case "tool:error":
-          updateNodeStatus(event.nodeId, "error");
-          break;
+        // case "tool:error":
+        //   updateNodeStatus(event.nodeId, "error");
+        //   break;
 
-        case "edge:start":
-          updateEdgeStatus(event.edgeId, "running");
-          break;
+        // case "edge:start":
+        //   updateEdgeStatus(event.edgeId, "running");
+        //   break;
 
-        case "edge:success":
-          updateEdgeStatus(event.edgeId, "success");
-          break;
+        // case "edge:success":
+        //   updateEdgeStatus(event.edgeId, "success");
+        //   break;
 
-        case "edge:error":
-          updateEdgeStatus(event.edgeId, "error");
-          break;
+        // case "edge:error":
+        //   updateEdgeStatus(event.edgeId, "error");
+        //   break;
       }
     });
 

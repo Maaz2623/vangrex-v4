@@ -12,31 +12,28 @@ export class ExecutionManager {
     options?: {
       workflowId?: string;
       input?: unknown;
+      executionId?: string;
     },
   ) {
     useExecutionStore.getState().clear();
 
-    const executionId = crypto.randomUUID();
-
     const context: ExecutionContext = {
+      executionId: options?.executionId,
       workflowId: options?.workflowId ?? "manual",
       startedAt: Date.now(),
+
       nodeNames: Object.fromEntries(
         nodes.map((node) => [node.id, node.data.title]),
       ),
+
       outputs: {},
-      variables:
-        options?.input &&
-        typeof options.input === "object" &&
-        !Array.isArray(options.input)
-          ? (options.input as Record<string, unknown>)
-          : {},
+      variables: {},
+
       artifacts: [],
+
       metadata: {
         input: options?.input ?? null,
       },
-
-      executionId,
 
       nodeStates: Object.fromEntries(
         nodes.map((node) => [
@@ -70,7 +67,7 @@ export class ExecutionManager {
     }
 
     return {
-      executionId,
+      executionId: options?.executionId,
       context,
     };
   }
