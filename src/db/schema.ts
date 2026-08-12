@@ -13,6 +13,111 @@ import {
   pgEnum,
 } from "drizzle-orm/pg-core";
 
+export const executionStatusEnum = pgEnum("execution_status", [
+  "pending",
+  "running",
+  "success",
+  "error",
+  "cancelled",
+]);
+
+export const executionNodeStatusEnum = pgEnum("execution_node_status", [
+  "pending",
+  "running",
+  "success",
+  "error",
+  "skipped",
+]);
+
+export const executionsTable = pgTable(
+  "executions_table",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    workflowId: uuid("workflow_id")
+      .notNull()
+      .references(() => workflowsTable.id, {
+        onDelete: "cascade",
+      }),
+
+    status: executionStatusEnum("status").notNull().default("pending"),
+
+    input: jsonb("input").$type<unknown>().default(null),
+
+    output: jsonb("output").$type<unknown>().default(null),
+
+    error: text("error"),
+
+    startedAt: timestamp("started_at", {
+      withTimezone: true,
+    }),
+
+    completedAt: timestamp("completed_at", {
+      withTimezone: true,
+    }),
+
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("execution_workflow_id_idx").on(table.workflowId),
+    index("execution_status_idx").on(table.status),
+  ],
+);
+
+export const executionNodesTable = pgTable(
+  "execution_nodes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+
+    executionId: uuid("execution_id")
+      .notNull()
+      .references(() => executionsTable.id, {
+        onDelete: "cascade",
+      }),
+
+    nodeId: uuid("node_id")
+      .notNull()
+      .references(() => nodesTable.id, {
+        onDelete: "cascade",
+      }),
+
+    status: executionNodeStatusEnum("status").notNull().default("pending"),
+
+    input: jsonb("input").$type<unknown>().default(null),
+
+    output: jsonb("output").$type<unknown>().default(null),
+
+    error: text("error"),
+
+    startedAt: timestamp("started_at", {
+      withTimezone: true,
+    }),
+
+    completedAt: timestamp("completed_at", {
+      withTimezone: true,
+    }),
+
+    duration: doublePrecision("duration"),
+
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("execution_nodes_execution_id_idx").on(table.executionId),
+
+    index("execution_nodes_node_id_idx").on(table.nodeId),
+
+    index("execution_nodes_status_idx").on(table.status),
+  ],
+);
+
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -220,6 +325,8 @@ export const relations = defineRelations(
     workflowsTable,
     nodesTable,
     edgesTable,
+    executionsTable,
+    executionNodesTable,
   },
   (r) => ({
     user: {
@@ -279,6 +386,50 @@ export const relations = defineRelations(
       edges: r.many.edgesTable({
         from: r.workflowsTable.id,
         to: r.edgesTable.workflowId,
+      }),
+      executions: r.many.executionsTable({
+        from: r.workflowsTable.id,
+        to: r.executionsTable.workflowId,
+      }),
+    },
+
+    nodes: {
+      workflow: r.one.workflowsTable({
+        from: r.nodesTable.workflowId,
+        to: r.workflowsTable.id,
+        optional: false,
+      }),
+
+      executions: r.many.executionNodesTable({
+        from: r.nodesTable.id,
+        to: r.executionNodesTable.nodeId,
+      }),
+    },
+
+    executions: {
+      workflow: r.one.workflowsTable({
+        from: r.executionsTable.workflowId,
+        to: r.workflowsTable.id,
+        optional: false,
+      }),
+
+      nodes: r.many.executionNodesTable({
+        from: r.executionsTable.id,
+        to: r.executionNodesTable.executionId,
+      }),
+    },
+
+    executionNodes: {
+      execution: r.one.executionsTable({
+        from: r.executionNodesTable.executionId,
+        to: r.executionsTable.id,
+        optional: false,
+      }),
+
+      node: r.one.nodesTable({
+        from: r.executionNodesTable.nodeId,
+        to: r.nodesTable.id,
+        optional: false,
       }),
     },
   }),
