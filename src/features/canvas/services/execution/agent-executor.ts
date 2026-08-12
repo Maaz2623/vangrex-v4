@@ -56,7 +56,9 @@ export async function executeAgent(
   }
 
   try {
+    console.log("AGENT VARIABLES:", context.variables);
     const prompt = interpolatePrompt(agent.data.config.prompt, context);
+    console.log("FINAL AGENT PROMPT:", prompt);
 
     const result = await generateText({
       model: defaultModel,

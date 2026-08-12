@@ -4,7 +4,6 @@ import { useExecutionStore } from "../store/execution-store";
 import { useTRPC } from "@/trpc/client";
 
 export function useExecutionEvents() {
-  console.log("🔥 useExecutionEvents mounted");
   const trpc = useTRPC();
 
   const addEvent = useExecutionStore((state) => state.addEvent);

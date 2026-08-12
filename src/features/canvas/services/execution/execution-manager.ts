@@ -25,7 +25,12 @@ export class ExecutionManager {
         nodes.map((node) => [node.id, node.data.title]),
       ),
       outputs: {},
-      variables: {},
+      variables:
+        options?.input &&
+        typeof options.input === "object" &&
+        !Array.isArray(options.input)
+          ? (options.input as Record<string, unknown>)
+          : {},
       artifacts: [],
       metadata: {
         input: options?.input ?? null,
