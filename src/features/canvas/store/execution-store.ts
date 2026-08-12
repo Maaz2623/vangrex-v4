@@ -83,17 +83,17 @@ export const useExecutionStore = create<ExecutionStore>((set) => ({
           nodeStates[event.nodeId] = "error";
           break;
 
-        case "edge:start":
-          edgeStates[event.edgeId] = "running";
-          break;
+        // case "edge:start":
+        //   edgeStates[event.edgeId] = "running";
+        //   break;
 
-        case "edge:success":
-          edgeStates[event.edgeId] = "success";
-          break;
+        // case "edge:success":
+        //   edgeStates[event.edgeId] = "success";
+        //   break;
 
-        case "edge:error":
-          edgeStates[event.edgeId] = "error";
-          break;
+        // case "edge:error":
+        //   edgeStates[event.edgeId] = "error";
+        //   break;
       }
 
       return {
