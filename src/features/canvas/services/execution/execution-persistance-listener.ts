@@ -16,7 +16,7 @@ export function startExecutionPersistence() {
           const [executionNode] = await db
             .insert(executionNodesTable)
             .values({
-              executionId: event.executionId,
+              executionId: event.executionId as string,
               nodeId: event.nodeId,
               nodeType: event.nodeType,
               nodeTitle: event.nodeName,
