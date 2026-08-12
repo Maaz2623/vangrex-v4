@@ -1,13 +1,10 @@
-import { requireAuth } from "@/lib/auth-utils";
-import { redirect } from "next/navigation";
-import React from "react";
+import { HomePage } from "@/features/home/home-page";
+import { requireUnAuth } from "@/lib/auth-utils";
 
-const HomePage = async () => {
-  await requireAuth();
+const Page = async () => {
+  await requireUnAuth();
 
-  redirect("/projects");
-
-  return <div>Home Pag</div>;
+  return <HomePage />;
 };
 
-export default HomePage;
+export default Page;
