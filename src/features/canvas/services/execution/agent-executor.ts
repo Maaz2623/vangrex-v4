@@ -65,7 +65,7 @@ export async function executeAgent(
       prompt,
       tools,
       stopWhen: ({ steps }) => steps.length >= 2,
-      instructions: "Always reply in a sentence",
+      instructions: "You are a helpful assistant",
     });
 
     contextManager.setOutput(agent.id, {
