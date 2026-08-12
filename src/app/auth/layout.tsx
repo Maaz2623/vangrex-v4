@@ -5,5 +5,5 @@ export default async function Layout({
 }: {
   children: React.ReactNode;
 }) {
-  return <AuthLayout>{children}</AuthLayout>;
+  return <div className="h-screen w-full">{children}</div>;
 }
