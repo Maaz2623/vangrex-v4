@@ -60,6 +60,8 @@ import { createFlowNode } from "../services/nodes/create-node";
 import type { FlowEdge } from "./edges/types/base-edge";
 import { defaultEdgeMetadata } from "./edges/default/defaults";
 import { useExecutionEvents } from "../hooks/use-execution-events";
+import { useTRPC } from "@/trpc/client";
+import { useMutation } from "@tanstack/react-query";
 
 type Props = {
   projectId: string;
@@ -68,6 +70,8 @@ type Props = {
 
 export const CanvasEditor = ({ projectId, workflowId }: Props) => {
   useExecutionEvents();
+
+  const trpc = useTRPC();
   /*
    * ------------------------------------------------------------
    * DATABASE DATA
@@ -87,6 +91,8 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
   const deleteEdge = useDeleteEdge();
 
   const updateEdge = useUpdateEdge();
+
+  const executeWorkfow = useMutation(trpc.executions.execute.mutationOptions());
 
   const nodeUpdateTimers = useRef<
     Record<string, ReturnType<typeof setTimeout>>
@@ -489,9 +495,11 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
       return;
     }
 
-    const manager = new ExecutionManager();
-
-    manager.execute(nodes, edges);
+    executeWorkfow.mutate({
+      workflowId,
+      nodes,
+      edges,
+    });
 
     setExecuteAgentId(null);
   }, [executeAgentId, nodes, edges, setExecuteAgentId]);

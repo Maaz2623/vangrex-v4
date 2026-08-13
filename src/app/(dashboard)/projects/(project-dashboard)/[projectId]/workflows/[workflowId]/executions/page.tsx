@@ -1,9 +1,18 @@
-import React from 'react'
+import { ExecutionsView } from "@/features/executions/components/execution-overview";
 
-const ExecutionsPage = () => {
-  return (
-    <div>ExecutionsPage</div>
-  )
+interface ExecutionsPageProps {
+  params: Promise<{
+    projectId: string;
+    workflowId: string;
+  }>;
 }
 
-export default ExecutionsPage
+export default async function ExecutionsPage({ params }: ExecutionsPageProps) {
+  const { projectId, workflowId } = await params;
+
+  return (
+    <div className="h-full w-full">
+      <ExecutionsView projectId={projectId} workflowId={workflowId} />
+    </div>
+  );
+}

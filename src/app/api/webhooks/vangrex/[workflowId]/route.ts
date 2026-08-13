@@ -3,7 +3,10 @@ import { edgesTable, nodesTable, workflowsTable } from "@/db/schema";
 import { mapDbNodeToAppFlowNode } from "@/features/canvas/services/db-node-mapper";
 import { initializeExecutionSystem } from "@/features/canvas/services/execution/execution-bootstrap";
 import { ExecutionManager } from "@/features/canvas/services/execution/execution-manager";
-import { createExecution } from "@/features/canvas/services/execution/execution-persistance";
+import {
+  completeExecution,
+  createExecution,
+} from "@/features/canvas/services/execution/execution-persistance";
 import { formatExecutionOutput } from "@/features/canvas/services/execution/output-formatter";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
@@ -89,6 +92,10 @@ export async function POST(
       outputEntries.length > 0
         ? outputEntries[outputEntries.length - 1][1]
         : null;
+
+    await completeExecution(executionId, {
+      output: result.context.outputs,
+    });
 
     return NextResponse.json({
       success: true,
