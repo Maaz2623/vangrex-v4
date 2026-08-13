@@ -119,6 +119,7 @@ export const executionsRouter = createTRPCRouter({
   events: protectedProcedure.subscription(() => {
     return observable<ExecutionEvent>((emit) => {
       const unsubscribe = executionEvents.subscribe((event) => {
+        console.log("[execution-events] sending:", event);
         emit.next(event);
       });
 

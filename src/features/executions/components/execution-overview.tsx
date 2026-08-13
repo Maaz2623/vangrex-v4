@@ -1,6 +1,9 @@
 "use client";
 
+import { useTRPC } from "@/trpc/client";
 import { useExecutions } from "../hooks/use-executions";
+import { useQueryClient } from "@tanstack/react-query";
+import { useSubscription } from "@trpc/tanstack-react-query";
 
 interface ExecutionsViewProps {
   projectId: string;
@@ -47,6 +50,26 @@ function formatDate(date: Date | string | null) {
 }
 
 export function ExecutionsView({ projectId, workflowId }: ExecutionsViewProps) {
+  const trpc = useTRPC();
+
+  const queryClient = useQueryClient();
+
+  useSubscription(
+    trpc.executions.events.subscriptionOptions(undefined, {
+      onData(event) {
+        if (!event.executionId) {
+          return;
+        }
+
+        queryClient.invalidateQueries({
+          queryKey: trpc.executions.list.queryKey({
+            workflowId,
+          }),
+        });
+      },
+    }),
+  );
+
   const { data: executions, isLoading, isError } = useExecutions(workflowId);
 
   return (
