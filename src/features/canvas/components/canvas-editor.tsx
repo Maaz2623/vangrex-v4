@@ -258,6 +258,7 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
 
         updateNodeMutation.mutate({
           id: node.id,
+          config: node.data.config,
         });
 
         delete pendingNodeUpdates.current[nodeId];
@@ -634,6 +635,11 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
                 edges={edges}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
+                onNodesDelete={(deletedNodes) => {
+                  deletedNodes.forEach((node) => {
+                    removeNode(node.id);
+                  });
+                }}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}

@@ -8,6 +8,7 @@ import { VariableFlowNode } from "../types/variable-node";
 import { variableDefinition } from "./variable-definition";
 import { VariableNodePreview } from "./variable-node-preview";
 import { useNodeSettingsStore } from "@/features/canvas/store/node-settings-store";
+import { useDeleteNode } from "@/features/canvas/hooks/node.hooks";
 
 export const VariableNode = ({
   id,
@@ -15,6 +16,8 @@ export const VariableNode = ({
   selected,
 }: NodeProps<VariableFlowNode>) => {
   const { open } = useNodeSettingsStore();
+
+  const deleteNode = useDeleteNode();
 
   return (
     <NodeShell
@@ -28,7 +31,14 @@ export const VariableNode = ({
 
           <NodeToolbarButton icon={Copy} />
 
-          <NodeToolbarButton icon={Trash2} />
+          <NodeToolbarButton
+            icon={Trash2}
+            onClick={() =>
+              deleteNode.mutate({
+                id: id,
+              })
+            }
+          />
         </>
       }
     />

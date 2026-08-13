@@ -19,7 +19,7 @@ export const BaseNode = ({
   return (
     <div
       className={cn(
-        "group relative w-80 overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-200",
+        "group relative w-80 overflow-visible rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-200",
         "hover:-translate-y-0.5 hover:shadow-lg",
         selected && "border-primary ring-2 ring-primary/20 shadow-xl",
         className,
