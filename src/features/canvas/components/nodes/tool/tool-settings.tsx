@@ -143,6 +143,9 @@ export const ToolSettings = ({ node, updateNode }: ToolSettingsProps) => {
                   <SelectItem value={ToolImplementations.WEATHER}>
                     Weather
                   </SelectItem>
+                  <SelectItem value={ToolImplementations.READ_FILE}>
+                    Read File
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

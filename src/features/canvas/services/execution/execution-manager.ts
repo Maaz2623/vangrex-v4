@@ -1,9 +1,12 @@
 import { FlowEdge } from "../../components/edges/types/base-edge";
 import { AppFlowNode } from "../../components/nodes/node-config";
 import { useExecutionStore } from "../../store/execution-store";
+import { workspaceManager } from "../workspace/workspace-manager";
 import { ExecutionContext } from "./execution-context";
 import { getStartNodes } from "./get-start-nodes";
 import { GraphExecutor } from "./graph-executor";
+
+
 
 export class ExecutionManager {
   async execute(
@@ -16,6 +19,11 @@ export class ExecutionManager {
     },
   ) {
     useExecutionStore.getState().clear();
+
+    const workspace = await workspaceManager.create()
+
+
+    console.log("[workspace] created:", workspace)
 
     const context: ExecutionContext = {
       executionId: options?.executionId,
@@ -54,7 +62,7 @@ export class ExecutionManager {
       },
     };
 
-    const graph = new GraphExecutor();
+    const graph = new GraphExecutor(workspace);
 
     const startNodes = getStartNodes(nodes, edges);
 

@@ -2,6 +2,7 @@ import { FlowEdge } from "../../components/edges/types/base-edge";
 import { AppFlowNode } from "../../components/nodes/node-config";
 import { AgentFlowNode, OutputFlowNode } from "../../components/nodes/types";
 import { VariableFlowNode } from "../../components/nodes/types/variable-node";
+import { Workspace } from "../workspace/workspace-manager";
 import { executeAgent } from "./agent-executor";
 import { ExecutionContext } from "./execution-context";
 import { ExecutionContextManager } from "./execution-context-manager";
@@ -13,15 +14,17 @@ type Executor = (
   nodes: AppFlowNode[],
   edges: FlowEdge[],
   context: ExecutionContext,
+  workspace: Workspace,
 ) => Promise<void>;
 
 export const nodeExecutorRegistry: Record<string, Executor> = {
-  agent: (node, nodes, edges, context) =>
+  agent: (node, nodes, edges, context, workspace) =>
     executeAgent(
       node as AgentFlowNode,
       nodes,
       edges,
       new ExecutionContextManager(context),
+      workspace,
     ),
   variable: (node, nodes, edges, context) =>
     executeVariable(

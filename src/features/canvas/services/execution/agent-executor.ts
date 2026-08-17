@@ -1,5 +1,3 @@
-
-
 import { generateText } from "ai";
 
 import { delay } from "@/lib/delay";
@@ -16,12 +14,15 @@ import { defaultModel } from "./model";
 import { executionEvents } from "./execution-events";
 import { interpolatePrompt } from "./prompt-interpolator";
 import { ExecutionContextManager } from "./execution-context-manager";
+import { createWorkspaceTools } from "./tools/workspace-tools";
+import { Workspace, workspaceManager } from "../workspace/workspace-manager";
 
 export async function executeAgent(
   agent: AgentFlowNode,
   nodes: AppFlowNode[],
   edges: FlowEdge[],
   contextManager: ExecutionContextManager,
+  workspace: Workspace,
 ) {
   const context = contextManager.getContext();
 
@@ -42,7 +43,6 @@ export async function executeAgent(
   await delay(1000);
 
   const connectedTools = getConnectedTools(agent.id, nodes, edges);
-  const tools = createTools(connectedTools, context);
 
   const edge =
     connectedTools.length > 0
@@ -64,12 +64,18 @@ export async function executeAgent(
     const prompt = interpolatePrompt(agent.data.config.prompt, context);
     console.log("FINAL AGENT PROMPT:", prompt);
 
+    const tools = createTools(connectedTools, context, workspace);
+
     const result = await generateText({
       model: defaultModel,
       prompt,
       tools,
       stopWhen: ({ steps }) => steps.length >= 2,
       instructions: "You are a helpful assistant",
+    });
+
+    console.dir(result.steps, {
+      depth: null,
     });
 
     contextManager.setOutput(agent.id, {
