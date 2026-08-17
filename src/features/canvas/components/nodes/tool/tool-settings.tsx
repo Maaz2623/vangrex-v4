@@ -146,6 +146,10 @@ export const ToolSettings = ({ node, updateNode }: ToolSettingsProps) => {
                   <SelectItem value={ToolImplementations.READ_FILE}>
                     Read File
                   </SelectItem>
+
+                  <SelectItem value={ToolImplementations.WRITE_FILE}>
+                    Write File
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

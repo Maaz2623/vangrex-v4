@@ -6,8 +6,6 @@ import { ExecutionContext } from "./execution-context";
 import { getStartNodes } from "./get-start-nodes";
 import { GraphExecutor } from "./graph-executor";
 
-
-
 export class ExecutionManager {
   async execute(
     nodes: AppFlowNode[],
@@ -20,10 +18,15 @@ export class ExecutionManager {
   ) {
     useExecutionStore.getState().clear();
 
-    const workspace = await workspaceManager.create()
+    const workspace = await workspaceManager.create();
 
+    await workspaceManager.writeFile(
+      workspace,
+      "hello.txt",
+      "Hello from Vangrex Workspace!",
+    );
 
-    console.log("[workspace] created:", workspace)
+    console.log("[workspace] created:", workspace);
 
     const context: ExecutionContext = {
       executionId: options?.executionId,
