@@ -20,14 +20,6 @@ export class ExecutionManager {
 
     const workspace = await workspaceManager.create();
 
-    await workspaceManager.writeFile(
-      workspace,
-      "hello.txt",
-      "Hello from Vangrex Workspace!",
-    );
-
-    console.log("[workspace] created:", workspace);
-
     const context: ExecutionContext = {
       executionId: options?.executionId,
       workflowId: options?.workflowId ?? "manual",

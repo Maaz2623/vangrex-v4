@@ -3,6 +3,10 @@ import "server-only";
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
+import { promisify } from "util";
+import { execFile } from "child_process";
+
+const exeFileAsync = promisify(execFile);
 
 export interface Workspace {
   id: string;
@@ -57,6 +61,25 @@ class LocalWorkspaceManager implements WorkspaceManager {
     });
 
     await writeFile(absolutePath, content, "utf8");
+  }
+
+  async runCommand(
+    workspace: Workspace,
+    command: string,
+    args?: string[],
+  ): Promise<{
+    stdout: string;
+    stderr: string;
+  }> {
+    const { stdout, stderr } = await exeFileAsync(command, args, {
+      cwd: workspace.path,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+
+    return {
+      stdout,
+      stderr,
+    };
   }
 
   private resolvePath(workspace: Workspace, filePath: string) {

@@ -4,6 +4,7 @@ export const ToolImplementations = {
   WEATHER: "weather",
   READ_FILE: "read_file",
   WRITE_FILE: "write_file",
+  TERMINAL: "terminal",
 } as const;
 
 export type ToolImplementation =

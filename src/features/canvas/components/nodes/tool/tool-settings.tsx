@@ -150,6 +150,9 @@ export const ToolSettings = ({ node, updateNode }: ToolSettingsProps) => {
                   <SelectItem value={ToolImplementations.WRITE_FILE}>
                     Write File
                   </SelectItem>
+                  <SelectItem value={ToolImplementations.TERMINAL}>
+                    Terminal
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

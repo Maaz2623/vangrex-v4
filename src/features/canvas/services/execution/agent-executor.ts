@@ -60,9 +60,7 @@ export async function executeAgent(
   // }
 
   try {
-    console.log("AGENT VARIABLES:", context.variables);
     const prompt = interpolatePrompt(agent.data.config.prompt, context);
-    console.log("FINAL AGENT PROMPT:", prompt);
 
     const tools = createTools(connectedTools, context, workspace);
 
@@ -70,7 +68,7 @@ export async function executeAgent(
       model: defaultModel,
       prompt,
       tools,
-      stopWhen: ({ steps }) => steps.length >= 2,
+      stopWhen: ({ steps }) => steps.length >= 10,
       instructions: "You are a helpful assistant",
     });
 
