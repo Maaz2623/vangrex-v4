@@ -20,6 +20,10 @@ export class ExecutionManager {
 
     const workspace = await workspaceManager.create();
 
+    const files = await workspaceManager.listFiles(workspace);
+
+    console.log("[workspace] files:", files);
+
     const context: ExecutionContext = {
       executionId: options?.executionId,
       workflowId: options?.workflowId ?? "manual",

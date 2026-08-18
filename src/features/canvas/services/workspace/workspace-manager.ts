@@ -1,6 +1,6 @@
 import "server-only";
 
-import { mkdir, readFile, writeFile } from "fs/promises";
+import { mkdir, readFile, writeFile, readdir } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import { promisify } from "util";
@@ -23,6 +23,17 @@ export interface WorkspaceManager {
     filePath: string,
     content: string,
   ): Promise<void>;
+
+  runCommand(
+    workspace: Workspace,
+    command: string,
+    args?: string[],
+  ): Promise<{
+    stdout: string;
+    stderr: string;
+  }>;
+
+  listFiles(workspace: Workspace, directory?: string): Promise<string[]>;
 }
 
 class LocalWorkspaceManager implements WorkspaceManager {
@@ -80,6 +91,12 @@ class LocalWorkspaceManager implements WorkspaceManager {
       stdout,
       stderr,
     };
+  }
+
+  async listFiles(workspace: Workspace, directory = "."): Promise<string[]> {
+    const absolutePath = this.resolvePath(workspace, directory);
+
+    return readdir(absolutePath);
   }
 
   private resolvePath(workspace: Workspace, filePath: string) {
