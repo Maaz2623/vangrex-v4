@@ -72,6 +72,7 @@ export async function executeAgent(
       instructions: "You are a helpful assistant",
     });
 
+    console.log(result, null, 2);
 
     contextManager.setOutput(agent.id, {
       type: "agent",
