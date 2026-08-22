@@ -73,6 +73,14 @@ export async function executeAgent(
 
     await saveAgentDebug(context.executionId, result);
 
+    contextManager.setOutput(agent.id, {
+      type: "agent",
+      text: result.text,
+    });
+
+    console.log("========== CONTEXT OUTPUTS ==========");
+    console.dir(contextManager.getContext().outputs, { depth: null });
+
     // if (edge) {
     //   await delay(500);
 
@@ -84,9 +92,6 @@ export async function executeAgent(
     // }
 
     contextManager.finishNode(agent.id);
-
-    console.log("Context:");
-    console.log(contextManager.getContext());
 
     executionEvents.emit({
       executionId: context.executionId,

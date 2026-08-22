@@ -265,6 +265,7 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
         updateNodeMutation.mutate({
           id: node.id,
           config: node.data.config,
+          title: node.data.title,
         });
 
         delete pendingNodeUpdates.current[nodeId];

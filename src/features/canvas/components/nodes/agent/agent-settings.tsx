@@ -27,6 +27,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
 
 interface AgentSettingsProps {
   node: AgentFlowNode;
@@ -53,7 +54,6 @@ export const AgentSettings = ({ node, updateNode }: AgentSettingsProps) => {
         ...agent,
         data: {
           ...agent.data,
-          title: "Agent",
           config: nextConfig,
         },
       };
@@ -63,7 +63,26 @@ export const AgentSettings = ({ node, updateNode }: AgentSettingsProps) => {
   return (
     <Card className="h-full rounded-none border-0 shadow-none">
       <CardHeader>
-        <CardTitle>Agent</CardTitle>
+        <CardTitle>
+          <Input
+            placeholder="Node Name"
+            value={node.data.title}
+            onChange={(e) => {
+              updateNode(node.id, (current) => {
+                const agent = current as AgentFlowNode;
+
+                return {
+                  ...agent,
+                  data: {
+                    ...agent.data,
+                    title: e.target.value,
+                  },
+                };
+              });
+            }}
+            className="w-1/2"
+          />
+        </CardTitle>
 
         <CardDescription>Configure this AI agent.</CardDescription>
       </CardHeader>
