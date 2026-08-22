@@ -16,6 +16,7 @@ import { interpolatePrompt } from "./prompt-interpolator";
 import { ExecutionContextManager } from "./execution-context-manager";
 import { createWorkspaceTools } from "./tools/workspace-tools";
 import { Workspace, workspaceManager } from "../workspace/workspace-manager";
+import { saveAgentDebug } from "../../../../../agent-debug";
 
 export async function executeAgent(
   agent: AgentFlowNode,
@@ -39,8 +40,6 @@ export async function executeAgent(
     timestamp: Date.now(),
     nodeName: context.nodeNames[agent.id],
   });
-
-  await delay(1000);
 
   const connectedTools = getConnectedTools(agent.id, nodes, edges);
 
@@ -68,16 +67,11 @@ export async function executeAgent(
       model: defaultModel,
       prompt,
       tools,
-      stopWhen: ({ steps }) => steps.length >= 10,
+      stopWhen: ({ steps }) => steps.length >= 50,
       instructions: "You are a helpful assistant",
     });
 
-    console.log(result, null, 2);
-
-    contextManager.setOutput(agent.id, {
-      type: "agent",
-      text: result.text,
-    });
+    await saveAgentDebug(context.executionId, result);
 
     // if (edge) {
     //   await delay(500);
@@ -89,9 +83,10 @@ export async function executeAgent(
     //   });
     // }
 
-    await delay(1000);
-
     contextManager.finishNode(agent.id);
+
+    console.log("Context:");
+    console.log(contextManager.getContext());
 
     executionEvents.emit({
       executionId: context.executionId,
