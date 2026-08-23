@@ -4,11 +4,12 @@ import { tool } from "ai";
 import { toolRegistry } from "../tools";
 import { ExecutionContext } from "./execution-context";
 import { Workspace } from "../workspace/workspace-manager";
+import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
 
 export function createTools(
   toolNodes: ToolFlowNode[],
   context: ExecutionContext,
-  workspace: Workspace,
+  sandbox: SandboxInstance,
 ) {
   return Object.fromEntries(
     toolNodes.map((toolNode) => {
@@ -20,7 +21,7 @@ export function createTools(
         throw new Error(`Unknown tool: ${implementation}`);
       }
 
-      return [implementation, factory(toolNode, context, workspace)];
+      return [implementation, factory(toolNode, context, sandbox)];
     }),
   );
 }

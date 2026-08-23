@@ -17,13 +17,14 @@ import { ExecutionContextManager } from "./execution-context-manager";
 import { createWorkspaceTools } from "./tools/workspace-tools";
 import { Workspace, workspaceManager } from "../workspace/workspace-manager";
 import { saveAgentDebug } from "../../../../../agent-debug";
+import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
 
 export async function executeAgent(
   agent: AgentFlowNode,
   nodes: AppFlowNode[],
   edges: FlowEdge[],
   contextManager: ExecutionContextManager,
-  workspace: Workspace,
+  sandbox: SandboxInstance,
 ) {
   const context = contextManager.getContext();
 
@@ -61,7 +62,7 @@ export async function executeAgent(
   try {
     const prompt = interpolatePrompt(agent.data.config.prompt, context);
 
-    const tools = createTools(connectedTools, context, workspace);
+    const tools = createTools(connectedTools, context, sandbox);
 
     const result = await generateText({
       model: defaultModel,

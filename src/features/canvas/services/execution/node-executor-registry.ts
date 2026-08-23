@@ -1,3 +1,4 @@
+import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
 import { FlowEdge } from "../../components/edges/types/base-edge";
 import { AppFlowNode } from "../../components/nodes/node-config";
 import { AgentFlowNode, OutputFlowNode } from "../../components/nodes/types";
@@ -14,17 +15,17 @@ type Executor = (
   nodes: AppFlowNode[],
   edges: FlowEdge[],
   context: ExecutionContext,
-  workspace: Workspace,
+  sandbox: SandboxInstance,
 ) => Promise<void>;
 
 export const nodeExecutorRegistry: Record<string, Executor> = {
-  agent: (node, nodes, edges, context, workspace) =>
+  agent: (node, nodes, edges, context, sandbox) =>
     executeAgent(
       node as AgentFlowNode,
       nodes,
       edges,
       new ExecutionContextManager(context),
-      workspace,
+      sandbox,
     ),
   variable: (node, nodes, edges, context) =>
     executeVariable(

@@ -5,11 +5,12 @@ import { ToolFlowNode } from "../../components/nodes/types/tool-node";
 import { executeTool } from "../execution/execute-tool";
 import { ExecutionContext } from "../execution/execution-context";
 import { Workspace, workspaceManager } from "../workspace/workspace-manager";
+import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
 
 export function createTerminalTool(
   node: ToolFlowNode,
   context: ExecutionContext,
-  workspace: Workspace,
+  sandbox: SandboxInstance,
 ) {
   return tool({
     description:
@@ -27,15 +28,9 @@ export function createTerminalTool(
 
     execute: async ({ command, args }) =>
       executeTool(node, context, async () => {
-        const result = await workspaceManager.runCommand(
-          workspace,
-          command,
-          args,
+        const result = await sandbox.sandbox.commands.run(
+          [command, ...(args ?? [])].join(" "),
         );
-
-        console.log(result.stdout);
-
-        console.log(workspace.path);
 
         return {
           command,

@@ -5,11 +5,12 @@ import { ToolFlowNode } from "../../components/nodes/types/tool-node";
 import { executeTool } from "../execution/execute-tool";
 import { ExecutionContext } from "../execution/execution-context";
 import { Workspace, workspaceManager } from "../workspace/workspace-manager";
+import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
 
 export function createReadFileTool(
   node: ToolFlowNode,
   context: ExecutionContext,
-  workspace: Workspace,
+  sandbox: SandboxInstance,
 ) {
   return tool({
     description:
@@ -22,12 +23,7 @@ export function createReadFileTool(
 
     execute: async ({ path }) =>
       executeTool(node, context, async () => {
-        const content = await workspaceManager.readFile(workspace, path);
-
-        return {
-          path,
-          content,
-        };
+        return await sandbox.sandbox.files.read(path)
       }),
   });
 }

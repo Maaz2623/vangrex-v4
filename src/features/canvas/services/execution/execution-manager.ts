@@ -1,3 +1,4 @@
+import { sandboxManager } from "@/lib/sandbox/sandbox-manager";
 import { FlowEdge } from "../../components/edges/types/base-edge";
 import { AppFlowNode } from "../../components/nodes/node-config";
 import { useExecutionStore } from "../../store/execution-store";
@@ -18,11 +19,9 @@ export class ExecutionManager {
   ) {
     useExecutionStore.getState().clear();
 
-    const workspace = await workspaceManager.create();
+    const sandbox = await sandboxManager.create();
 
-    const files = await workspaceManager.listFiles(workspace);
-
-    console.log("[workspace] files:", files);
+    console.log("[sandbox] created:", sandbox.id);
 
     const context: ExecutionContext = {
       executionId: options?.executionId,
@@ -61,7 +60,7 @@ export class ExecutionManager {
       },
     };
 
-    const graph = new GraphExecutor(workspace);
+    const graph = new GraphExecutor(sandbox);
 
     const startNodes = getStartNodes(nodes, edges);
 

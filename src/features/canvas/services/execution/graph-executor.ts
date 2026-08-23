@@ -1,3 +1,4 @@
+import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
 import { FlowEdge } from "../../components/edges/types/base-edge";
 import { AppFlowNode } from "../../components/nodes/node-config";
 import { AgentFlowNode } from "../../components/nodes/types";
@@ -8,7 +9,7 @@ import { ExecutionContextManager } from "./execution-context-manager";
 import { nodeExecutorRegistry } from "./node-executor-registry";
 
 export class GraphExecutor {
-  constructor(private readonly workspace: Workspace) {}
+  constructor(private readonly sandbox: SandboxInstance) {}
 
   async execute(
     startNode: AppFlowNode,
@@ -17,7 +18,7 @@ export class GraphExecutor {
     context: ExecutionContext,
   ) {
     const contextManager = new ExecutionContextManager(context);
-    await this.executeNode(startNode, nodes, edges, context, this.workspace);
+    await this.executeNode(startNode, nodes, edges, context, this.sandbox);
     contextManager.finishExecution();
   }
 
@@ -26,7 +27,7 @@ export class GraphExecutor {
     nodes: AppFlowNode[],
     edges: FlowEdge[],
     context: ExecutionContext,
-    workspace: Workspace
+    sandbox: SandboxInstance,
   ) {
     const executor = nodeExecutorRegistry[node.type];
 
@@ -34,12 +35,12 @@ export class GraphExecutor {
       throw new Error(`No executor registered for node: ${node.type}`);
     }
 
-    await executor(node, nodes, edges, context, workspace);
+    await executor(node, nodes, edges, context, sandbox);
 
     const nextNodes = getNextExecutionNodes(node.id, nodes, edges);
 
     for (const nextNode of nextNodes) {
-      await this.executeNode(nextNode, nodes, edges, context, workspace);
+      await this.executeNode(nextNode, nodes, edges, context, sandbox);
     }
   }
 }

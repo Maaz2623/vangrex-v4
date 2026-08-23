@@ -4,11 +4,12 @@ import { ExecutionContext } from "../execution/execution-context";
 import { Workspace, workspaceManager } from "../workspace/workspace-manager";
 import z from "zod";
 import { executeTool } from "../execution/execute-tool";
+import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
 
 export function createWriteFileTool(
   node: ToolFlowNode,
   context: ExecutionContext,
-  workspace: Workspace,
+  sandbox: SandboxInstance,
 ) {
   return tool({
     description:
@@ -22,7 +23,7 @@ export function createWriteFileTool(
     }),
     execute: async ({ path, content }) => {
       executeTool(node, context, async () => {
-        await workspaceManager.writeFile(workspace, path, content);
+        await sandbox.sandbox.files.write(path, content);
 
         return {
           path,

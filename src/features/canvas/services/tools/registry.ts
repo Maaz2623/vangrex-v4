@@ -8,6 +8,6 @@ export const toolRegistry = {
   weather: createWeatherTool,
   read_file: createReadFileTool,
   write_file: createWriteFileTool,
-  terminal: createTerminalTool
+  terminal: createTerminalTool,
   // calculator: createCalculatorTool
 } as const;
