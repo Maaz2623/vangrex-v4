@@ -7,6 +7,7 @@ export interface SandboxInstance {
 
 export interface SandboxManager {
   create(): Promise<SandboxInstance>;
+  getUrl(sandbox: SandboxInstance, port: number): string;
   kill(sandbox: SandboxInstance): Promise<void>;
 }
 
@@ -26,6 +27,10 @@ class E2BSandboxManager implements SandboxManager {
     await sandbox.sandbox.kill();
 
     console.log("[sandbox] killed: ", sandbox.id);
+  }
+
+  getUrl(sandbox: SandboxInstance, port: number): string {
+    return sandbox.sandbox.getHost(port);
   }
 }
 

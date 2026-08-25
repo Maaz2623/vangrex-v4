@@ -23,6 +23,8 @@ export class ExecutionManager {
 
     console.log("[sandbox] created:", sandbox.id);
 
+    console.log("[sandbox] url: ", sandboxManager.getUrl(sandbox, 3000));
+
     const context: ExecutionContext = {
       executionId: options?.executionId,
       workflowId: options?.workflowId ?? "manual",
