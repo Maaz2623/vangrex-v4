@@ -40,6 +40,8 @@ export const executionsTable = pgTable(
         onDelete: "cascade",
       }),
 
+    sandboxId: text("sandbox_id"),
+
     status: executionStatusEnum("status").notNull().default("pending"),
 
     input: jsonb("input").$type<unknown>().default(null),

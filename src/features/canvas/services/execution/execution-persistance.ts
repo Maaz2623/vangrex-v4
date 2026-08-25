@@ -55,3 +55,27 @@ export async function failExecution(executionId: string, error: unknown) {
 
   return execution;
 }
+
+export async function getExecution(executionId: string) {
+  const [execution] = await db
+    .select()
+    .from(executionsTable)
+    .where(eq(executionsTable.id, executionId));
+
+  return execution;
+}
+
+export async function setExecutionSandbox(
+  executionId: string,
+  sandboxId: string,
+) {
+  const [execution] = await db
+    .update(executionsTable)
+    .set({
+      sandboxId,
+    })
+    .where(eq(executionsTable.id, executionId))
+    .returning();
+
+  return execution;
+}

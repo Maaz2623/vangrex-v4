@@ -41,13 +41,8 @@ export const executionsRouter = createTRPCRouter({
           executionId,
         });
 
-        await completeExecution(executionId, {
-          output: result.context.outputs,
-        });
-
         return {
           executionId,
-          output: result.context.outputs,
         };
       } catch (error) {
         await failExecution(executionId, error);
@@ -66,6 +61,8 @@ export const executionsRouter = createTRPCRouter({
         .select()
         .from(executionsTable)
         .where(eq(executionsTable.id, input.executionId));
+
+      return execution;
     }),
   list: protectedProcedure
     .input(

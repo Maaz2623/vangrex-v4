@@ -9,6 +9,7 @@ export interface SandboxManager {
   create(): Promise<SandboxInstance>;
   getUrl(sandbox: SandboxInstance, port: number): string;
   kill(sandbox: SandboxInstance): Promise<void>;
+  get(id: string): Promise<SandboxInstance>;
 }
 
 class E2BSandboxManager implements SandboxManager {
@@ -31,6 +32,12 @@ class E2BSandboxManager implements SandboxManager {
 
   getUrl(sandbox: SandboxInstance, port: number): string {
     return sandbox.sandbox.getHost(port);
+  }
+
+  async get(id: string): Promise<SandboxInstance> {
+    const sandbox = await Sandbox.connect(id);
+
+    return { id, sandbox };
   }
 }
 
