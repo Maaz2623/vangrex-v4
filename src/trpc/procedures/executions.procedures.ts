@@ -51,6 +51,7 @@ export const executionsRouter = createTRPCRouter({
         };
       } catch (error) {
         await failExecution(executionId, error);
+        console.log(error);
         throw error;
       }
     }),
