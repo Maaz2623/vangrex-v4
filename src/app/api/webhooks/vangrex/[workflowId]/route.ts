@@ -78,30 +78,17 @@ export async function POST(
       input: body,
     });
 
-    const result = await executionManager.execute(nodes, edges, {
+    await executionManager.execute(nodes, edges, {
       workflowId,
       input: body,
       executionId,
     });
 
-    const outputs = result.context.outputs;
-
-    const outputEntries = Object.entries(outputs);
-
-    const finalOutput =
-      outputEntries.length > 0
-        ? outputEntries[outputEntries.length - 1][1]
-        : null;
-
-    await completeExecution(executionId, {
-      output: result.context.outputs,
-    });
-
     return NextResponse.json({
       success: true,
-      executionId: result.executionId,
+      executionId,
       workflowId,
-      result: finalOutput ? formatExecutionOutput(finalOutput) : null,
+      status: "queued",
     });
   } catch (error) {
     console.log("Webhook failed");

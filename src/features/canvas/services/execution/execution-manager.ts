@@ -6,6 +6,8 @@ import { workspaceManager } from "../workspace/workspace-manager";
 import { ExecutionContext } from "./execution-context";
 import { getStartNodes } from "./get-start-nodes";
 import { GraphExecutor } from "./graph-executor";
+import { LocalExecutionRuntime } from "./local-execution-runtime";
+import { inngest } from "@/lib/inngest/client";
 
 export class ExecutionManager {
   async execute(
@@ -19,11 +21,11 @@ export class ExecutionManager {
   ) {
     useExecutionStore.getState().clear();
 
-    const sandbox = await sandboxManager.create();
+    // const sandbox = await sandboxManager.create();
 
-    console.log("[sandbox] created:", sandbox.id);
+    // console.log("[sandbox] created:", sandbox.id);
 
-    console.log("[sandbox] url: ", sandboxManager.getUrl(sandbox, 3000));
+    // console.log("[sandbox] url: ", sandboxManager.getUrl(sandbox, 3000));
 
     const context: ExecutionContext = {
       executionId: options?.executionId,
@@ -62,7 +64,9 @@ export class ExecutionManager {
       },
     };
 
-    const graph = new GraphExecutor(sandbox);
+    // const runtime = new LocalExecutionRuntime();
+
+    // const graph = new GraphExecutor(sandbox, runtime);
 
     const startNodes = getStartNodes(nodes, edges);
 
@@ -70,13 +74,26 @@ export class ExecutionManager {
       throw new Error("No start node found.");
     }
 
-    for (const startNode of startNodes) {
-      await graph.execute(startNode, nodes, edges, context);
-    }
+    // for (const startNode of startNodes) {
+    //   await graph.execute(startNode, nodes, edges, context);
+    // }
+
+    const executionId = options?.executionId;
+
+    await inngest.send({
+      name: "workflow/run",
+      data: {
+        workflowId: options?.executionId ?? "manual",
+        executionId,
+        nodes,
+        edges,
+        startNodeId: startNodes[0].id,
+        input: options?.input ?? null,
+      },
+    });
 
     return {
-      executionId: options?.executionId,
-      context,
+      executionId,
     };
   }
 }
