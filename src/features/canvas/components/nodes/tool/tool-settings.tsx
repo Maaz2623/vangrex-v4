@@ -153,6 +153,9 @@ export const ToolSettings = ({ node, updateNode }: ToolSettingsProps) => {
                   <SelectItem value={ToolImplementations.TERMINAL}>
                     Terminal
                   </SelectItem>
+                  <SelectItem value={ToolImplementations.GITHUB_CREATE_REPOSITORY}>
+                    Github Create Repo
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
