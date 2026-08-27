@@ -79,9 +79,6 @@ export async function executeAgent(
       text: result.text,
     });
 
-    console.log("========== CONTEXT OUTPUTS ==========");
-    console.dir(contextManager.getContext().outputs, { depth: null });
-
     // if (edge) {
     //   await delay(500);
 

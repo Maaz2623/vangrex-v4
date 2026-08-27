@@ -11,14 +11,7 @@ export function useExecutionEvents() {
   const subscription = useSubscription(
     trpc.executions.events.subscriptionOptions(undefined, {
       onData: (event) => {
-        console.log("🔥 SSE EVENT RECEIVED:", event);
-
         addEvent(event);
-
-        console.log(
-          "🔥 STORE AFTER EVENT:",
-          useExecutionStore.getState().nodeStates,
-        );
       },
 
       onError: (error) => {

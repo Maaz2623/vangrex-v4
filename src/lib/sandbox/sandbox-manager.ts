@@ -14,7 +14,11 @@ export interface SandboxManager {
 
 class E2BSandboxManager implements SandboxManager {
   async create(): Promise<SandboxInstance> {
-    const sandbox = await Sandbox.create();
+    const sandbox = await Sandbox.create({
+      envs: {
+        GITHUB_TOKEN: process.env.GITHUB_TOKEN!,
+      },
+    });
 
     console.log("[sandbox] created: ", sandbox.sandboxId);
 

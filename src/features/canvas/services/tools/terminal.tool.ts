@@ -32,6 +32,11 @@ export function createTerminalTool(
           [command, ...(args ?? [])].join(" "),
         );
 
+        console.log({
+          stderr: result.stderr,
+          stdout: result.stdout,
+        });
+
         return {
           command,
           args: args ?? [],

@@ -8,6 +8,4 @@ export function initializeExecutionSystem() {
   initialized = true;
 
   startExecutionPersistence();
-
-  console.log("[execution] persistence listener initialized");
 }

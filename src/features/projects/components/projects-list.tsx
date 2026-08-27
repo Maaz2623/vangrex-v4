@@ -45,8 +45,6 @@ export function ProjectsList() {
 
   const deleteProject = useDeleteProject();
 
-  console.log(projects);
-
   if (projects.length === 0) {
     return (
       <Empty className="border">
