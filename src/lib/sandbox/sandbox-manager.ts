@@ -14,13 +14,25 @@ export interface SandboxManager {
 
 class E2BSandboxManager implements SandboxManager {
   async create(): Promise<SandboxInstance> {
+    const githubToken = process.env.GITHUB_TOKEN;
+
+    if (!githubToken) {
+      throw new Error("GITHUB_TOKEN is not configured.");
+    }
+
     const sandbox = await Sandbox.create({
       envs: {
-        GITHUB_TOKEN: process.env.GITHUB_TOKEN!,
+        GITHUB_TOKEN: githubToken,
       },
     });
 
     console.log("[sandbox] created: ", sandbox.sandboxId);
+
+    await sandbox.commands.run(`git config --global user.name "Vangrex Agent"`);
+
+    await sandbox.commands.run(
+      `git config --global user.email "agent@vangrex.dev"`,
+    );
 
     return {
       id: sandbox.sandboxId,
