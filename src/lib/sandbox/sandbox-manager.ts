@@ -7,6 +7,7 @@ export interface SandboxInstance {
 
 export interface SandboxManager {
   create(): Promise<SandboxInstance>;
+  setEnv(sandbox: SandboxInstance, env: Record<string, string>): Promise<void>;
   getUrl(sandbox: SandboxInstance, port: number): string;
   kill(sandbox: SandboxInstance): Promise<void>;
   get(id: string): Promise<SandboxInstance>;
@@ -14,30 +15,18 @@ export interface SandboxManager {
 
 class E2BSandboxManager implements SandboxManager {
   async create(): Promise<SandboxInstance> {
-    const githubToken = process.env.GITHUB_TOKEN;
-
-    if (!githubToken) {
-      throw new Error("GITHUB_TOKEN is not configured.");
-    }
-
-    const sandbox = await Sandbox.create({
-      envs: {
-        GITHUB_TOKEN: githubToken,
-      },
-    });
+    const sandbox = await Sandbox.create();
 
     console.log("[sandbox] created: ", sandbox.sandboxId);
-
-    await sandbox.commands.run(`git config --global user.name "Vangrex Agent"`);
-
-    await sandbox.commands.run(
-      `git config --global user.email "agent@vangrex.dev"`,
-    );
 
     return {
       id: sandbox.sandboxId,
       sandbox,
     };
+  }
+
+  async setEnv(sandbox: SandboxInstance, env: Record<string, string>): Promise<void> {
+    
   }
 
   async kill(sandbox: SandboxInstance): Promise<void> {

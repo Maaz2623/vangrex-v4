@@ -12,6 +12,8 @@ export function formatExecutionOutput(output: ExecutionOutput): string {
       return String(output.value);
     case "output":
       return output.text;
+    case "github":
+      return JSON.stringify(output.value);
     default:
       throw new Error(`Unsupported execution output type: ${output}`);
   }

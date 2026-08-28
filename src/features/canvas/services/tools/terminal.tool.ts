@@ -30,6 +30,11 @@ export function createTerminalTool(
       executeTool(node, context, async () => {
         const result = await sandbox.sandbox.commands.run(
           [command, ...(args ?? [])].join(" "),
+          {
+            envs: {
+              GITHUB_TOKEN: githubToken
+            }
+          }
         );
 
         console.log({

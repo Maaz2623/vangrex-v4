@@ -46,9 +46,6 @@ export const nodeExecutorRegistry: Record<string, Executor> = {
       new ExecutionContextManager(context),
     ),
 
-  github: (node, context) =>
-    executeGithub(
-      node as GithubFlowNode,
-      new ExecutionContextManager(),
-    ),
+  github: (node, nodes, edges, context) =>
+    executeGithub(node as GithubFlowNode, new ExecutionContextManager(context)),
 };
