@@ -23,9 +23,15 @@ export interface ResultOutput<T = unknown> {
   text: string;
 }
 
+export interface GithubOutput<T = unknown> {
+  type: "github";
+  value: T;
+}
+
 export type ExecutionOutput =
   | AgentOutput
   | ToolOutput
   | KnowledgeOutput
   | HumanOutput
-  | ResultOutput;
+  | ResultOutput
+  | GithubOutput;

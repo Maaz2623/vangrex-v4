@@ -18,13 +18,6 @@ export const githubDefinition: NodeDefinition<GithubConfig> = {
 
   handles: [
     {
-      id: "input",
-      name: "Input",
-      direction: "target",
-      position: Position.Left,
-      dataType: "text",
-    },
-    {
       id: "output",
       name: "Output",
       direction: "source",
