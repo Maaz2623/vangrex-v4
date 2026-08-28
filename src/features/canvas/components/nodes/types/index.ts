@@ -11,3 +11,5 @@ export * from "./flow-node";
 export * from "./variable-node";
 
 export * from "./output-node";
+
+export * from "./github-node";

@@ -30,10 +30,11 @@ import { useCallback } from "react";
 import { AppFlowNode } from "./nodes/node-config";
 import { createFlowNode } from "../services/nodes/create-node";
 import { useCanvasStore } from "../store/canvas-store";
+import { FaGithub } from "react-icons/fa";
 
 interface Props {
   addNode: (
-    type: "tool-call" | "agent" | "variable" | "output",
+    type: "tool-call" | "agent" | "variable" | "output" | "github",
     position: {
       x: number;
       y: number;
@@ -103,9 +104,16 @@ export const CanvasContextMenu = ({ addNode }: Props) => {
             Output
           </ContextMenuItem>
 
-          <ContextMenuItem>
-            <Workflow className="mr-2 h-4 w-4" />
-            Workflow
+          <ContextMenuItem
+            onClick={() =>
+              addNode("github", {
+                x: 0,
+                y: 0,
+              })
+            }
+          >
+            <FaGithub className="mr-2 h-4 w-4" />
+            Github
           </ContextMenuItem>
 
           <ContextMenuItem>

@@ -109,5 +109,41 @@ export function createFlowNode(
           },
         },
       };
+
+    case "github":
+      return {
+        id,
+        type: "github",
+        position,
+        data: {
+          title: "GitHub",
+          description: "GitHub integration",
+          config: {
+            connectionId: undefined,
+
+            operations: {
+              createRepository: true,
+              push: true,
+              commit: true,
+              createBranch: false,
+              createPullRequest: false,
+              createIssue: false,
+            },
+
+            repository: {
+              name: "",
+              visibility: "private",
+              owner: undefined,
+            },
+          },
+
+          metadata: {
+            status: "idle",
+            disabled: false,
+            collapsed: false,
+            locked: false,
+          },
+        },
+      };
   }
 }

@@ -680,7 +680,12 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
       {/* ------------------------------------------------------- */}
 
       <aside className="border-l bg-background">
-        <NodeSettingsSheet node={selectedNode} updateNode={updateNode} />
+        <NodeSettingsSheet
+          projectId={projectId}
+          workflowId={workflowId}
+          node={selectedNode}
+          updateNode={updateNode}
+        />
       </aside>
     </div>
   );

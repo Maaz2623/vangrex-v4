@@ -18,6 +18,7 @@ const NODE_TYPES = [
   "agent",
   "variable",
   "output",
+  "github",
 ] as const satisfies readonly NodeType[];
 
 function isNodeType(value: string): value is NodeType {

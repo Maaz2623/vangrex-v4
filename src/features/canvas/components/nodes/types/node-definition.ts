@@ -3,6 +3,7 @@ import { ComponentType } from "react";
 import { FlowNode } from "./flow-node";
 import { LucideIcon } from "lucide-react";
 import { NodeHandle } from "./node-handle";
+import { IconType } from "react-icons/lib";
 
 export interface NodeDefinition<TConfig> {
   /**
@@ -24,7 +25,7 @@ export interface NodeDefinition<TConfig> {
   /**
    * Sidebar icon.
    */
-  icon: LucideIcon;
+  icon: LucideIcon | IconType;
 
   /**
    * React Flow component.

@@ -2,7 +2,7 @@ import z from "zod";
 import { eq, or } from "drizzle-orm";
 
 import { db } from "@/db";
-import { edgesTable, nodesTable } from "@/db/schema";
+import { edgesTable, githubConnections, nodesTable } from "@/db/schema";
 
 import type { AppFlowNode } from "@/features/canvas/components/nodes/node-config";
 
@@ -146,6 +146,20 @@ export const nodesRouter = createTRPCRouter({
 
       await assertNodeOwner(input.id, ctx.auth.user.id);
 
+      // Delete GitHub connection owned by this node
+      if (existing.type === "github") {
+        const config = existing.config as {
+          connectionId?: string;
+        };
+
+        if (config.connectionId) {
+          await db
+            .delete(githubConnections)
+            .where(eq(githubConnections.id, config.connectionId));
+        }
+      }
+
+      // Delete connected edges
       await db
         .delete(edgesTable)
         .where(

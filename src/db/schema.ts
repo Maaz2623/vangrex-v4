@@ -324,6 +324,31 @@ export const edgesTable = pgTable("edges", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const githubConnections = pgTable("github_connections", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, {
+      onDelete: "cascade",
+    }),
+
+  githubUserId: text("github_user_id").notNull(),
+
+  githubUsername: text("github_username").notNull(),
+
+  accessToken: text("access_token").notNull(),
+
+  scope: text("scope"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
 export const relations = defineRelations(
   {
     user,
@@ -336,6 +361,7 @@ export const relations = defineRelations(
     edgesTable,
     executionsTable,
     executionNodesTable,
+    githubConnections,
   },
   (r) => ({
     user: {
@@ -350,6 +376,10 @@ export const relations = defineRelations(
       projects: r.many.projectsTable({
         from: r.user.id,
         to: r.projectsTable.ownerId,
+      }),
+      github: r.many.githubConnections({
+        from: r.user.id,
+        to: r.githubConnections.userId,
       }),
     },
 
@@ -438,6 +468,14 @@ export const relations = defineRelations(
       node: r.one.nodesTable({
         from: r.executionNodesTable.nodeId,
         to: r.nodesTable.id,
+        optional: false,
+      }),
+    },
+
+    githubConnections: {
+      user: r.one.user({
+        from: r.githubConnections.userId,
+        to: r.user.id,
         optional: false,
       }),
     },

@@ -2,6 +2,7 @@ import { useNodeSettingsStore } from "@/features/canvas/store/node-settings-stor
 import { AppFlowNode } from "../node-config";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { NodeSettingsPanel } from "./node-settings-panel";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface NodeSettingsSheetProps {
   node: AppFlowNode | null;
@@ -9,11 +10,15 @@ interface NodeSettingsSheetProps {
     nodeId: string,
     updater: (node: AppFlowNode) => AppFlowNode,
   ) => void;
+  workflowId: string;
+  projectId: string;
 }
 
 export const NodeSettingsSheet = ({
   node,
   updateNode,
+  workflowId,
+  projectId,
 }: NodeSettingsSheetProps) => {
   const { close } = useNodeSettingsStore();
 
@@ -27,7 +32,14 @@ export const NodeSettingsSheet = ({
       }}
     >
       <SheetContent side="right">
-        <NodeSettingsPanel updateNode={updateNode} node={node} />
+        <ScrollArea className="max-h-screen">
+          <NodeSettingsPanel
+            projectId={projectId}
+            workflowId={workflowId}
+            updateNode={updateNode}
+            node={node}
+          />
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   );
