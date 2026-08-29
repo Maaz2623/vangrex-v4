@@ -10,6 +10,7 @@ export function createTools(
   toolNodes: ToolFlowNode[],
   context: ExecutionContext,
   sandbox: SandboxInstance,
+  userId: string,
 ) {
   return Object.fromEntries(
     toolNodes.map((toolNode) => {
@@ -21,7 +22,7 @@ export function createTools(
         throw new Error(`Unknown tool: ${implementation}`);
       }
 
-      return [implementation, factory(toolNode, context, sandbox)];
+      return [implementation, factory(toolNode, context, sandbox, userId)];
     }),
   );
 }

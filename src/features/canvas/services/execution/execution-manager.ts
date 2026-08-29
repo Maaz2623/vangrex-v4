@@ -8,6 +8,8 @@ import { getStartNodes } from "./get-start-nodes";
 import { GraphExecutor } from "./graph-executor";
 import { LocalExecutionRuntime } from "./local-execution-runtime";
 import { inngest } from "@/lib/inngest/client";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export class ExecutionManager {
   async execute(
@@ -80,6 +82,14 @@ export class ExecutionManager {
 
     const executionId = options?.executionId;
 
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session?.user?.id) {
+      throw new Error("Unauthorized: no authenticated user.");
+    }
+
     await inngest.send({
       name: "workflow/run",
       data: {
@@ -89,6 +99,7 @@ export class ExecutionManager {
         edges,
         startNodeId: startNodes[0].id,
         input: options?.input ?? null,
+        userId: session.user.id,
       },
     });
 

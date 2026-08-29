@@ -15,6 +15,10 @@ export interface SandboxManager {
 
 class E2BSandboxManager implements SandboxManager {
   async create(): Promise<SandboxInstance> {
+
+
+    
+
     const sandbox = await Sandbox.create();
 
     console.log("[sandbox] created: ", sandbox.sandboxId);

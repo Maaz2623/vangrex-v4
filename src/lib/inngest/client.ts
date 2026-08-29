@@ -9,6 +9,7 @@ type WorkflowRunData = {
   nodes: AppFlowNode[];
   edges: FlowEdge[];
   input: unknown;
+  userId: string;
 };
 
 export const workflowRun = eventType("workflow/run", {

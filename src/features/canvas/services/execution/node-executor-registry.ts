@@ -21,16 +21,18 @@ type Executor = (
   edges: FlowEdge[],
   context: ExecutionContext,
   sandbox: SandboxInstance,
+  userId: string,
 ) => Promise<void>;
 
 export const nodeExecutorRegistry: Record<string, Executor> = {
-  agent: (node, nodes, edges, context, sandbox) =>
+  agent: (node, nodes, edges, context, sandbox, userId) =>
     executeAgent(
       node as AgentFlowNode,
       nodes,
       edges,
       new ExecutionContextManager(context),
       sandbox,
+      userId,
     ),
   variable: (node, nodes, edges, context) =>
     executeVariable(
@@ -46,6 +48,11 @@ export const nodeExecutorRegistry: Record<string, Executor> = {
       new ExecutionContextManager(context),
     ),
 
-  github: (node, nodes, edges, context) =>
-    executeGithub(node as GithubFlowNode, new ExecutionContextManager(context)),
+  github: (node, nodes, edges, context, sandbox, userId) =>
+    executeGithub(
+      node as GithubFlowNode,
+      new ExecutionContextManager(context),
+      sandbox,
+      userId,
+    ),
 };

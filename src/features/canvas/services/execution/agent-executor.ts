@@ -25,6 +25,7 @@ export async function executeAgent(
   edges: FlowEdge[],
   contextManager: ExecutionContextManager,
   sandbox: SandboxInstance,
+  userId: string,
 ) {
   const context = contextManager.getContext();
 
@@ -62,7 +63,7 @@ export async function executeAgent(
   try {
     const prompt = interpolatePrompt(agent.data.config.prompt, context);
 
-    const tools = createTools(connectedTools, context, sandbox);
+    const tools = createTools(connectedTools, context, sandbox, userId);
 
     const result = await generateText({
       model: defaultModel,
@@ -72,8 +73,7 @@ export async function executeAgent(
       instructions: "You are a helpful assistant",
     });
 
-    console.log(result.text)
-    
+    console.log(result.text);
 
     await saveAgentDebug(context.executionId, result);
 

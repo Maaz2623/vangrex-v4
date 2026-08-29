@@ -19,8 +19,15 @@ export const executeWorkflow = inngest.createFunction(
   },
 
   async ({ event, step }) => {
-    const { workflowId, executionId, startNodeId, nodes, edges, input } =
-      event.data;
+    const {
+      workflowId,
+      executionId,
+      startNodeId,
+      nodes,
+      edges,
+      input,
+      userId,
+    } = event.data;
 
     const execution = await getExecution(executionId);
 
@@ -94,7 +101,7 @@ export const executeWorkflow = inngest.createFunction(
     }
 
     try {
-      await graph.execute(startNode, nodes, edges, context);
+      await graph.execute(startNode, nodes, edges, context, userId);
 
       await completeExecution(executionId, {
         output: context.outputs,
