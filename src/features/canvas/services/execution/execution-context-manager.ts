@@ -16,11 +16,23 @@ export class ExecutionContextManager {
   }
 
   getOutput(nodeId: string): ExecutionOutput | undefined {
+    console.log("[context] getOutput:", {
+      executionId: this.context.executionId,
+      nodeId,
+      outputs: this.context.outputs,
+    });
     return this.context.outputs[nodeId];
   }
 
   setOutput(nodeId: string, output: ExecutionOutput) {
     this.context.outputs[nodeId] = output;
+
+    console.log("[context] setOutput:", {
+      executionId: this.context.executionId,
+      nodeId,
+      output,
+      outputs: this.context.outputs,
+    });
 
     useExecutionStore.getState().setOutput(nodeId, output);
   }
