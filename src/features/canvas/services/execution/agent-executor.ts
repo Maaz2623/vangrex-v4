@@ -1,6 +1,10 @@
 import { generateText } from "ai";
 
 import { delay } from "@/lib/delay";
+import {
+  DIRECT_TOOL_CALL,
+  experimental_codeModeTool as codeModeTool,
+} from "@ai-sdk/code-mode";
 
 import { FlowEdge } from "../../components/edges/types/base-edge";
 import { AppFlowNode } from "../../components/nodes/node-config";
@@ -18,6 +22,7 @@ import { createWorkspaceTools } from "./tools/workspace-tools";
 import { Workspace, workspaceManager } from "../workspace/workspace-manager";
 import { saveAgentDebug } from "../../../../../agent-debug";
 import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
+import { instructions } from "../../../../../instructions";
 
 export async function executeAgent(
   agent: AgentFlowNode,
@@ -69,8 +74,9 @@ export async function executeAgent(
       model: defaultModel,
       prompt,
       tools,
+      reasoning: "medium",
       stopWhen: ({ steps }) => steps.length >= 50,
-      instructions: "You are a helpful assistant",
+      instructions: instructions,
     });
 
     console.log(result.text);
