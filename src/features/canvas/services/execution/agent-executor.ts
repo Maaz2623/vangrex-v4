@@ -1,10 +1,6 @@
 import { generateText } from "ai";
 
-import { delay } from "@/lib/delay";
-import {
-  DIRECT_TOOL_CALL,
-  experimental_codeModeTool as codeModeTool,
-} from "@ai-sdk/code-mode";
+import { delay } from "@/lib/delay";  
 
 import { FlowEdge } from "../../components/edges/types/base-edge";
 import { AppFlowNode } from "../../components/nodes/node-config";
@@ -29,7 +25,6 @@ export async function executeAgent(
   nodes: AppFlowNode[],
   edges: FlowEdge[],
   contextManager: ExecutionContextManager,
-  sandbox: SandboxInstance,
   userId: string,
 ) {
   const context = contextManager.getContext();
@@ -68,7 +63,7 @@ export async function executeAgent(
   try {
     const prompt = interpolatePrompt(agent.data.config.prompt, context);
 
-    const tools = createTools(connectedTools, context, sandbox, userId);
+    const tools = createTools(connectedTools, context, userId);
 
     const result = await generateText({
       model: defaultModel,

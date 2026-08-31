@@ -7,7 +7,6 @@ import { executionEvents } from "./execution-events";
 export async function executeGithub(
   node: GithubFlowNode,
   contextManager: ExecutionContextManager,
-  sandbox: SandboxInstance,
   userId: string,
 ) {
   contextManager.startNode(node.id);
@@ -33,12 +32,6 @@ export async function executeGithub(
     }
 
     const connection = await getGithubConnection(userId, config.connectionId);
-
-    console.log("[github] connected: ", connection.githubUsername);
-
-    console.log(
-      Object.getOwnPropertyNames(Object.getPrototypeOf(sandbox.sandbox)),
-    );
 
     contextManager.setOutput(node.id, {
       type: "github",

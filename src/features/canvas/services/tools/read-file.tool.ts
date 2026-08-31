@@ -4,26 +4,39 @@ import { z } from "zod";
 import { ToolFlowNode } from "../../components/nodes/types/tool-node";
 import { executeTool } from "../execution/execute-tool";
 import { ExecutionContext } from "../execution/execution-context";
-import { Workspace, workspaceManager } from "../workspace/workspace-manager";
-import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
+import { sandboxManager } from "@/lib/sandbox/sandbox-manager";
 
 export function createReadFileTool(
   node: ToolFlowNode,
   context: ExecutionContext,
-  sandbox: SandboxInstance,
 ) {
   return tool({
     description:
       node.data.description ||
-      "Read the contents of a file from the current workspace.",
+      "Read the contents of a file from the current sandbox.",
 
     inputSchema: z.object({
-      path: z.string().describe("Path of the file relative to the workspace."),
+      path: z
+        .string()
+        .describe("Path of the file relative to the sandbox workspace."),
     }),
 
     execute: async ({ path }) =>
       executeTool(node, context, async () => {
-        return await sandbox.sandbox.files.read(path)
+        const sandboxId = context.metadata.sandboxId as string | undefined;
+
+        if (!sandboxId) {
+          throw new Error(
+            "No sandbox available. Add a Sandbox node before using file tools.",
+          );
+        }
+
+        const sandbox = await sandboxManager.get(sandboxId);
+
+        console.log("[read-file] sandbox:", sandbox.id);
+        console.log("[read-file] path:", path);
+
+        return await sandbox.sandbox.files.read(path);
       }),
   });
 }

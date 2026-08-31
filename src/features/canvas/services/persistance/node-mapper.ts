@@ -19,6 +19,7 @@ const NODE_TYPES = [
   "variable",
   "output",
   "github",
+  "sandbox"
 ] as const satisfies readonly NodeType[];
 
 function isNodeType(value: string): value is NodeType {

@@ -23,12 +23,6 @@ export class ExecutionManager {
   ) {
     useExecutionStore.getState().clear();
 
-    // const sandbox = await sandboxManager.create();
-
-    // console.log("[sandbox] created:", sandbox.id);
-
-    // console.log("[sandbox] url: ", sandboxManager.getUrl(sandbox, 3000));
-
     const context: ExecutionContext = {
       executionId: options?.executionId,
       workflowId: options?.workflowId ?? "manual",
@@ -66,19 +60,11 @@ export class ExecutionManager {
       },
     };
 
-    // const runtime = new LocalExecutionRuntime();
-
-    // const graph = new GraphExecutor(sandbox, runtime);
-
     const startNodes = getStartNodes(nodes, edges);
 
     if (startNodes.length === 0) {
       throw new Error("No start node found.");
     }
-
-    // for (const startNode of startNodes) {
-    //   await graph.execute(startNode, nodes, edges, context);
-    // }
 
     const executionId = options?.executionId;
 

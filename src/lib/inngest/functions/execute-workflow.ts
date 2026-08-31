@@ -17,7 +17,6 @@ export const executeWorkflow = inngest.createFunction(
     id: "execute-workflow",
     triggers: [workflowRun],
   },
-
   async ({ event, step }) => {
     const {
       workflowId,
@@ -31,30 +30,9 @@ export const executeWorkflow = inngest.createFunction(
 
     const execution = await getExecution(executionId);
 
-    const sandboxId = await step.run("get-or-create-sandbox", async () => {
-      const execution = await getExecution(executionId);
-
-      if (execution?.sandboxId) {
-        console.log("[sandbox] existing:", execution.sandboxId);
-
-        return execution.sandboxId;
-      }
-
-      const sandbox = await sandboxManager.create();
-
-      await setExecutionSandbox(executionId, sandbox.id);
-
-      console.log("[sandbox] created:", sandbox.id);
-
-      return sandbox.id;
-    });
-
-    const sandbox = await sandboxManager.get(sandboxId);
-
     const context: ExecutionContext = {
       executionId,
       workflowId,
-
       startedAt: Date.now(),
 
       nodeNames: Object.fromEntries(
@@ -62,9 +40,7 @@ export const executeWorkflow = inngest.createFunction(
       ),
 
       outputs: {},
-
       variables: {},
-
       artifacts: [],
 
       metadata: {
@@ -92,7 +68,8 @@ export const executeWorkflow = inngest.createFunction(
 
     const runtime = new InngestExecutionRuntime(step);
 
-    const graph = new GraphExecutor(sandbox, runtime);
+    // We'll change GraphExecutor next.
+    const graph = new GraphExecutor(runtime);
 
     const startNode = nodes.find((node) => node.id === startNodeId);
 
@@ -115,12 +92,10 @@ export const executeWorkflow = inngest.createFunction(
 
       return {
         executionId,
-        sandboxId: sandbox.id,
         status: "completed",
       };
     } catch (error) {
       await failExecution(executionId, error);
-
       throw error;
     }
   },

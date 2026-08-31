@@ -145,5 +145,25 @@ export function createFlowNode(
           },
         },
       };
+
+    case "sandbox":
+      return {
+        id,
+        type: "sandbox",
+        position,
+        data: {
+          title: "Sandbox",
+          description: "Isolated execution environment",
+          config: {
+            provider: "e2b",
+          },
+          metadata: {
+            status: "idle",
+            disabled: false,
+            collapsed: false,
+            locked: false,
+          },
+        },
+      };
   }
 }

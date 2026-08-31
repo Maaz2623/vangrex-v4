@@ -34,7 +34,7 @@ import { FaGithub } from "react-icons/fa";
 
 interface Props {
   addNode: (
-    type: "tool-call" | "agent" | "variable" | "output" | "github",
+    type: "tool-call" | "agent" | "variable" | "output" | "github" | "sandbox",
     position: {
       x: number;
       y: number;
@@ -114,6 +114,18 @@ export const CanvasContextMenu = ({ addNode }: Props) => {
           >
             <FaGithub className="mr-2 h-4 w-4" />
             Github
+          </ContextMenuItem>
+
+          <ContextMenuItem
+            onClick={() =>
+              addNode("sandbox", {
+                x: 0,
+                y: 0,
+              })
+            }
+          >
+            <FaGithub className="mr-2 h-4 w-4" />
+            Sandbox
           </ContextMenuItem>
 
           <ContextMenuItem>

@@ -1,5 +1,11 @@
+import { GithubConfig } from "svix";
 import { AppFlowNode } from "../components/nodes/node-config";
-import { AgentConfig, OutputConfig, VariableConfig } from "../components/nodes/types";
+import {
+  AgentConfig,
+  OutputConfig,
+  VariableConfig,
+} from "../components/nodes/types";
+import { SandboxConfig } from "../components/nodes/types/sandbox-node";
 import { ToolConfig } from "../components/nodes/types/tool-node";
 
 type DbNode = {
@@ -88,6 +94,33 @@ export function mapDbNodeToAppFlowNode(node: DbNode): AppFlowNode {
         },
       };
 
+    case "sandbox":
+      return {
+        id: node.id,
+        type: "sandbox",
+        position: {
+          x: node.positionX,
+          y: node.positionY,
+        },
+        data: {
+          ...data,
+          config: node.config as SandboxConfig,
+        },
+      };
+
+    // case "github":
+    //   return {
+    //     id: node.id,
+    //     type: "github",
+    //     position: {
+    //       x: node.positionX,
+    //       y: node.positionY,
+    //     },
+    //     data: {
+    //       ...data,
+    //       config: node.config as GithubConfig
+    //     }
+    //   }
     default:
       throw new Error(`Unsupported node type: ${node.type}`);
   }

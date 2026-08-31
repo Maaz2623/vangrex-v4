@@ -9,7 +9,6 @@ import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
 export function createTools(
   toolNodes: ToolFlowNode[],
   context: ExecutionContext,
-  sandbox: SandboxInstance,
   userId: string,
 ) {
   return Object.fromEntries(
@@ -22,7 +21,7 @@ export function createTools(
         throw new Error(`Unknown tool: ${implementation}`);
       }
 
-      return [implementation, factory(toolNode, context, sandbox, userId)];
+      return [implementation, factory(toolNode, context)];
     }),
   );
 }

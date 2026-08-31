@@ -13,7 +13,6 @@ export interface WeatherToolParameters {
 export function createWeatherTool(
   node: ToolFlowNode,
   context: ExecutionContext,
-  sandbox: SandboxInstance
 ) {
   const parameters = node.data.config
     .parameters as unknown as WeatherToolParameters;

@@ -14,24 +14,24 @@ import { ExecutionContextManager } from "./execution-context-manager";
 import { executeOutput } from "./output-executor";
 import { executeVariable } from "./variable-executor";
 import { executeGithub } from "./github-executor";
+import { executeSandbox } from "./sandbox-executor";
+import { SandboxFlowNode } from "../../components/nodes/types/sandbox-node";
 
 type Executor = (
   node: AppFlowNode,
   nodes: AppFlowNode[],
   edges: FlowEdge[],
   context: ExecutionContext,
-  sandbox: SandboxInstance,
   userId: string,
 ) => Promise<void>;
 
 export const nodeExecutorRegistry: Record<string, Executor> = {
-  agent: (node, nodes, edges, context, sandbox, userId) =>
+  agent: (node, nodes, edges, context, userId) =>
     executeAgent(
       node as AgentFlowNode,
       nodes,
       edges,
       new ExecutionContextManager(context),
-      sandbox,
       userId,
     ),
   variable: (node, nodes, edges, context) =>
@@ -48,11 +48,12 @@ export const nodeExecutorRegistry: Record<string, Executor> = {
       new ExecutionContextManager(context),
     ),
 
-  github: (node, nodes, edges, context, sandbox, userId) =>
-    executeGithub(
-      node as GithubFlowNode,
+  sandbox: (node, nodes, edges, context, userId) =>
+    executeSandbox(
+      node as SandboxFlowNode,
+      nodes,
+      edges,
       new ExecutionContextManager(context),
-      sandbox,
       userId,
     ),
 };

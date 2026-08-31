@@ -4,74 +4,38 @@ import { z } from "zod";
 import { ToolFlowNode } from "../../components/nodes/types/tool-node";
 import { executeTool } from "../execution/execute-tool";
 import { ExecutionContext } from "../execution/execution-context";
-import { Workspace, workspaceManager } from "../workspace/workspace-manager";
-import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
-import { getGithubConnection } from "@/features/github/services/github-connection-service";
+import { sandboxManager } from "@/lib/sandbox/sandbox-manager";
 
 export function createTerminalTool(
   node: ToolFlowNode,
   context: ExecutionContext,
-  sandbox: SandboxInstance,
-  userId: string,
 ) {
   return tool({
-    description: `
-Execute commands inside the current sandbox.
-
-When performing GitHub operations:
-1. Use the GitHub connectionId from the upstream GitHub configuration.
-2. Pass that connectionId as githubConnectionId in the tool call.
-3. Do not ask the user to provide a token.
-4. Do not run gh auth login.
-5. Do not assume GitHub is unauthenticated.
-
-Example:
-
-{
-  "command": "gh repo create khans --private",
-  "githubConnectionId": "<connectionId from GitHub node>"
-}
-`,
+    description:
+      "Execute a shell command inside the workflow sandbox. Use this to run commands, inspect files, create files, install packages, and perform other terminal operations.",
 
     inputSchema: z.object({
       command: z
         .string()
-        .describe(
-          "The COMPLETE shell command to execute. Include the executable and every argument.",
-        ),
-
-      githubConnectionId: z
-        .string()
-        .optional()
-        .describe(
-          "The connectionId from the upstream GitHub node. REQUIRED for GitHub commands.",
-        ),
+        .describe("The complete shell command to execute inside the sandbox."),
     }),
 
-    execute: async ({ command, githubConnectionId }) =>
+    execute: async ({ command }) =>
       executeTool(node, context, async () => {
-        let env: Record<string, string> | undefined;
+        const sandboxId = context.metadata.sandboxId as string | undefined;
 
-        if (githubConnectionId) {
-          const connection = await getGithubConnection(
-            userId,
-            githubConnectionId,
+        if (!sandboxId) {
+          throw new Error(
+            "No sandbox available. Add a Sandbox node before using the Terminal tool.",
           );
-
-          env = {
-            GH_TOKEN: connection.accessToken,
-          };
-
-          console.log("[terminal] github auth: connection supplied");
-        } else {
-          console.log("[terminal] github auth: no connection");
         }
 
+        const sandbox = await sandboxManager.get(sandboxId);
+
+        console.log("[terminal] sandbox:", sandbox.id);
         console.log("[terminal] command:", command);
 
-        const result = await sandbox.sandbox.commands.run(command, {
-          envs: env,
-        });
+        const result = await sandbox.sandbox.commands.run(command);
 
         console.log({
           stderr: result.stderr,
