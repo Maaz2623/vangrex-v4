@@ -10,5 +10,4 @@ export type AppFlowNode =
   | AgentFlowNode
   | VariableFlowNode
   | OutputFlowNode
-  | GithubFlowNode
   | SandboxFlowNode

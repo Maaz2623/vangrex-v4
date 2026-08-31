@@ -28,7 +28,13 @@ export async function executeSandbox(
   });
 
   try {
-    const sandbox = await sandboxManager.create();
+    console.log("[sandbox] config:", node.data.config);
+    console.log("[sandbox] envs:", node.data.config.credentials);
+
+    const sandbox = await sandboxManager.create(
+      userId,
+      node.data.config.credentials,
+    );
 
     console.log("[sandbox node] created:", sandbox.id);
 

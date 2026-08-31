@@ -31,6 +31,6 @@ export const sandboxDefinition: NodeDefinition<SandboxConfig> = {
   ],
 
   defaultConfig: {
-    provider: "e2b",
+    credentials: [],
   },
 };

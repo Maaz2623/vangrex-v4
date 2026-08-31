@@ -1,8 +1,9 @@
 import { AgentSettings } from "../agent/agent-settings";
-import { GitHubSettings } from "../github/github-settings";
 import { AppFlowNode } from "../node-config";
+import { SandboxSettings } from "../sandbox/sandbox-settings";
 import { ToolSettings } from "../tool/tool-settings";
 import { AgentFlowNode, GithubFlowNode, VariableFlowNode } from "../types";
+import { SandboxFlowNode } from "../types/sandbox-node";
 import { ToolFlowNode } from "../types/tool-node";
 import { VariableSettings } from "../variable/variable-settings";
 
@@ -13,14 +14,14 @@ interface NodeSettingsPanelProps {
     updater: (node: AppFlowNode) => AppFlowNode,
   ) => void;
   workflowId: string;
-  projectId: string
+  projectId: string;
 }
 
 export function NodeSettingsPanel({
   node,
   updateNode,
   workflowId,
-  projectId
+  projectId,
 }: NodeSettingsPanelProps) {
   if (!node) return null;
 
@@ -43,13 +44,11 @@ export function NodeSettingsPanel({
         <ToolSettings node={node as ToolFlowNode} updateNode={updateNode} />
       );
 
-    case "github":
+    case "sandbox":
       return (
-        <GitHubSettings
-          workflowId={workflowId}
-          node={node as GithubFlowNode}
+        <SandboxSettings
+          node={node as SandboxFlowNode}
           updateNode={updateNode}
-          projectId={projectId}
         />
       );
 

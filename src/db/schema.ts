@@ -30,6 +30,31 @@ export const executionNodeStatusEnum = pgEnum("execution_node_status", [
   "skipped",
 ]);
 
+export const credentialsTable = pgTable(
+  "credentials",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, {
+        onDelete: "cascade",
+      }),
+    name: varchar("name", {
+      length: 255,
+    }).notNull(),
+
+    value: text("value").notNull(),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("credentials_user_id_idx").on(table.userId)],
+);
+
 export const executionsTable = pgTable(
   "executions_table",
   {
@@ -370,6 +395,7 @@ export const relations = defineRelations(
     executionsTable,
     executionNodesTable,
     githubConnections,
+    credentialsTable,
   },
   (r) => ({
     user: {
@@ -388,6 +414,10 @@ export const relations = defineRelations(
       github: r.many.githubConnections({
         from: r.user.id,
         to: r.githubConnections.userId,
+      }),
+      credentials: r.many.credentialsTable({
+        from: r.user.id,
+        to: r.credentialsTable.userId,
       }),
     },
 
@@ -483,6 +513,14 @@ export const relations = defineRelations(
     githubConnections: {
       user: r.one.user({
         from: r.githubConnections.userId,
+        to: r.user.id,
+        optional: false,
+      }),
+    },
+
+    credentials: {
+      user: r.one.user({
+        from: r.credentialsTable.userId,
         to: r.user.id,
         optional: false,
       }),

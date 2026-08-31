@@ -5,25 +5,25 @@ import { SandboxFlowNode } from "../types/sandbox-node";
 import { NodeShell } from "../base/node-shell";
 import { NodeToolbarButton } from "../base/node-toolbar-button";
 import { sandboxDefinition } from "./sandbox-definition";
+import { SandboxNodePreview } from "./sandbox-node-preview";
+import { useNodeSettingsStore } from "@/features/canvas/store/node-settings-store";
 
 export const SandboxNode = ({
   id,
   data,
   selected,
 }: NodeProps<SandboxFlowNode>) => {
+  const { open } = useNodeSettingsStore();
+
   return (
     <NodeShell
       definition={sandboxDefinition}
       data={data}
       selected={selected}
-      preview={
-        <div className="px-3 py-2 text-sm text-muted-foreground">
-          Isolated execution environment
-        </div>
-      }
+      preview={<SandboxNodePreview data={data} />}
       toolbar={
         <>
-          <NodeToolbarButton icon={Settings2} />
+          <NodeToolbarButton icon={Settings2} onClick={() => open(id)} />
           <NodeToolbarButton icon={Copy} />
           <NodeToolbarButton icon={Trash2} />
         </>

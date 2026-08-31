@@ -5,7 +5,6 @@ import { functionDefinition } from "./function/function-definition";
 import { toolDefinition } from "./tool/tool-definition";
 import { variableDefinition } from "./variable/variable-definition";
 import { outputDefinition } from "./output/output-definition";
-import { githubDefinition } from "./github/github-definition";
 import { sandboxDefinition } from "./sandbox/sandbox-definition";
 
 export const nodeTypes: NodeTypes = {
@@ -14,6 +13,5 @@ export const nodeTypes: NodeTypes = {
   [toolDefinition.type]: toolDefinition.component,
   [variableDefinition.type]: variableDefinition.component,
   [outputDefinition.type]: outputDefinition.component,
-  [githubDefinition.type]: githubDefinition.component,
-  [sandboxDefinition.type]: sandboxDefinition.component
+  [sandboxDefinition.type]: sandboxDefinition.component,
 };

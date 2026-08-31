@@ -1,3 +1,4 @@
+import { getCredential } from "@/features/credentials/services/credential-service";
 import Sandbox from "e2b";
 
 export interface SandboxInstance {
@@ -5,8 +6,16 @@ export interface SandboxInstance {
   sandbox: Sandbox;
 }
 
+export interface SandboxCredential {
+  key: string;
+  credentialId: string;
+}
+
 export interface SandboxManager {
-  create(): Promise<SandboxInstance>;
+  create(
+    userId: string,
+    credentials?: SandboxCredential[],
+  ): Promise<SandboxInstance>;
   setEnv(sandbox: SandboxInstance, env: Record<string, string>): Promise<void>;
   getUrl(sandbox: SandboxInstance, port: number): string;
   kill(sandbox: SandboxInstance): Promise<void>;
@@ -14,12 +23,36 @@ export interface SandboxManager {
 }
 
 class E2BSandboxManager implements SandboxManager {
-  async create(): Promise<SandboxInstance> {
+  async create(
+    userId: string,
+    credentials: SandboxCredential[],
+  ): Promise<SandboxInstance> {
+    const envs: Record<string, string> = {};
 
+    for (const credential of credentials) {
+      if (!credential.key || !credential.credentialId) {
+        continue;
+      }
 
-    
+      const storedCredential = await getCredential(
+        userId,
+        credential.credentialId,
+      );
 
-    const sandbox = await Sandbox.create();
+      if (!storedCredential) {
+        throw new Error(`Credential not found: ${credential.credentialId}`);
+      }
+
+      envs[credential.key] = storedCredential.value;
+    }
+
+    console.log("[sandbox] env keys:", Object.keys(envs));
+
+    const sandbox = await Sandbox.create({
+      envs: {
+        ...envs,
+      },
+    });
 
     console.log("[sandbox] created: ", sandbox.sandboxId);
 
@@ -29,9 +62,10 @@ class E2BSandboxManager implements SandboxManager {
     };
   }
 
-  async setEnv(sandbox: SandboxInstance, env: Record<string, string>): Promise<void> {
-    
-  }
+  async setEnv(
+    sandbox: SandboxInstance,
+    env: Record<string, string>,
+  ): Promise<void> {}
 
   async kill(sandbox: SandboxInstance): Promise<void> {
     await sandbox.sandbox.kill();
