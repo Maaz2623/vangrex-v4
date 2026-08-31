@@ -1,6 +1,0 @@
-{{Sandbox}}
-
-Create a public repo for the account Maaz2623. GITHUB_TOKEN is
-
-GITHUB_TOKEN="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"
-
