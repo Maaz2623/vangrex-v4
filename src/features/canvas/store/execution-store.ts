@@ -70,6 +70,8 @@ export const useExecutionStore = create<ExecutionStore>((set) => ({
       const nodeStates = { ...state.nodeStates };
       const edgeStates = { ...state.edgeStates };
 
+      const outputs = { ...state.outputs };
+
       switch (event.type) {
         case "node:start":
           nodeStates[event.nodeId] = "running";
@@ -77,6 +79,10 @@ export const useExecutionStore = create<ExecutionStore>((set) => ({
 
         case "node:success":
           nodeStates[event.nodeId] = "success";
+
+          if (event.output) {
+            outputs[event.nodeId] = event.output;
+          }
           break;
 
         case "node:error":
@@ -100,6 +106,7 @@ export const useExecutionStore = create<ExecutionStore>((set) => ({
         logs: [...state.logs, log],
         nodeStates,
         edgeStates,
+        outputs,
       };
     }),
 

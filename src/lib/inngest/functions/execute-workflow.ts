@@ -107,6 +107,12 @@ export const executeWorkflow = inngest.createFunction(
         output: context.outputs,
       });
 
+      const outputNode = nodes.find((node) => node.type === "output");
+
+      const output = outputNode ? context.outputs[outputNode.id] : undefined;
+
+      console.log(output);
+
       return {
         executionId,
         sandboxId: sandbox.id,

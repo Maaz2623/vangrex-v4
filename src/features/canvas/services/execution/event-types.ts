@@ -1,3 +1,5 @@
+import { ExecutionOutput } from "./execution-output";
+
 export type ExecutionEvent =
   | {
       type: "node:start";
@@ -15,6 +17,7 @@ export type ExecutionEvent =
       nodeName: string;
       timestamp: number;
       duration: number;
+      output?: ExecutionOutput
     }
   | {
       type: "node:error";

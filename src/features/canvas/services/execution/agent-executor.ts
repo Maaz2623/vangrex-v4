@@ -108,6 +108,7 @@ export async function executeAgent(
       timestamp: Date.now(),
       nodeName: context.nodeNames[agent.id],
       duration: performance.now() - started,
+      output: contextManager.getOutput(agent.id)
     });
   } catch (error) {
     contextManager.incrementErrors();

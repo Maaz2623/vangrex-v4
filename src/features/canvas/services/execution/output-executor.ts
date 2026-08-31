@@ -1,10 +1,9 @@
-
-
 import { FlowEdge } from "../../components/edges/types/base-edge";
 import { AppFlowNode } from "../../components/nodes/node-config";
 import { OutputFlowNode } from "../../components/nodes/types/output-node";
 import { getPreviousNode } from "../graph/get-previous-node";
 import { ExecutionContextManager } from "./execution-context-manager";
+import { executionEvents } from "./execution-events";
 
 export async function executeOutput(
   node: OutputFlowNode,
@@ -25,13 +24,26 @@ export async function executeOutput(
 
   const previousOutput = contextManager.getOutput(previousNode.id);
 
-  contextManager.setOutput(node.id, {
-    type: "output",
+  const output = {
+    type: "output" as const,
     text:
       previousOutput?.type === "agent"
         ? previousOutput.text
         : JSON.stringify(previousOutput),
-  });
+  };
+
+  contextManager.setOutput(node.id, output);
 
   contextManager.finishNode(node.id);
+
+  executionEvents.emit({
+    executionId: contextManager.getContext().executionId,
+    nodeType: "output",
+    type: "node:success",
+    nodeId: node.id,
+    nodeName: contextManager.getContext().nodeNames[node.id],
+    timestamp: Date.now(),
+    duration: 0,
+    output,
+  });
 }
