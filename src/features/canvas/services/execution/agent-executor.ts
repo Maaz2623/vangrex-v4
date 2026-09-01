@@ -72,6 +72,7 @@ export async function executeAgent(
       reasoning: "medium",
       stopWhen: ({ steps }) => steps.length >= 50,
       instructions: instructions,
+    
     });
 
     console.log(result.text);
