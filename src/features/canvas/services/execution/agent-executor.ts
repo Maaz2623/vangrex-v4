@@ -16,7 +16,6 @@ import { interpolatePrompt } from "./prompt-interpolator";
 import { ExecutionContextManager } from "./execution-context-manager";
 import { createWorkspaceTools } from "./tools/workspace-tools";
 import { Workspace, workspaceManager } from "../workspace/workspace-manager";
-import { saveAgentDebug } from "../../../../../agent-debug";
 import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
 import { instructions } from "../../../../../instructions";
 import { getInputFromEdges } from "../graph/get-inputs-from-edges";
@@ -120,8 +119,6 @@ Use the connected input as data for this task.`
     console.log("[agent steps]", result.steps);
 
     console.log(result.text);
-
-    await saveAgentDebug(context.executionId, result);
 
     contextManager.setOutput(agent.id, {
       type: "agent",
