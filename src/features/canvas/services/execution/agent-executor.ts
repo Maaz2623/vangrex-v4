@@ -1,6 +1,6 @@
 import { generateText } from "ai";
 
-import { delay } from "@/lib/delay";  
+import { delay } from "@/lib/delay";
 
 import { FlowEdge } from "../../components/edges/types/base-edge";
 import { AppFlowNode } from "../../components/nodes/node-config";
@@ -19,6 +19,7 @@ import { Workspace, workspaceManager } from "../workspace/workspace-manager";
 import { saveAgentDebug } from "../../../../../agent-debug";
 import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
 import { instructions } from "../../../../../instructions";
+import { getInputFromEdges } from "../graph/get-inputs-from-edges";
 
 export async function executeAgent(
   agent: AgentFlowNode,
@@ -28,6 +29,13 @@ export async function executeAgent(
   userId: string,
 ) {
   const context = contextManager.getContext();
+
+  const inputs = getInputFromEdges(agent.id, edges, context);
+
+  console.log("[agent inputs]", {
+    agentId: agent.id,
+    inputs,
+  });
 
   contextManager.startNode(agent.id);
   contextManager.recordAgentExecution();
@@ -72,7 +80,6 @@ export async function executeAgent(
       reasoning: "medium",
       stopWhen: ({ steps }) => steps.length >= 50,
       instructions: instructions,
-    
     });
 
     console.log(result.text);
@@ -104,7 +111,7 @@ export async function executeAgent(
       timestamp: Date.now(),
       nodeName: context.nodeNames[agent.id],
       duration: performance.now() - started,
-      output: contextManager.getOutput(agent.id)
+      output: contextManager.getOutput(agent.id),
     });
   } catch (error) {
     contextManager.incrementErrors();
