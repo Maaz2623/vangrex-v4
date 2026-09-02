@@ -33,14 +33,18 @@ export const NodeShell = <TConfig extends Record<string, unknown>>({
   const Icon = definition.icon;
 
   return (
-    <BaseNode definition={definition} selected={selected}>
+    <BaseNode
+      status={data.metadata.status}
+      definition={definition}
+      selected={selected}
+    >
       {toolbar && <NodeToolbar>{toolbar}</NodeToolbar>}
 
       <NodeHeader
         icon={<Icon className="h-5 w-5" />}
         title={data.title}
         subtitle={definition.name}
-        rightSection={<NodeStatus status={data.metadata.status} />}
+        // rightSection={<NodeStatus status={data.metadata.status} />}
       />
 
       <NodeBody>{preview}</NodeBody>

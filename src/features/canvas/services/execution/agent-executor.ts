@@ -30,6 +30,11 @@ export async function executeAgent(
 ) {
   const context = contextManager.getContext();
 
+  console.log("[agent incoming edges]", {
+    agentId: agent.id,
+    edges: edges.filter((edge) => edge.target === agent.id),
+  });
+
   const inputs = getInputFromEdges(agent.id, edges, context);
 
   console.log("[agent inputs]", {
@@ -69,9 +74,30 @@ export async function executeAgent(
   // }
 
   try {
-    const prompt = interpolatePrompt(agent.data.config.prompt, context);
+    const basePrompt = interpolatePrompt(agent.data.config.prompt, context);
+
+    const inputText = inputs
+      .map((input) => {
+        if (input.output.type === "agent") {
+          return input.output.text;
+        }
+
+        return JSON.stringify(input.output);
+      })
+      .join("\n\n");
+
+    const prompt = inputText
+      ? `${basePrompt}
+
+CONNECTED INPUT:
+${inputText}
+
+Use the connected input as data for this task.`
+      : basePrompt;
 
     const tools = createTools(connectedTools, context, userId);
+
+    console.log("[agent prompt]", prompt);
 
     const result = await generateText({
       model: defaultModel,
@@ -81,6 +107,17 @@ export async function executeAgent(
       stopWhen: ({ steps }) => steps.length >= 50,
       instructions: instructions,
     });
+
+    console.log("[agent result]", {
+      text: result.text,
+      finishReason: result.finishReason,
+      steps: result.steps?.length,
+      toolCalls: result.toolCalls,
+      toolResults: result.toolResults,
+      response: result.response,
+    });
+
+    console.log("[agent steps]", result.steps);
 
     console.log(result.text);
 
