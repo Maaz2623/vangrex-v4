@@ -115,7 +115,7 @@ export const AgentSettings = ({ node, updateNode }: AgentSettingsProps) => {
                   <SelectValue placeholder="Select a model" />
                 </SelectTrigger>
 
-                <SelectContent>
+                <SelectContent className="p-0.5">
                   <SelectItem value="Gemini 2.5 Flash">
                     Gemini 2.5 Flash
                   </SelectItem>

@@ -24,6 +24,7 @@ import {
   Trash2,
   VariableIcon,
   FolderOutputIcon,
+  ComputerIcon,
 } from "lucide-react";
 import { useCreateNode } from "../hooks/node.hooks";
 import { useCallback } from "react";
@@ -112,7 +113,7 @@ export const CanvasContextMenu = ({ addNode }: Props) => {
               })
             }
           >
-            <FaGithub className="mr-2 h-4 w-4" />
+            <ComputerIcon className="mr-2 h-4 w-4" />
             Sandbox
           </ContextMenuItem>
 

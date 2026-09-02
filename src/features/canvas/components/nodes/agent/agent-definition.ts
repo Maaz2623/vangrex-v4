@@ -19,6 +19,7 @@ export const agentDefinition: NodeDefinition<AgentConfig> = {
       direction: "target",
       position: Position.Left,
       dataType: "text",
+
     },
     {
       id: "output",
