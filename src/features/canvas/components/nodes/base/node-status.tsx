@@ -21,21 +21,21 @@ const variants: Record<
   },
 
   running: {
-    dot: "bg-blue-500",
+    dot: "bg-blue-400",
     ring: "ring-blue-500/20",
-    glow: "shadow-[0_0_8px_rgba(59,130,246,0.8)]",
+    glow: "shadow-[0_0_8px_rgba(59,130,246,0.85)]",
   },
 
   success: {
-    dot: "bg-emerald-500",
+    dot: "bg-emerald-400",
     ring: "ring-emerald-500/20",
-    glow: "shadow-[0_0_7px_rgba(16,185,129,0.6)]",
+    glow: "shadow-[0_0_8px_rgba(16,185,129,0.7)]",
   },
 
   error: {
-    dot: "bg-red-500",
+    dot: "bg-red-400",
     ring: "ring-red-500/20",
-    glow: "shadow-[0_0_7px_rgba(239,68,68,0.6)]",
+    glow: "shadow-[0_0_8px_rgba(239,68,68,0.7)]",
   },
 
   disabled: {
@@ -49,29 +49,92 @@ export const NodeStatus = ({ status = "idle" }: NodeStatusProps) => {
   const variant = variants[status];
 
   return (
-    <span className={cn("relative flex h-3 w-3 items-center justify-center")}>
-      {/* Pulse ring */}
+    <span
+      className={cn(
+        "relative flex size-3 items-center justify-center",
+        "shrink-0",
+      )}
+    >
+      {/* Running execution ring */}
       {status === "running" && (
+        <>
+          <span
+            className="
+              absolute
+              -inset-[3px]
+              rounded-full
+              border
+              border-blue-500/20
+            "
+          />
+
+          <span
+            className="
+              absolute
+              -inset-[3px]
+              rounded-full
+              border
+              border-transparent
+              border-t-blue-400
+              border-r-blue-400/60
+              animate-spin
+            "
+            style={{
+              animationDuration: "1.2s",
+            }}
+          />
+
+          {/* Very subtle ambient glow */}
+          <span
+            className="
+              absolute
+              -inset-1
+              rounded-full
+              bg-blue-500/10
+              blur-[3px]
+            "
+          />
+        </>
+      )}
+
+      {/* Success completion ring */}
+      {status === "success" && (
         <span
           className="
             absolute
-            inset-0
-            animate-ping
+            -inset-[2px]
             rounded-full
-            bg-blue-500/40
+            border
+            border-emerald-400/40
+            animate-[status-success_500ms_ease-out]
           "
         />
       )}
 
-      {/* Outer ring */}
+      {/* Error ring */}
+      {status === "error" && (
+        <span
+          className="
+            absolute
+            -inset-[2px]
+            rounded-full
+            border
+            border-red-400/40
+            animate-[status-error_500ms_ease-out]
+          "
+        />
+      )}
+
+      {/* Outer status ring */}
       <span
-        className={cn("absolute h-3 w-3 rounded-full ring-2", variant.ring)}
+        className={cn("absolute size-3 rounded-full ring-2", variant.ring)}
       />
 
-      {/* Status dot */}
+      {/* Status core */}
       <span
         className={cn(
-          "relative h-2 w-2 rounded-full",
+          "relative size-2 rounded-full",
+          "transition-all duration-200",
           variant.dot,
           variant.glow,
         )}

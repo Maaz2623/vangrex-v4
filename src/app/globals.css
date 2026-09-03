@@ -244,3 +244,37 @@ body {
     letter-spacing: -0.055em;
   }
 }
+
+@keyframes status-success {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+
+  40% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.45);
+  }
+}
+
+@keyframes status-error {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+
+  40% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}

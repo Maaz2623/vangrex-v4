@@ -34,13 +34,11 @@ export const executeWorkflow = inngest.createFunction(
       executionId,
     });
 
-    const publishNodeStatus = (
-      data: {
-        executionId: string;
-        nodeId: string;
-        status: NodeStatusType;
-      },
-    ) => {
+    const publishNodeStatus = (data: {
+      executionId: string;
+      nodeId: string;
+      status: NodeStatusType;
+    }) => {
       return inngest.realtime.publish(channel.nodeStatus, data);
     };
 
@@ -68,7 +66,7 @@ export const executeWorkflow = inngest.createFunction(
           node.id,
           {
             nodeId: node.id,
-            status: "pending",
+            status: "idle",
           },
         ]),
       ),
