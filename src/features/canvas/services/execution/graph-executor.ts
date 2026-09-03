@@ -70,9 +70,19 @@ export class GraphExecutor {
     });
 
     try {
+      console.log("[graph] EXECUTOR START:", {
+        nodeId: node.id,
+        nodeType: node.type,
+      });
+
       await this.runtime.runStep(`node-${node.id}`, () =>
         executor(node, nodes, edges, context, userId),
       );
+
+      console.log("[graph] EXECUTOR FINISHED:", {
+        nodeId: node.id,
+        nodeType: node.type,
+      });
 
       context.nodeStates[node.id] = {
         ...context.nodeStates[node.id],
@@ -92,12 +102,20 @@ export class GraphExecutor {
         }
       }
 
+      console.log("[graph] PUBLISHING SUCCESS:", {
+        nodeId: node.id,
+        nodeType: node.type,
+      });
       await this.publishNodeStatus({
         executionId: context.executionId,
         nodeId: node.id,
         status: "success",
       });
-      
+
+      console.log("[graph] PUBLISHING SUCCESS:", {
+        nodeId: node.id,
+        nodeType: node.type,
+      });
     } catch (error) {
       context.nodeStates[node.id] = {
         ...context.nodeStates[node.id],
@@ -116,8 +134,10 @@ export class GraphExecutor {
 
     const nextNodes = getNextExecutionNodes(node.id, nodes, edges);
 
-    for (const nextNode of nextNodes) {
-      await this.executeNode(nextNode, nodes, edges, context, userId);
-    }
+    await Promise.all(
+      nextNodes.map((nextNode) =>
+        this.executeNode(nextNode, nodes, edges, context, userId),
+      ),
+    );
   }
 }

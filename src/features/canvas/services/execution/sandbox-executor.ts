@@ -18,7 +18,6 @@ export async function executeSandbox(
   contextManager: ExecutionContextManager,
   userId: string,
 ): Promise<void> {
-  contextManager.startNode(node.id);
   contextManager.incrementNodesExecuted();
 
   const started = performance.now();
@@ -32,19 +31,14 @@ export async function executeSandbox(
       node.data.config.credentials,
     );
 
-    console.log("[sandbox node] created:", sandbox.id);
-
     contextManager.setMetadata("sandboxId", sandbox.id);
 
     contextManager.setOutput(node.id, {
       type: "sandbox",
       sandboxId: sandbox.id,
     });
-
-    contextManager.finishNode(node.id);
   } catch (error) {
     contextManager.incrementErrors();
-    contextManager.failNode(node.id);
 
     throw error;
   }

@@ -9,6 +9,7 @@ import { NodeStatusType } from "../components/nodes/types";
 import { ExecutionOutput } from "../services/execution/execution-output";
 
 export function useExecutionEvents(executionId: string | null) {
+  console.log("[realtime] subscribing to execution:", executionId);
   const realtime = useRealtime({
     channel: workflowChannel({ executionId: executionId ?? "" }),
     topics: ["nodeStatus", "nodeOutput"] as const,
@@ -26,6 +27,10 @@ export function useExecutionEvents(executionId: string | null) {
 
   useEffect(() => {
     for (const message of realtime.messages.delta) {
+      console.log("[realtime] NODE STATUS EVENT:", {
+        topic: message.topic,
+        data: message.data,
+      });
       if (message.topic === "nodeStatus") {
         const { nodeId, status } = message.data as {
           executionId: string;

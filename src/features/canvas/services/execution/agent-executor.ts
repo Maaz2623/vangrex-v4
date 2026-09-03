@@ -31,7 +31,6 @@ export async function executeAgent(
 
   const inputs = getInputFromEdges(agent.id, edges, context);
 
-  contextManager.startNode(agent.id);
   contextManager.recordAgentExecution();
 
   const started = performance.now();
@@ -80,13 +79,8 @@ Use the connected input as data for this task.`
       type: "agent",
       text: result.text,
     });
-
-    
-
-    contextManager.finishNode(agent.id);
   } catch (error) {
     contextManager.incrementErrors();
-    contextManager.failNode(agent.id);
 
     throw error;
   }

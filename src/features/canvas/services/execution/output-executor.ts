@@ -1,8 +1,6 @@
 import { FlowEdge } from "../../components/edges/types/base-edge";
 import { AppFlowNode } from "../../components/nodes/node-config";
 import { OutputFlowNode } from "../../components/nodes/types";
-import { getInputFromEdges } from "../graph/get-inputs-from-edges";
-import { getPreviousNode } from "../graph/get-previous-node";
 import { ExecutionContextManager } from "./execution-context-manager";
 
 export async function executeOutput(
@@ -11,11 +9,7 @@ export async function executeOutput(
   edges: FlowEdge[],
   contextManager: ExecutionContextManager,
 ) {
-  contextManager.startNode(node.id);
   contextManager.incrementNodesExecuted();
 
   const context = contextManager.getContext();
-  const input = getInputFromEdges(node.id, edges, context);
-
-  contextManager.finishNode(node.id);
 }
