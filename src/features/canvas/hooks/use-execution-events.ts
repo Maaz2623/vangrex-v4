@@ -25,23 +25,9 @@ export function useExecutionEvents(executionId: string | null) {
     });
   }, [executionId, realtime.connectionStatus, realtime.runStatus]);
 
-  const trpc = useTRPC();
-
   const setNodeStatus = useExecutionStore((state) => state.setNodeStatus);
 
   const addEvent = useExecutionStore((state) => state.addEvent);
-
-  const subscription = useSubscription(
-    trpc.executions.events.subscriptionOptions(undefined, {
-      onData: (event) => {
-        addEvent(event);
-      },
-
-      onError: (error) => {
-        console.error("❌ Execution event subscription failed:", error);
-      },
-    }),
-  );
 
   useEffect(() => {
     for (const message of realtime.messages.delta) {
@@ -61,6 +47,4 @@ export function useExecutionEvents(executionId: string | null) {
       setNodeStatus(nodeId, status);
     }
   }, [realtime.messages.delta, setNodeStatus]);
-
-  return subscription;
 }
