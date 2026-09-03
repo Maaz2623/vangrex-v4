@@ -13,6 +13,7 @@ import {
 } from "@/features/canvas/services/execution/execution-persistance";
 import { workflowChannel } from "../channels";
 import { NodeStatusType } from "@/features/canvas/components/nodes/types";
+import { ExecutionOutput } from "@/features/canvas/services/execution/execution-output";
 
 export const executeWorkflow = inngest.createFunction(
   {
@@ -40,6 +41,14 @@ export const executeWorkflow = inngest.createFunction(
       status: NodeStatusType;
     }) => {
       return inngest.realtime.publish(channel.nodeStatus, data);
+    };
+
+    const publishNodeOutput = (data: {
+      executionId: string;
+      nodeId: string;
+      output: ExecutionOutput;
+    }) => {
+      return inngest.realtime.publish(channel.nodeOutput, data);
     };
 
     const execution = await getExecution(executionId);
@@ -83,7 +92,7 @@ export const executeWorkflow = inngest.createFunction(
     const runtime = new InngestExecutionRuntime(step);
 
     // We'll change GraphExecutor next.
-    const graph = new GraphExecutor(runtime, publishNodeStatus);
+    const graph = new GraphExecutor(runtime, publishNodeStatus, publishNodeOutput);
 
     const startNode = nodes.find((node) => node.id === startNodeId);
 

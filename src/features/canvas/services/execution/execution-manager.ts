@@ -45,7 +45,7 @@ export class ExecutionManager {
           node.id,
           {
             nodeId: node.id,
-            status: "pending",
+            status: "idle",
           },
         ]),
       ),

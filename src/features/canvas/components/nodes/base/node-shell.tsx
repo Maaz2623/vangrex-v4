@@ -44,7 +44,7 @@ export const NodeShell = <TConfig extends Record<string, unknown>>({
         icon={<Icon className="h-5 w-5" />}
         title={data.title}
         subtitle={definition.name}
-        // rightSection={<NodeStatus status={data.metadata.status} />}
+        rightSection={<NodeStatus status={data.metadata.status} />}
       />
 
       <NodeBody>{preview}</NodeBody>

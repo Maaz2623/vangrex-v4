@@ -23,6 +23,18 @@ export class ExecutionContextManager {
     this.context.outputs[nodeId] = output;
 
     useExecutionStore.getState().setOutput(nodeId, output);
+
+    console.log("[STORE OUTPUT]", {
+      nodeId,
+      output,
+      store: useExecutionStore.getState().outputs,
+    });
+
+    console.log("[OUTPUT PREVIEW]", {
+      nodeId,
+      outputs: useExecutionStore.getState().outputs,
+      output: useExecutionStore.getState().outputs[nodeId],
+    });
   }
 
   getVariable<T = unknown>(name: string): T | undefined {

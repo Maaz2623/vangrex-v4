@@ -25,6 +25,13 @@ export const OutputNodePreview = ({ data, nodeId }: OutputNodePreviewProps) => {
 
   const text = output?.type === "output" ? output.text : null;
 
+  console.log("[OUTPUT RENDER]", {
+    nodeId,
+    text,
+    hasText: !!text,
+  });
+
+  
   const preview = text
     ? text.length > 180
       ? `${text.slice(0, 180)}…`

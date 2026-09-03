@@ -7,6 +7,13 @@ import { ExecutionContextManager } from "./execution-context-manager";
 import { nodeExecutorRegistry } from "./node-executor-registry";
 import { ExecutionRuntime } from "./execution-runtime";
 import { NodeStatusType } from "../../components/nodes/types";
+import { ExecutionOutput } from "./execution-output";
+
+type PublishNodeOutput = (data: {
+  executionId: string;
+  nodeId: string;
+  output: ExecutionOutput;
+}) => Promise<unknown>;
 
 type PublishNodeStatus = (data: {
   executionId: string;
@@ -18,6 +25,7 @@ export class GraphExecutor {
   constructor(
     private readonly runtime: ExecutionRuntime,
     private readonly publishNodeStatus: PublishNodeStatus,
+    private readonly publishNodeOutput: PublishNodeOutput,
   ) {}
 
   async execute(
@@ -71,6 +79,15 @@ export class GraphExecutor {
         nodeId: node.id,
         status: "success",
       };
+      const output = context.outputs[node.id];
+
+      if (output) {
+        await this.publishNodeOutput({
+          executionId: context.executionId,
+          nodeId: node.id,
+          output,
+        });
+      }
       await this.publishNodeStatus({
         executionId: context.executionId,
         nodeId: node.id,

@@ -32,5 +32,7 @@ export async function executeOutput(
     text: outputText ?? "No output available",
   });
 
+  console.log("[output node]: ", outputText);
+
   contextManager.finishNode(node.id);
 }

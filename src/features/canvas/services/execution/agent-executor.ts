@@ -81,6 +81,8 @@ Use the connected input as data for this task.`
       text: result.text,
     });
 
+    
+
     contextManager.finishNode(agent.id);
   } catch (error) {
     contextManager.incrementErrors();
