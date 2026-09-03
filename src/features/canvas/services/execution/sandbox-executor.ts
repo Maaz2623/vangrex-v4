@@ -6,6 +6,11 @@ import { SandboxFlowNode } from "../../components/nodes/types/sandbox-node";
 import { ExecutionContextManager } from "./execution-context-manager";
 import { executionEvents } from "./execution-events";
 
+export interface SandboxOutput {
+  type: "sandbox";
+  sandboxId: string;
+}
+
 export async function executeSandbox(
   node: SandboxFlowNode,
   nodes: AppFlowNode[],
@@ -30,6 +35,11 @@ export async function executeSandbox(
     console.log("[sandbox node] created:", sandbox.id);
 
     contextManager.setMetadata("sandboxId", sandbox.id);
+
+    contextManager.setOutput(node.id, {
+      type: "sandbox",
+      sandboxId: sandbox.id,
+    });
 
     contextManager.finishNode(node.id);
   } catch (error) {

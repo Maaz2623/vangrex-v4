@@ -3,6 +3,7 @@ import { Eye, Copy } from "lucide-react";
 import { InfoCard } from "../base/info-card";
 import { Section } from "../base/section";
 import { OutputNodeData } from "../types/output-node";
+
 import { useExecutionStore } from "@/features/canvas/store/execution-store";
 
 import {
@@ -29,19 +30,78 @@ export const OutputNodePreview = ({
   const output = useExecutionStore((state) =>
     sourceNodeId ? state.outputs[sourceNodeId] : undefined,
   );
-  const text = output?.type === "agent" ? output.text : null;
-  console.log(text);
 
-  const preview = text
-    ? text.length > 180
-      ? `${text.slice(0, 180)}…`
-      : text
-    : "No output yet.";
+  const renderOutput = () => {
+    if (!output) {
+      return {
+        preview: "No output yet.",
+        fullText: null,
+      };
+    }
+
+    switch (output.type) {
+      case "agent":
+        return {
+          preview:
+            output.text.length > 180
+              ? `${output.text.slice(0, 180)}…`
+              : output.text,
+          fullText: output.text,
+        };
+
+      case "output":
+        return {
+          preview:
+            output.text.length > 180
+              ? `${output.text.slice(0, 180)}…`
+              : output.text,
+          fullText: output.text,
+        };
+
+      case "sandbox":
+        return {
+          preview: `Sandbox created: ${output.sandboxId}`,
+          fullText: `Sandbox ID: ${output.sandboxId}`,
+        };
+
+      case "tool":
+        return {
+          preview: JSON.stringify(output.value),
+          fullText: JSON.stringify(output.value, null, 2),
+        };
+
+      case "knowledge":
+        return {
+          preview: `${output.documents.length} document(s) returned`,
+          fullText: output.documents.join("\n\n"),
+        };
+
+      case "human":
+        return {
+          preview: JSON.stringify(output.value),
+          fullText: JSON.stringify(output.value, null, 2),
+        };
+
+      case "github":
+        return {
+          preview: JSON.stringify(output.value),
+          fullText: JSON.stringify(output.value, null, 2),
+        };
+
+      default:
+        return {
+          preview: "Unsupported output type.",
+          fullText: null,
+        };
+    }
+  };
+
+  const { preview, fullText } = renderOutput();
 
   const copyOutput = async () => {
-    if (!text) return;
+    if (!fullText) return;
 
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(fullText);
   };
 
   return (
@@ -52,7 +112,7 @@ export const OutputNodePreview = ({
             {preview}
           </p>
 
-          {text && (
+          {fullText && (
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="w-full">
@@ -68,7 +128,7 @@ export const OutputNodePreview = ({
 
                 <div className="max-h-[60vh] overflow-y-auto rounded-md border bg-muted/30 p-4">
                   <p className="whitespace-pre-wrap break-words text-sm">
-                    {text}
+                    {fullText}
                   </p>
                 </div>
 

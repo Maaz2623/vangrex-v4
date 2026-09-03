@@ -28,10 +28,16 @@ export interface GithubOutput<T = unknown> {
   value: T;
 }
 
+export interface SandboxOutput {
+  type: "sandbox";
+  sandboxId: string;
+}
+
 export type ExecutionOutput =
   | AgentOutput
   | ToolOutput
   | KnowledgeOutput
   | HumanOutput
   | ResultOutput
-  | GithubOutput;
+  | GithubOutput
+  | SandboxOutput;
