@@ -28,7 +28,7 @@ export const executionsRouter = createTRPCRouter({
         channel: workflowChannel({
           executionId: input.executionId,
         }),
-        topics: ["nodeStatus"],
+        topics: ["nodeStatus", "nodeOutput"],
       });
     }),
   execute: protectedProcedure

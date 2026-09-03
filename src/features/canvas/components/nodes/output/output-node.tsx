@@ -1,4 +1,5 @@
-import { NodeProps } from "@xyflow/react";
+import { NodeProps, useEdges } from "@xyflow/react";
+
 import { OutputFlowNode } from "../types";
 import { NodeShell } from "../base/node-shell";
 import { outputDefinition } from "./output-definition";
@@ -11,18 +12,28 @@ export const OutputNode = ({
   data,
   selected,
 }: NodeProps<OutputFlowNode>) => {
+  const edges = useEdges();
+
+  const inputEdge = edges.find(
+    (edge) => edge.target === id && edge.targetHandle === "input",
+  );
+
   return (
     <NodeShell
       definition={outputDefinition}
       data={data}
       selected={selected}
-      preview={<OutputNodePreview nodeId={id} data={data} />}
+      preview={
+        <OutputNodePreview
+          nodeId={id}
+          data={data}
+          sourceNodeId={inputEdge?.source}
+        />
+      }
       toolbar={
         <>
           <NodeToolbarButton icon={Settings2} />
-
           <NodeToolbarButton icon={Copy} />
-
           <NodeToolbarButton icon={Trash2} />
         </>
       }

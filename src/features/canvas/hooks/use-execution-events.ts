@@ -9,8 +9,6 @@ import { NodeStatusType } from "../components/nodes/types";
 import { ExecutionOutput } from "../services/execution/execution-output";
 
 export function useExecutionEvents(executionId: string | null) {
-  console.log("[realtime] executionId:", executionId);
-
   const realtime = useRealtime({
     channel: workflowChannel({ executionId: executionId ?? "" }),
     topics: ["nodeStatus", "nodeOutput"] as const,
@@ -19,13 +17,9 @@ export function useExecutionEvents(executionId: string | null) {
   });
 
   useEffect(() => {
-    console.log("[realtime] connection:", {
-      executionId,
-      connectionStatus: realtime.connectionStatus,
-      runStatus: realtime.runStatus,
-    });
-  }, [executionId, realtime.connectionStatus, realtime.runStatus]);
-
+    console.log("[realtime] ALL MESSAGES:", realtime.messages.all);
+    console.log("[realtime] BY TOPIC:", realtime.messages.byTopic);
+  }, [realtime.messages.all, realtime.messages.byTopic]);
   const setNodeStatus = useExecutionStore((state) => state.setNodeStatus);
 
   const addEvent = useExecutionStore((state) => state.addEvent);
@@ -39,11 +33,6 @@ export function useExecutionEvents(executionId: string | null) {
           status: NodeStatusType;
         };
 
-        console.log("[realtime] node status:", {
-          nodeId,
-          status,
-        });
-
         setNodeStatus(nodeId, status);
       }
 
@@ -53,11 +42,6 @@ export function useExecutionEvents(executionId: string | null) {
           nodeId: string;
           output: ExecutionOutput;
         };
-
-        console.log("[realtime] node output:", {
-          nodeId,
-          output,
-        });
 
         useExecutionStore.getState().setOutput(nodeId, output);
       }

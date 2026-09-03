@@ -7,6 +7,6 @@ import { workflowChannel } from "./channels";
 export async function getWorkflowRealtimeToken(executionId: string) {
   return getClientSubscriptionToken(inngest, {
     channel: workflowChannel({ executionId }),
-    topics: ["nodeStatus"],
+    topics: ["nodeStatus", "nodeOutput"],
   });
 }

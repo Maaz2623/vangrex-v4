@@ -1,6 +1,7 @@
 import { FlowEdge } from "../../components/edges/types/base-edge";
 import { AppFlowNode } from "../../components/nodes/node-config";
 import { OutputFlowNode } from "../../components/nodes/types";
+import { getInputFromEdges } from "../graph/get-inputs-from-edges";
 import { getPreviousNode } from "../graph/get-previous-node";
 import { ExecutionContextManager } from "./execution-context-manager";
 
@@ -13,26 +14,10 @@ export async function executeOutput(
   contextManager.startNode(node.id);
   contextManager.incrementNodesExecuted();
 
-  const previousNode = getPreviousNode(node.id, nodes, edges);
+  const context = contextManager.getContext();
+  const input = getInputFromEdges(node.id, edges, context);
 
-  if (!previousNode) {
-    contextManager.finishNode(node.id);
-    return;
-  }
-
-  const previousOutput = contextManager.getOutput(previousNode.id);
-
-  const outputText =
-    previousOutput?.type === "agent"
-      ? previousOutput.text
-      : JSON.stringify(previousOutput);
-
-  contextManager.setOutput(node.id, {
-    type: "output",
-    text: outputText ?? "No output available",
-  });
-
-  console.log("[output node]: ", outputText);
+  console.log("[output node] input:", input);
 
   contextManager.finishNode(node.id);
 }

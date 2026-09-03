@@ -81,12 +81,22 @@ export class GraphExecutor {
       };
       const output = context.outputs[node.id];
 
-      if (output) {
-        await this.publishNodeOutput({
-          executionId: context.executionId,
-          nodeId: node.id,
-          output,
-        });
+      if (node.type !== "output") {
+        const output = context.outputs[node.id];
+
+        if (output) {
+          console.log("[realtime] publishing node output:", {
+            executionId: context.executionId,
+            nodeId: node.id,
+            output,
+          });
+
+          await this.publishNodeOutput({
+            executionId: context.executionId,
+            nodeId: node.id,
+            output,
+          });
+        }
       }
       await this.publishNodeStatus({
         executionId: context.executionId,

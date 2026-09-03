@@ -18,20 +18,20 @@ import { Button } from "@/components/ui/button";
 interface OutputNodePreviewProps {
   data: OutputNodeData;
   nodeId: string;
+  sourceNodeId?: string;
 }
 
-export const OutputNodePreview = ({ data, nodeId }: OutputNodePreviewProps) => {
-  const output = useExecutionStore((state) => state.outputs[nodeId]);
+export const OutputNodePreview = ({
+  data,
+  nodeId,
+  sourceNodeId,
+}: OutputNodePreviewProps) => {
+  const output = useExecutionStore((state) =>
+    sourceNodeId ? state.outputs[sourceNodeId] : undefined,
+  );
+  const text = output?.type === "agent" ? output.text : null;
+  console.log(text);
 
-  const text = output?.type === "output" ? output.text : null;
-
-  console.log("[OUTPUT RENDER]", {
-    nodeId,
-    text,
-    hasText: !!text,
-  });
-
-  
   const preview = text
     ? text.length > 180
       ? `${text.slice(0, 180)}…`
