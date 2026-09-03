@@ -15,7 +15,7 @@ type PublishNodeOutput = (data: {
   output: ExecutionOutput;
 }) => Promise<unknown>;
 
-type PublishNodeStatus = (data: {
+export type PublishNodeStatus = (data: {
   executionId: string;
   nodeId: string;
   status: NodeStatusType;
@@ -63,26 +63,10 @@ export class GraphExecutor {
       status: "running",
     };
 
-    await this.publishNodeStatus({
-      executionId: context.executionId,
-      nodeId: node.id,
-      status: "running",
-    });
-
     try {
-      console.log("[graph] EXECUTOR START:", {
-        nodeId: node.id,
-        nodeType: node.type,
-      });
-
       await this.runtime.runStep(`node-${node.id}`, () =>
-        executor(node, nodes, edges, context, userId),
+        executor(node, nodes, edges, context, userId, this.publishNodeStatus),
       );
-
-      console.log("[graph] EXECUTOR FINISHED:", {
-        nodeId: node.id,
-        nodeType: node.type,
-      });
 
       context.nodeStates[node.id] = {
         ...context.nodeStates[node.id],
@@ -101,33 +85,12 @@ export class GraphExecutor {
           });
         }
       }
-
-      console.log("[graph] PUBLISHING SUCCESS:", {
-        nodeId: node.id,
-        nodeType: node.type,
-      });
-      await this.publishNodeStatus({
-        executionId: context.executionId,
-        nodeId: node.id,
-        status: "success",
-      });
-
-      console.log("[graph] PUBLISHING SUCCESS:", {
-        nodeId: node.id,
-        nodeType: node.type,
-      });
     } catch (error) {
       context.nodeStates[node.id] = {
         ...context.nodeStates[node.id],
         nodeId: node.id,
         status: "error",
       };
-
-      await this.publishNodeStatus({
-        executionId: context.executionId,
-        nodeId: node.id,
-        status: "error",
-      });
 
       throw error;
     }

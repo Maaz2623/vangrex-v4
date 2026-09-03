@@ -5,6 +5,7 @@ import { SandboxFlowNode } from "../../components/nodes/types/sandbox-node";
 
 import { ExecutionContextManager } from "./execution-context-manager";
 import { executionEvents } from "./execution-events";
+import { PublishNodeStatus } from "./graph-executor";
 
 export interface SandboxOutput {
   type: "sandbox";
@@ -17,14 +18,24 @@ export async function executeSandbox(
   edges: FlowEdge[],
   contextManager: ExecutionContextManager,
   userId: string,
+  publishNodeStatus: PublishNodeStatus,
 ): Promise<void> {
   contextManager.incrementNodesExecuted();
 
+  const context = contextManager.getContext();
+
   const started = performance.now();
 
+  if (!context.executionId) {
+    throw new Error("No execution ID");
+  }
+
   try {
-    console.log("[sandbox] config:", node.data.config);
-    console.log("[sandbox] envs:", node.data.config.credentials);
+    await publishNodeStatus({
+      executionId: context.executionId,
+      nodeId: node.id,
+      status: "running",
+    });
 
     const sandbox = await sandboxManager.create(
       userId,
@@ -37,9 +48,19 @@ export async function executeSandbox(
       type: "sandbox",
       sandboxId: sandbox.id,
     });
+
+    await publishNodeStatus({
+      executionId: context.executionId,
+      nodeId: node.id,
+      status: "success",
+    });
   } catch (error) {
     contextManager.incrementErrors();
-
+    await publishNodeStatus({
+      executionId: context.executionId,
+      nodeId: node.id,
+      status: "error",
+    });
     throw error;
   }
 }

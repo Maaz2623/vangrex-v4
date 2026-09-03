@@ -19,6 +19,7 @@ import { Workspace, workspaceManager } from "../workspace/workspace-manager";
 import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
 import { instructions } from "../../../../../instructions";
 import { getInputFromEdges } from "../graph/get-inputs-from-edges";
+import { PublishNodeStatus } from "./graph-executor";
 
 export async function executeAgent(
   agent: AgentFlowNode,
@@ -26,6 +27,7 @@ export async function executeAgent(
   edges: FlowEdge[],
   contextManager: ExecutionContextManager,
   userId: string,
+  publishNodeStatus: PublishNodeStatus,
 ) {
   const context = contextManager.getContext();
 
@@ -41,6 +43,10 @@ export async function executeAgent(
     connectedTools.length > 0
       ? getConnectingEdge(agent.id, connectedTools[0].id, edges)
       : undefined;
+
+  if (!context.executionId) {
+    throw new Error("No execution Id");
+  }
 
   try {
     const basePrompt = interpolatePrompt(agent.data.config.prompt, context);
@@ -64,6 +70,12 @@ ${inputText}
 Use the connected input as data for this task.`
       : basePrompt;
 
+    await publishNodeStatus({
+      executionId: context.executionId,
+      nodeId: agent.id,
+      status: "running",
+    });
+
     const tools = createTools(connectedTools, context, userId);
 
     const result = await generateText({
@@ -79,9 +91,19 @@ Use the connected input as data for this task.`
       type: "agent",
       text: result.text,
     });
+
+    await publishNodeStatus({
+      executionId: context.executionId,
+      nodeId: agent.id,
+      status: "success",
+    });
   } catch (error) {
     contextManager.incrementErrors();
-
+    await publishNodeStatus({
+      executionId: context.executionId,
+      nodeId: agent.id,
+      status: "error",
+    });
     throw error;
   }
 }

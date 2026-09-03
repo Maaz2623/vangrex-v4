@@ -4,6 +4,7 @@ import {
   EdgeProps,
   getBezierPath,
 } from "@xyflow/react";
+
 import { DefaultFlowEdge } from "../types/default-edge";
 
 export const BaseWorkflowEdge = ({
@@ -17,7 +18,6 @@ export const BaseWorkflowEdge = ({
   animated,
   data,
   markerEnd,
-  style,
 }: EdgeProps<DefaultFlowEdge>) => {
   const [path, labelX, labelY] = getBezierPath({
     sourceX,
@@ -28,15 +28,32 @@ export const BaseWorkflowEdge = ({
     targetPosition,
   });
 
-  console.log({
-    id,
-    animated,
-    executionState: data?.metadata?.executionState,
-  });
+  const executionState = data?.metadata?.executionState;
+
+  const isRunning = animated || executionState === "running";
+
+  const isSuccess = executionState === "success";
+
+  const isError = executionState === "error";
 
   return (
     <>
-      <BaseEdge id={id} path={path} markerEnd={markerEnd} style={style} />
+      <BaseEdge
+        id={id}
+        path={path}
+        markerEnd={markerEnd}
+        className={[
+          "workflow-edge",
+          isRunning && "workflow-edge-running",
+          isSuccess && "workflow-edge-success",
+          isError && "workflow-edge-error",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        style={{
+          strokeWidth: isRunning || isSuccess || isError ? 2 : 1.5,
+        }}
+      />
 
       <EdgeLabelRenderer>
         <div
@@ -45,9 +62,7 @@ export const BaseWorkflowEdge = ({
             transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
           }}
           className="pointer-events-none"
-        >
-          {/* We'll add badges, execution state, etc. later */}
-        </div>
+        />
       </EdgeLabelRenderer>
     </>
   );

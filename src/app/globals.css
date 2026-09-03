@@ -278,3 +278,34 @@ body {
     transform: scale(1.4);
   }
 }
+
+.workflow-edge {
+  stroke: hsl(var(--muted-foreground) / 0.35);
+  transition:
+    stroke 200ms ease,
+    stroke-width 200ms ease,
+    opacity 200ms ease;
+}
+
+.workflow-edge-running {
+  stroke: hsl(var(--primary));
+  stroke-dasharray: 8 6;
+  animation: workflow-edge-flow 0.8s linear infinite;
+}
+
+.workflow-edge-success {
+  stroke: hsl(var(--primary));
+  opacity: 0.9;
+}
+
+.workflow-edge-error {
+  stroke: hsl(var(--destructive));
+  stroke-dasharray: 8 6;
+  animation: workflow-edge-flow 0.8s linear infinite;
+}
+
+@keyframes workflow-edge-flow {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
