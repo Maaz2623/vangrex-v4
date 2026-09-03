@@ -17,7 +17,5 @@ export async function executeOutput(
   const context = contextManager.getContext();
   const input = getInputFromEdges(node.id, edges, context);
 
-  console.log("[output node] input:", input);
-
   contextManager.finishNode(node.id);
 }

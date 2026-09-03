@@ -195,8 +195,16 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
    * ------------------------------------------------------------
    */
 
-  const { setSelectedNode, executeAgentId, setExecuteAgentId, setDeleteNode } =
-    useCanvasStore();
+  const {
+    setSelectedNode,
+    executeAgentId,
+    executeWorkflow,
+    setExecuteWorkflow,
+    setExecuteAgentId,
+    setDeleteNode,
+    executionStatus,
+    setExecutionStatus,
+  } = useCanvasStore();
 
   /*
    * ------------------------------------------------------------
@@ -532,6 +540,43 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
 
     setExecuteAgentId(null);
   }, [executeAgentId, nodes, edges, setExecuteAgentId]);
+
+  useEffect(() => {
+    if (!executeWorkflow) {
+      return;
+    }
+
+    setExecutionStatus("starting");
+
+    executeWorkfow.mutate(
+      {
+        workflowId,
+        nodes,
+        edges,
+      },
+      {
+        onSuccess: (data) => {
+          setExecutionId(data.executionId);
+          setExecutionStatus("running");
+        },
+
+        onError: (error) => {
+          console.error("🔥 WORKFLOW MUTATION ERROR:", error);
+          setExecutionStatus("error");
+        },
+      },
+    );
+
+    setExecuteWorkflow(false);
+  }, [
+    executeWorkflow,
+    workflowId,
+    nodes,
+    edges,
+    executeWorkfow,
+    setExecuteWorkflow,
+    setExecutionStatus,
+  ]);
 
   /*
    * ------------------------------------------------------------

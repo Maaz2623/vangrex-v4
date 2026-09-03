@@ -78,7 +78,7 @@ export class ExecutionManager {
     await inngest.send({
       name: "workflow/run",
       data: {
-        workflowId: options?.executionId ?? "manual",
+        workflowId: options?.workflowId ?? "manual",
         executionId,
         nodes,
         edges,

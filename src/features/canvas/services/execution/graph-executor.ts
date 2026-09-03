@@ -79,18 +79,11 @@ export class GraphExecutor {
         nodeId: node.id,
         status: "success",
       };
-      const output = context.outputs[node.id];
 
       if (node.type !== "output") {
         const output = context.outputs[node.id];
 
         if (output) {
-          console.log("[realtime] publishing node output:", {
-            executionId: context.executionId,
-            nodeId: node.id,
-            output,
-          });
-
           await this.publishNodeOutput({
             executionId: context.executionId,
             nodeId: node.id,
@@ -98,11 +91,13 @@ export class GraphExecutor {
           });
         }
       }
+
       await this.publishNodeStatus({
         executionId: context.executionId,
         nodeId: node.id,
         status: "success",
       });
+      
     } catch (error) {
       context.nodeStates[node.id] = {
         ...context.nodeStates[node.id],
