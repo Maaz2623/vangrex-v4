@@ -14,7 +14,7 @@ import {
 
 import "@xyflow/react/dist/style.css";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 
@@ -61,7 +61,7 @@ import type { FlowEdge } from "./edges/types/base-edge";
 import { defaultEdgeMetadata } from "./edges/default/defaults";
 import { useExecutionEvents } from "../hooks/use-execution-events";
 import { useTRPC } from "@/trpc/client";
-import { useMutation } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
 
 type Props = {
   projectId: string;
@@ -69,7 +69,9 @@ type Props = {
 };
 
 export const CanvasEditor = ({ projectId, workflowId }: Props) => {
-  useExecutionEvents();
+  const [executionId, setExecutionId] = useState<string | null>(null);
+
+  useExecutionEvents(executionId);
 
   const trpc = useTRPC();
   /*
@@ -107,6 +109,22 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
   const [nodes, setNodes, reactFlowOnNodesChange] = useNodesState<AppFlowNode>(
     [],
   );
+
+  const realtimeToken = useQuery(
+    trpc.executions.realtimeToken.queryOptions(
+      executionId ? { executionId } : skipToken,
+    ),
+  );
+
+  useEffect(() => {
+    if (realtimeToken.data) {
+      console.log("[realtime] token received");
+    }
+
+    if (realtimeToken.error) {
+      console.error("[realtime] token error:", realtimeToken.error);
+    }
+  }, [realtimeToken.data, realtimeToken.error]);
 
   const nodeStates = useExecutionStore((state) => state.nodeStates);
   const edgeStates = useExecutionStore((state) => state.edgeStates);
@@ -496,11 +514,21 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
       return;
     }
 
-    executeWorkfow.mutate({
-      workflowId,
-      nodes,
-      edges,
-    });
+    executeWorkfow.mutate(
+      {
+        workflowId,
+        nodes,
+        edges,
+      },
+      {
+        onSuccess: (data) => {
+          setExecutionId(data.executionId);
+        },
+        onError: (error) => {
+          console.error("🔥 MUTATION ERROR:", error);
+        },
+      },
+    );
 
     setExecuteAgentId(null);
   }, [executeAgentId, nodes, edges, setExecuteAgentId]);

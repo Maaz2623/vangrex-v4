@@ -4,6 +4,7 @@ import { ExecutionEvent } from "../services/execution/event-types";
 import { ExecutionOutput } from "../services/execution/execution-output";
 import { NodeStatusType } from "../components/nodes/types";
 
+
 export interface ExecutionLog {
   id: string;
   timestamp: number;

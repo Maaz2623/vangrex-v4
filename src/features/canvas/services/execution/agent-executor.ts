@@ -29,31 +29,12 @@ export async function executeAgent(
 ) {
   const context = contextManager.getContext();
 
-  console.log("[agent incoming edges]", {
-    agentId: agent.id,
-    edges: edges.filter((edge) => edge.target === agent.id),
-  });
-
   const inputs = getInputFromEdges(agent.id, edges, context);
-
-  console.log("[agent inputs]", {
-    agentId: agent.id,
-    inputs,
-  });
 
   contextManager.startNode(agent.id);
   contextManager.recordAgentExecution();
 
   const started = performance.now();
-
-  executionEvents.emit({
-    executionId: context.executionId,
-    nodeType: "agent",
-    type: "node:start",
-    nodeId: agent.id,
-    timestamp: Date.now(),
-    nodeName: context.nodeNames[agent.id],
-  });
 
   const connectedTools = getConnectedTools(agent.id, nodes, edges);
 
@@ -61,16 +42,6 @@ export async function executeAgent(
     connectedTools.length > 0
       ? getConnectingEdge(agent.id, connectedTools[0].id, edges)
       : undefined;
-
-  // if (edge) {
-  //   executionEvents.emit({
-  //     type: "edge:start",
-  //     edgeId: edge.id,
-  //     timestamp: Date.now(),
-  //   });
-
-  //   await delay(500);
-  // }
 
   try {
     const basePrompt = interpolatePrompt(agent.data.config.prompt, context);
@@ -96,8 +67,6 @@ Use the connected input as data for this task.`
 
     const tools = createTools(connectedTools, context, userId);
 
-    console.log("[agent prompt]", prompt);
-
     const result = await generateText({
       model: defaultModel,
       prompt,
@@ -107,69 +76,15 @@ Use the connected input as data for this task.`
       instructions: instructions,
     });
 
-    console.log("[agent result]", {
-      text: result.text,
-      finishReason: result.finishReason,
-      steps: result.steps?.length,
-      toolCalls: result.toolCalls,
-      toolResults: result.toolResults,
-      response: result.response,
-    });
-
-    console.log("[agent steps]", result.steps);
-
-    console.log(result.text);
-
     contextManager.setOutput(agent.id, {
       type: "agent",
       text: result.text,
     });
 
-    // if (edge) {
-    //   await delay(500);
-
-    //   executionEvents.emit({
-    //     type: "edge:success",
-    //     edgeId: edge.id,
-    //     timestamp: Date.now(),
-    //   });
-    // }
-
     contextManager.finishNode(agent.id);
-
-    executionEvents.emit({
-      executionId: context.executionId,
-      nodeType: "agent",
-      type: "node:success",
-      nodeId: agent.id,
-      timestamp: Date.now(),
-      nodeName: context.nodeNames[agent.id],
-      duration: performance.now() - started,
-      output: contextManager.getOutput(agent.id),
-    });
   } catch (error) {
     contextManager.incrementErrors();
     contextManager.failNode(agent.id);
-
-    // if (edge) {
-    //   executionEvents.emit({
-    //     type: "edge:error",
-    //     edgeId: edge.id,
-    //     error: error instanceof Error ? error : new Error(String(error)),
-    //     timestamp: Date.now(),
-    //   });
-    // }
-
-    executionEvents.emit({
-      executionId: context.executionId,
-      nodeType: "agent",
-      type: "node:error",
-      nodeId: agent.id,
-      nodeName: context.nodeNames[agent.id],
-      error: error instanceof Error ? error : new Error(String(error)),
-      timestamp: Date.now(),
-      duration: performance.now() - started,
-    });
 
     throw error;
   }

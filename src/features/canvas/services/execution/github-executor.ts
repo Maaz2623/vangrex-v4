@@ -15,14 +15,6 @@ export async function executeGithub(
 
   const context = contextManager.getContext();
 
-  executionEvents.emit({
-    executionId: context.executionId,
-    nodeType: "tool",
-    type: "node:start",
-    nodeId: node.id,
-    nodeName: context.nodeNames[node.id],
-    timestamp: Date.now(),
-  });
 
   try {
     const config = node.data.config;
@@ -44,28 +36,9 @@ export async function executeGithub(
 
     contextManager.finishNode(node.id);
 
-    executionEvents.emit({
-      executionId: context.executionId,
-      nodeType: "agent",
-      type: "node:success",
-      nodeId: node.id,
-      timestamp: Date.now(),
-      nodeName: context.nodeNames[node.id],
-      duration: performance.now() - started,
-    });
   } catch (error) {
     contextManager.failNode(node.id);
 
-    executionEvents.emit({
-      executionId: context.executionId,
-      nodeType: "agent",
-      type: "node:error",
-      nodeId: node.id,
-      nodeName: context.nodeNames[node.id],
-      error: error instanceof Error ? error : new Error(String(error)),
-      timestamp: Date.now(),
-      duration: performance.now() - started,
-    });
     throw error;
   }
 }

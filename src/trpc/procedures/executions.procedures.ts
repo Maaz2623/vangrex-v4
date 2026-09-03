@@ -12,8 +12,25 @@ import {
   failExecution,
 } from "@/features/canvas/services/execution/execution-persistance";
 import { ExecutionManager } from "@/features/canvas/services/execution/execution-manager";
+import { getClientSubscriptionToken } from "inngest/react";
+import { inngest } from "@/lib/inngest/client";
+import { workflowChannel } from "@/lib/inngest/channels";
 
 export const executionsRouter = createTRPCRouter({
+  realtimeToken: protectedProcedure
+    .input(
+      z.object({
+        executionId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      return getClientSubscriptionToken(inngest, {
+        channel: workflowChannel({
+          executionId: input.executionId,
+        }),
+        topics: ["nodeStatus"],
+      });
+    }),
   execute: protectedProcedure
     .input(
       z.object({

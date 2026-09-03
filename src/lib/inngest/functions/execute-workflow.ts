@@ -11,6 +11,8 @@ import {
   getExecution,
   setExecutionSandbox,
 } from "@/features/canvas/services/execution/execution-persistance";
+import { workflowChannel } from "../channels";
+import { NodeStatusType } from "@/features/canvas/components/nodes/types";
 
 export const executeWorkflow = inngest.createFunction(
   {
@@ -27,6 +29,21 @@ export const executeWorkflow = inngest.createFunction(
       input,
       userId,
     } = event.data;
+
+    const channel = workflowChannel({
+      executionId,
+    });
+
+    const publishNodeStatus = (
+      id: string,
+      data: {
+        executionId: string;
+        nodeId: string;
+        status: NodeStatusType;
+      },
+    ) => {
+      return step.realtime.publish(id, channel.nodeStatus, data);
+    };
 
     const execution = await getExecution(executionId);
 
@@ -69,7 +86,7 @@ export const executeWorkflow = inngest.createFunction(
     const runtime = new InngestExecutionRuntime(step);
 
     // We'll change GraphExecutor next.
-    const graph = new GraphExecutor(runtime);
+    const graph = new GraphExecutor(runtime, publishNodeStatus);
 
     const startNode = nodes.find((node) => node.id === startNodeId);
 
@@ -87,8 +104,6 @@ export const executeWorkflow = inngest.createFunction(
       const outputNode = nodes.find((node) => node.type === "output");
 
       const output = outputNode ? context.outputs[outputNode.id] : undefined;
-
-      console.log(output);
 
       return {
         executionId,

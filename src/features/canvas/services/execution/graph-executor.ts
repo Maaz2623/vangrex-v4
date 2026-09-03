@@ -6,9 +6,22 @@ import { ExecutionContext } from "./execution-context";
 import { ExecutionContextManager } from "./execution-context-manager";
 import { nodeExecutorRegistry } from "./node-executor-registry";
 import { ExecutionRuntime } from "./execution-runtime";
+import { NodeStatusType } from "../../components/nodes/types";
+
+type PublishNodeStatus = (
+  id: string,
+  data: {
+    executionId: string;
+    nodeId: string;
+    status: NodeStatusType
+  },
+) => Promise<unknown>;
 
 export class GraphExecutor {
-  constructor(private readonly runtime: ExecutionRuntime) {}
+  constructor(
+    private readonly runtime: ExecutionRuntime,
+    private readonly publishNodeStatus: PublishNodeStatus,
+  ) {}
 
   async execute(
     startNode: AppFlowNode,
@@ -18,13 +31,7 @@ export class GraphExecutor {
     userId: string,
   ) {
     const contextManager = new ExecutionContextManager(context);
-    await this.executeNode(
-      startNode,
-      nodes,
-      edges,
-      context,
-      userId,
-    );
+    await this.executeNode(startNode, nodes, edges, context, userId);
     contextManager.finishExecution();
   }
 
@@ -41,9 +48,53 @@ export class GraphExecutor {
       throw new Error(`No executor registered for node: ${node.type}`);
     }
 
-    await this.runtime.runStep(`node-${node.id}`, () =>
-      executor(node, nodes, edges, context, userId),
-    );
+    if (!context.executionId) {
+      throw new Error("Execution Id is required");
+    }
+
+    context.nodeStates[node.id] = {
+      ...context.nodeStates[node.id],
+      nodeId: node.id,
+      status: "running",
+    };
+
+    await this.publishNodeStatus(`node-${node.id}-running`, {
+      executionId: context.executionId,
+      nodeId: node.id,
+      status: "running",
+    });
+
+    try {
+      await this.runtime.runStep(`node-${node.id}`, () =>
+        executor(node, nodes, edges, context, userId),
+      );
+
+      context.nodeStates[node.id] = {
+        ...context.nodeStates[node.id],
+        nodeId: node.id,
+        status: "success",
+      };
+
+      await this.publishNodeStatus(`node-${node.id}-success`, {
+        executionId: context.executionId,
+        nodeId: node.id,
+        status: "success",
+      });
+    } catch (error) {
+      context.nodeStates[node.id] = {
+        ...context.nodeStates[node.id],
+        nodeId: node.id,
+        status: "error",
+      };
+
+      await this.publishNodeStatus(`node-${node.id}-error`, {
+        executionId: context.executionId,
+        nodeId: node.id,
+        status: "error",
+      });
+
+      throw error;
+    }
 
     const nextNodes = getNextExecutionNodes(node.id, nodes, edges);
 

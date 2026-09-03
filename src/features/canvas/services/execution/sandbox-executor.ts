@@ -18,15 +18,6 @@ export async function executeSandbox(
 
   const started = performance.now();
 
-  executionEvents.emit({
-    executionId: contextManager.executionId,
-    nodeType: "sandbox",
-    type: "node:start",
-    nodeId: node.id,
-    timestamp: Date.now(),
-    nodeName: node.data.title,
-  });
-
   try {
     console.log("[sandbox] config:", node.data.config);
     console.log("[sandbox] envs:", node.data.config.credentials);
@@ -41,30 +32,9 @@ export async function executeSandbox(
     contextManager.setMetadata("sandboxId", sandbox.id);
 
     contextManager.finishNode(node.id);
-
-    executionEvents.emit({
-      executionId: contextManager.executionId,
-      nodeType: "sandbox",
-      type: "node:success",
-      nodeId: node.id,
-      timestamp: Date.now(),
-      nodeName: node.data.title,
-      duration: performance.now() - started,
-    });
   } catch (error) {
     contextManager.incrementErrors();
     contextManager.failNode(node.id);
-
-    executionEvents.emit({
-      executionId: contextManager.executionId,
-      nodeType: "sandbox",
-      type: "node:error",
-      nodeId: node.id,
-      nodeName: node.data.title,
-      error: error instanceof Error ? error : new Error(String(error)),
-      timestamp: Date.now(),
-      duration: performance.now() - started,
-    });
 
     throw error;
   }

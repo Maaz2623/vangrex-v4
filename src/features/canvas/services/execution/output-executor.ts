@@ -15,32 +15,22 @@ export async function executeOutput(
 
   const previousNode = getPreviousNode(node.id, nodes, edges);
 
-  console.log("[output] previousNode:", previousNode);
-
   if (!previousNode) {
-    console.log("[output] NO PREVIOUS NODE");
     contextManager.finishNode(node.id);
     return;
   }
 
   const previousOutput = contextManager.getOutput(previousNode.id);
 
-  console.log("[output] previousOutput:", previousOutput);
-  console.log("[output] previousOutput type:", previousOutput?.type);
-
   const outputText =
     previousOutput?.type === "agent"
       ? previousOutput.text
       : JSON.stringify(previousOutput);
 
-  console.log("[output] outputText:", outputText);
-
   contextManager.setOutput(node.id, {
     type: "output",
     text: outputText ?? "No output available",
   });
-
-  console.log("[output] final:", contextManager.getOutput(node.id));
 
   contextManager.finishNode(node.id);
 }
