@@ -17,6 +17,14 @@ export function useExecutionEvents(executionId: string | null) {
     enabled: !!executionId,
   });
 
+  useEffect(() => {
+    console.log("[realtime] connection:", {
+      executionId,
+      connectionStatus: realtime.connectionStatus,
+      runStatus: realtime.runStatus,
+    });
+  }, [executionId, realtime.connectionStatus, realtime.runStatus]);
+
   const trpc = useTRPC();
 
   const setNodeStatus = useExecutionStore((state) => state.setNodeStatus);
