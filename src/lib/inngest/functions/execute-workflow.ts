@@ -21,6 +21,8 @@ export const executeWorkflow = inngest.createFunction(
     triggers: [workflowRun],
   },
   async ({ event, step }) => {
+    console.log("[perf] inngest function started", Date.now());
+
     const {
       workflowId,
       executionId,
@@ -92,7 +94,11 @@ export const executeWorkflow = inngest.createFunction(
     const runtime = new InngestExecutionRuntime(step);
 
     // We'll change GraphExecutor next.
-    const graph = new GraphExecutor(runtime, publishNodeStatus, publishNodeOutput);
+    const graph = new GraphExecutor(
+      runtime,
+      publishNodeStatus,
+      publishNodeOutput,
+    );
 
     const startNode = nodes.find((node) => node.id === startNodeId);
 
@@ -101,6 +107,7 @@ export const executeWorkflow = inngest.createFunction(
     }
 
     try {
+      console.log("[perf] graph execution started", Date.now());
       await graph.execute(startNode, nodes, edges, context, userId);
 
       await completeExecution(executionId, {

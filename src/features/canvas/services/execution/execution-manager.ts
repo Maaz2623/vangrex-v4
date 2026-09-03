@@ -75,6 +75,8 @@ export class ExecutionManager {
       throw new Error("Unauthorized: no authenticated user.");
     }
 
+    console.log("[perf] before inngest.send", Date.now());
+
     await inngest.send({
       name: "workflow/run",
       data: {
@@ -87,6 +89,8 @@ export class ExecutionManager {
         userId: session.user.id,
       },
     });
+
+    console.log("[perf] after inngest.send", Date.now());
 
     return {
       executionId,
