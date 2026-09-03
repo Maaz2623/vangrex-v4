@@ -12,6 +12,8 @@ interface CanvasStore {
   setSelectedNode: (id: string | null) => void;
   executeAgentId: string | null;
   setExecuteAgentId: (id: string | null) => void;
+  runId: string | null;
+  setRunId: (runId: string | null) => void;
   executeWorkflow: boolean;
   setExecuteWorkflow: (value: boolean) => void;
   executionStatus: WorkflowExecutionStatus;
@@ -49,6 +51,10 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
     set({
       executeAgentId: id,
     }),
+
+  runId: null,
+
+  setRunId: (runId) => set({ runId }),
 
   deleteNode: () => {},
 

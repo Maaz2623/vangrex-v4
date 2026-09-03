@@ -20,16 +20,24 @@ export const executionsRouter = createTRPCRouter({
   realtimeToken: protectedProcedure
     .input(
       z.object({
-        executionId: z.string(),
+        runId: z.string(),
       }),
     )
-    .query(async ({ ctx, input }) => {
-      return getClientSubscriptionToken(inngest, {
-        channel: workflowChannel({
-          executionId: input.executionId,
-        }),
-        topics: ["nodeStatus", "nodeOutput"],
+    .query(async ({ input }) => {
+      const { auth } = await import("@trigger.dev/sdk");
+
+      const token = await auth.createPublicToken({
+        scopes: {
+          read: {
+            runs: [input.runId],
+          },
+        },
+        expirationTime: "1h",
       });
+
+      return {
+        token,
+      };
     }),
   execute: protectedProcedure
     .input(
@@ -60,6 +68,7 @@ export const executionsRouter = createTRPCRouter({
 
         return {
           executionId,
+          runId: result.runId,
         };
       } catch (error) {
         await failExecution(executionId, error);

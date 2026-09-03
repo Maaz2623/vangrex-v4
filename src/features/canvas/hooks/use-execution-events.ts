@@ -1,55 +1,139 @@
-import { useSubscription } from "@trpc/tanstack-react-query";
+"use client";
+
 import { useEffect } from "react";
-import { useExecutionStore } from "../store/execution-store";
+import { useRealtimeRun, useRealtimeStream } from "@trigger.dev/react-hooks";
+import { useQuery } from "@tanstack/react-query";
+
 import { useTRPC } from "@/trpc/client";
-import { useRealtime } from "inngest/react";
-import { workflowChannel } from "@/lib/inngest/channels";
-import { getWorkflowRealtimeToken } from "@/lib/inngest/realtime-token";
-import { NodeStatusType } from "../components/nodes/types";
-import { ExecutionOutput } from "../services/execution/execution-output";
 
-export function useExecutionEvents(executionId: string | null) {
-  console.log("[realtime] subscribing to execution:", executionId);
-  const realtime = useRealtime({
-    channel: workflowChannel({ executionId: executionId ?? "" }),
-    topics: ["nodeStatus", "nodeOutput"] as const,
-    token: () => getWorkflowRealtimeToken(executionId!),
-    enabled: !!executionId,
-  });
+import { nodeOutputStream, nodeStatusStream } from "@/trigger/streams";
 
-  useEffect(() => {
-    console.log("[realtime] ALL MESSAGES:", realtime.messages.all);
-    console.log("[realtime] BY TOPIC:", realtime.messages.byTopic);
-  }, [realtime.messages.all, realtime.messages.byTopic]);
+import { useExecutionStore } from "../store/execution-store";
+import { useCanvasStore } from "../store/canvas-store";
+
+export function useExecutionEvents(runId: string | null) {
+  const trpc = useTRPC();
+
   const setNodeStatus = useExecutionStore((state) => state.setNodeStatus);
 
-  const addEvent = useExecutionStore((state) => state.addEvent);
+  const setOutput = useExecutionStore((state) => state.setOutput);
+
+  const setExecutionStatus = useCanvasStore(
+    (state) => state.setExecutionStatus,
+  );
+
+  const realtimeToken = useQuery(
+    trpc.executions.realtimeToken.queryOptions({
+      runId: runId ?? "",
+    }),
+  );
+
+  const accessToken = realtimeToken.data?.token;
+
+  const { run, error: runError } = useRealtimeRun(runId ?? "", {
+    accessToken,
+    enabled: !!runId && !!accessToken,
+  });
+
+  const { parts: statusParts, error: statusError } = useRealtimeStream(
+    nodeStatusStream,
+    runId ?? "",
+    {
+      accessToken,
+      enabled: !!runId && !!accessToken,
+    },
+  );
+
+  const { parts: outputParts, error: outputError } = useRealtimeStream(
+    nodeOutputStream,
+    runId ?? "",
+    {
+      accessToken,
+      enabled: !!runId && !!accessToken,
+    },
+  );
+
+  /*
+   * Node status events
+   */
+  useEffect(() => {
+    if (!statusParts) return;
+
+    for (const event of statusParts) {
+      setNodeStatus(event.nodeId, event.status);
+    }
+  }, [statusParts, setNodeStatus]);
+
+  /*
+   * Node output events
+   */
+  useEffect(() => {
+    if (!outputParts) return;
+
+    for (const event of outputParts) {
+      setOutput(event.nodeId, event.output);
+    }
+  }, [outputParts, setOutput]);
+
+  /*
+   * Workflow-level status
+   *
+   * Trigger is the source of truth here.
+   * Do NOT derive workflow completion from node states.
+   */
+  useEffect(() => {
+    if (!run) return;
+
+    const status = String(run.status).toUpperCase();
+
+    console.log("[trigger] workflow status:", status);
+
+    switch (status) {
+      case "PENDING":
+      case "QUEUED":
+        setExecutionStatus("starting");
+        break;
+
+      case "EXECUTING":
+      case "RUNNING":
+        setExecutionStatus("running");
+        break;
+
+      case "COMPLETED":
+        setExecutionStatus("success");
+        break;
+
+      case "FAILED":
+      case "CANCELED":
+      case "CANCELLED":
+        setExecutionStatus("error");
+        break;
+    }
+  }, [run, setExecutionStatus]);
 
   useEffect(() => {
-    for (const message of realtime.messages.delta) {
-      console.log("[realtime] NODE STATUS EVENT:", {
-        topic: message.topic,
-        data: message.data,
-      });
-      if (message.topic === "nodeStatus") {
-        const { nodeId, status } = message.data as {
-          executionId: string;
-          nodeId: string;
-          status: NodeStatusType;
-        };
-
-        setNodeStatus(nodeId, status);
-      }
-
-      if (message.topic === "nodeOutput") {
-        const { nodeId, output } = message.data as {
-          executionId: string;
-          nodeId: string;
-          output: ExecutionOutput;
-        };
-
-        useExecutionStore.getState().setOutput(nodeId, output);
-      }
+    if (realtimeToken.error) {
+      console.error("[trigger] realtime token error:", realtimeToken.error);
     }
-  }, [realtime.messages.delta, setNodeStatus]);
+
+    if (runError) {
+      console.error("[trigger] run realtime error:", runError);
+    }
+
+    if (statusError) {
+      console.error("[trigger] node status stream error:", statusError);
+    }
+
+    if (outputError) {
+      console.error("[trigger] node output stream error:", outputError);
+    }
+  }, [realtimeToken.error, runError, statusError, outputError]);
+
+  return {
+    run,
+    statusParts,
+    outputParts,
+    error:
+      realtimeToken.error ?? runError ?? statusError ?? outputError ?? null,
+  };
 }

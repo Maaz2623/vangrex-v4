@@ -1,28 +1,38 @@
+import { logger, task } from "@trigger.dev/sdk";
+
 import { AppFlowNode } from "@/features/canvas/components/nodes/node-config";
-import { inngest, workflowRun } from "../client";
-import { InngestExecutionRuntime } from "../inngest-execution-runtime";
 import { FlowEdge } from "@/features/canvas/components/edges/types/base-edge";
-import { SandboxInstance, sandboxManager } from "@/lib/sandbox/sandbox-manager";
+import { NodeStatusType } from "@/features/canvas/components/nodes/types";
+
 import { ExecutionContext } from "@/features/canvas/services/execution/execution-context";
 import { GraphExecutor } from "@/features/canvas/services/execution/graph-executor";
+import { ExecutionOutput } from "@/features/canvas/services/execution/execution-output";
+
 import {
   completeExecution,
   failExecution,
   getExecution,
-  setExecutionSandbox,
 } from "@/features/canvas/services/execution/execution-persistance";
-import { workflowChannel } from "../channels";
-import { NodeStatusType } from "@/features/canvas/components/nodes/types";
-import { ExecutionOutput } from "@/features/canvas/services/execution/execution-output";
 
-export const executeWorkflow = inngest.createFunction(
-  {
-    id: "execute-workflow",
-    triggers: [workflowRun],
-  },
-  async ({ event, step }) => {
-    console.log("[perf] inngest function started", Date.now());
+import { TriggerExecutionRuntime } from "./trigger-execution-runtime";
+import { nodeOutputStream, nodeStatusStream } from "./streams";
 
+export type ExecuteWorkflowPayload = {
+  workflowId: string;
+  executionId: string;
+  startNodeId: string;
+  nodes: AppFlowNode[];
+  edges: FlowEdge[];
+  input: unknown;
+  userId: string;
+};
+
+export const executeWorkflowTask = task({
+  id: "execute-workflow",
+
+  maxDuration: 3600,
+
+  run: async (payload: ExecuteWorkflowPayload, { ctx }) => {
     const {
       workflowId,
       executionId,
@@ -31,33 +41,51 @@ export const executeWorkflow = inngest.createFunction(
       edges,
       input,
       userId,
-    } = event.data;
+    } = payload;
 
-    const channel = workflowChannel({
+    logger.log("Vangrex workflow started", {
       executionId,
+      runId: ctx.run.id,
     });
 
-    const publishNodeStatus = (data: {
+    const publishNodeStatus = async (data: {
       executionId: string;
       nodeId: string;
       status: NodeStatusType;
     }) => {
-      return inngest.realtime.publish(channel.nodeStatus, data);
+      logger.log("Publishing node status", data);
+
+      await nodeStatusStream.append(data);
+
+      logger.log("Node status published", data);
+
+      return data;
     };
 
-    const publishNodeOutput = (data: {
+    const publishNodeOutput = async (data: {
       executionId: string;
       nodeId: string;
       output: ExecutionOutput;
     }) => {
-      return inngest.realtime.publish(channel.nodeOutput, data);
+      logger.log("Publishing node output", data);
+
+      await nodeOutputStream.append(data);
+
+      logger.log("Node output published", data);
+
+      return data;
     };
 
     const execution = await getExecution(executionId);
 
+    if (!execution) {
+      throw new Error(`Execution ${executionId} not found`);
+    }
+
     const context: ExecutionContext = {
       executionId,
       workflowId,
+
       startedAt: Date.now(),
 
       nodeNames: Object.fromEntries(
@@ -65,7 +93,9 @@ export const executeWorkflow = inngest.createFunction(
       ),
 
       outputs: {},
+
       variables: {},
+
       artifacts: [],
 
       metadata: {
@@ -91,32 +121,26 @@ export const executeWorkflow = inngest.createFunction(
       },
     };
 
-    const runtime = new InngestExecutionRuntime(step);
-
-    // We'll change GraphExecutor next.
-    const graph = new GraphExecutor(
-      runtime,
-      publishNodeStatus,
-      publishNodeOutput,
-    );
-
     const startNode = nodes.find((node) => node.id === startNodeId);
 
     if (!startNode) {
       throw new Error(`Start node ${startNodeId} not found`);
     }
 
+    const runtime = new TriggerExecutionRuntime();
+
+    const graph = new GraphExecutor(
+      runtime,
+      publishNodeStatus,
+      publishNodeOutput,
+    );
+
     try {
-      console.log("[perf] graph execution started", Date.now());
       await graph.execute(startNode, nodes, edges, context, userId);
 
       await completeExecution(executionId, {
         output: context.outputs,
       });
-
-      const outputNode = nodes.find((node) => node.type === "output");
-
-      const output = outputNode ? context.outputs[outputNode.id] : undefined;
 
       return {
         executionId,
@@ -124,7 +148,8 @@ export const executeWorkflow = inngest.createFunction(
       };
     } catch (error) {
       await failExecution(executionId, error);
+
       throw error;
     }
   },
-);
+});

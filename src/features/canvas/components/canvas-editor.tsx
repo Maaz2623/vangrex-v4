@@ -69,10 +69,6 @@ type Props = {
 };
 
 export const CanvasEditor = ({ projectId, workflowId }: Props) => {
-  const [executionId, setExecutionId] = useState<string | null>(null);
-
-  useExecutionEvents(executionId);
-
   const trpc = useTRPC();
   /*
    * ------------------------------------------------------------
@@ -109,22 +105,6 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
   const [nodes, setNodes, reactFlowOnNodesChange] = useNodesState<AppFlowNode>(
     [],
   );
-
-  const realtimeToken = useQuery(
-    trpc.executions.realtimeToken.queryOptions(
-      executionId ? { executionId } : skipToken,
-    ),
-  );
-
-  useEffect(() => {
-    if (realtimeToken.data) {
-      console.log("[realtime] token received");
-    }
-
-    if (realtimeToken.error) {
-      console.error("[realtime] token error:", realtimeToken.error);
-    }
-  }, [realtimeToken.data, realtimeToken.error]);
 
   const nodeStates = useExecutionStore((state) => state.nodeStates);
   const edgeStates = useExecutionStore((state) => state.edgeStates);
@@ -204,7 +184,11 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
     setDeleteNode,
     executionStatus,
     setExecutionStatus,
+    setRunId,
+    runId,
   } = useCanvasStore();
+
+  useExecutionEvents(runId);
 
   /*
    * ------------------------------------------------------------
@@ -530,7 +514,7 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
       },
       {
         onSuccess: (data) => {
-          setExecutionId(data.executionId);
+          setRunId(data.runId);
         },
         onError: (error) => {
           console.error("🔥 MUTATION ERROR:", error);
@@ -556,7 +540,7 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
       },
       {
         onSuccess: (data) => {
-          setExecutionId(data.executionId);
+          setRunId(data.runId);
           setExecutionStatus("running");
         },
 

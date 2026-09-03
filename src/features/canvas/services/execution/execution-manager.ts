@@ -6,9 +6,10 @@ import { workspaceManager } from "../workspace/workspace-manager";
 import { ExecutionContext } from "./execution-context";
 import { getStartNodes } from "./get-start-nodes";
 import { GraphExecutor } from "./graph-executor";
-import { inngest } from "@/lib/inngest/client";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { tasks, logger, streams } from "@trigger.dev/sdk";
+import { executeWorkflowTask } from "@/trigger/execute-workflow";
 
 export class ExecutionManager {
   async execute(
@@ -77,23 +78,20 @@ export class ExecutionManager {
 
     console.log("[perf] before inngest.send", Date.now());
 
-    await inngest.send({
-      name: "workflow/run",
-      data: {
-        workflowId: options?.workflowId ?? "manual",
-        executionId,
-        nodes,
-        edges,
-        startNodeId: startNodes[0].id,
-        input: options?.input ?? null,
-        userId: session.user.id,
-      },
+    const handle = await executeWorkflowTask.trigger({
+      workflowId: options?.workflowId ?? "manual",
+      executionId: executionId!,
+      nodes,
+      edges,
+      startNodeId: startNodes[0].id,
+      input: options?.input ?? null,
+      userId: session.user.id,
     });
-
     console.log("[perf] after inngest.send", Date.now());
 
     return {
       executionId,
+      runId: handle.id,
     };
   }
 }
