@@ -8,14 +8,11 @@ import { nodeExecutorRegistry } from "./node-executor-registry";
 import { ExecutionRuntime } from "./execution-runtime";
 import { NodeStatusType } from "../../components/nodes/types";
 
-type PublishNodeStatus = (
-  id: string,
-  data: {
-    executionId: string;
-    nodeId: string;
-    status: NodeStatusType
-  },
-) => Promise<unknown>;
+type PublishNodeStatus = (data: {
+  executionId: string;
+  nodeId: string;
+  status: NodeStatusType;
+}) => Promise<unknown>;
 
 export class GraphExecutor {
   constructor(
@@ -58,7 +55,7 @@ export class GraphExecutor {
       status: "running",
     };
 
-    await this.publishNodeStatus(`node-${node.id}-running`, {
+    await this.publishNodeStatus({
       executionId: context.executionId,
       nodeId: node.id,
       status: "running",
@@ -74,8 +71,7 @@ export class GraphExecutor {
         nodeId: node.id,
         status: "success",
       };
-
-      await this.publishNodeStatus(`node-${node.id}-success`, {
+      await this.publishNodeStatus({
         executionId: context.executionId,
         nodeId: node.id,
         status: "success",
@@ -87,7 +83,7 @@ export class GraphExecutor {
         status: "error",
       };
 
-      await this.publishNodeStatus(`node-${node.id}-error`, {
+      await this.publishNodeStatus({
         executionId: context.executionId,
         nodeId: node.id,
         status: "error",

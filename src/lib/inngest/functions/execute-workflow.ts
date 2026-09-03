@@ -35,14 +35,13 @@ export const executeWorkflow = inngest.createFunction(
     });
 
     const publishNodeStatus = (
-      id: string,
       data: {
         executionId: string;
         nodeId: string;
         status: NodeStatusType;
       },
     ) => {
-      return step.realtime.publish(id, channel.nodeStatus, data);
+      return inngest.realtime.publish(channel.nodeStatus, data);
     };
 
     const execution = await getExecution(executionId);
