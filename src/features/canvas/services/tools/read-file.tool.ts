@@ -5,10 +5,12 @@ import { ToolFlowNode } from "../../components/nodes/types/tool-node";
 import { executeTool } from "../execution/execute-tool";
 import { ExecutionContext } from "../execution/execution-context";
 import { sandboxManager } from "@/lib/sandbox/sandbox-manager";
+import { PublishNodeStatus } from "../execution/graph-executor";
 
 export function createReadFileTool(
   node: ToolFlowNode,
   context: ExecutionContext,
+  publishNodeStatus: PublishNodeStatus
 ) {
   return tool({
     description:
@@ -37,6 +39,6 @@ export function createReadFileTool(
         console.log("[read-file] path:", path);
 
         return await sandbox.sandbox.files.read(path);
-      }),
+      }, publishNodeStatus),
   });
 }

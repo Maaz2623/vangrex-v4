@@ -76,7 +76,7 @@ Use the connected input as data for this task.`
       status: "running",
     });
 
-    const tools = createTools(connectedTools, context, userId);
+    const tools = createTools(connectedTools, context, publishNodeStatus);
 
     const result = await generateText({
       model: defaultModel,

@@ -5,6 +5,7 @@ import { executeTool } from "../execution/execute-tool";
 import { ExecutionContext } from "../execution/execution-context";
 import { Workspace } from "../workspace/workspace-manager";
 import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
+import { PublishNodeStatus } from "../execution/graph-executor";
 
 export interface WeatherToolParameters {
   units: "metric" | "imperial";
@@ -13,6 +14,7 @@ export interface WeatherToolParameters {
 export function createWeatherTool(
   node: ToolFlowNode,
   context: ExecutionContext,
+  publishNodeStatus: PublishNodeStatus
 ) {
   const parameters = node.data.config
     .parameters as unknown as WeatherToolParameters;
@@ -33,6 +35,6 @@ export function createWeatherTool(
           condition: "Cloudy",
           units: parameters.units,
         };
-      }),
+      }, publishNodeStatus),
   });
 }

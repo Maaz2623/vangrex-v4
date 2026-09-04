@@ -5,10 +5,12 @@ import { ToolFlowNode } from "../../components/nodes/types/tool-node";
 import { ExecutionContext } from "../execution/execution-context";
 import { executeTool } from "../execution/execute-tool";
 import { sandboxManager } from "@/lib/sandbox/sandbox-manager";
+import { PublishNodeStatus } from "../execution/graph-executor";
 
 export function createWriteFileTool(
   node: ToolFlowNode,
   context: ExecutionContext,
+  publishNodeStatus: PublishNodeStatus,
 ) {
   return tool({
     description:
@@ -26,26 +28,31 @@ export function createWriteFileTool(
     }),
 
     execute: async ({ path, content }) =>
-      executeTool(node, context, async () => {
-        const sandboxId = context.metadata.sandboxId as string | undefined;
+      executeTool(
+        node,
+        context,
+        async () => {
+          const sandboxId = context.metadata.sandboxId as string | undefined;
 
-        if (!sandboxId) {
-          throw new Error(
-            "No sandbox available. Add a Sandbox node before using file tools.",
-          );
-        }
+          if (!sandboxId) {
+            throw new Error(
+              "No sandbox available. Add a Sandbox node before using file tools.",
+            );
+          }
 
-        const sandbox = await sandboxManager.get(sandboxId);
+          const sandbox = await sandboxManager.get(sandboxId);
 
-        console.log("[write-file] sandbox:", sandbox.id);
-        console.log("[write-file] path:", path);
+          console.log("[write-file] sandbox:", sandbox.id);
+          console.log("[write-file] path:", path);
 
-        await sandbox.sandbox.files.write(path, content);
+          await sandbox.sandbox.files.write(path, content);
 
-        return {
-          path,
-          success: true,
-        };
-      }),
+          return {
+            path,
+            success: true,
+          };
+        },
+        publishNodeStatus,
+      ),
   });
 }

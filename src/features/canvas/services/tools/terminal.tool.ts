@@ -5,10 +5,12 @@ import { ToolFlowNode } from "../../components/nodes/types/tool-node";
 import { executeTool } from "../execution/execute-tool";
 import { ExecutionContext } from "../execution/execution-context";
 import { sandboxManager } from "@/lib/sandbox/sandbox-manager";
+import { PublishNodeStatus } from "../execution/graph-executor";
 
 export function createTerminalTool(
   node: ToolFlowNode,
   context: ExecutionContext,
+  publishNodeStatus: PublishNodeStatus
 ) {
   return tool({
     description:
@@ -47,6 +49,6 @@ export function createTerminalTool(
           stdout: result.stdout,
           stderr: result.stderr,
         };
-      }),
+      }, publishNodeStatus),
   });
 }
