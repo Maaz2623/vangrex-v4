@@ -62,6 +62,9 @@ import { defaultEdgeMetadata } from "./edges/default/defaults";
 import { useExecutionEvents } from "../hooks/use-execution-events";
 import { useTRPC } from "@/trpc/client";
 import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
+import { generateAutopilotWorkflow } from "@/features/autopilot/planner/planner";
+import { validateAutopilotWorkflow } from "@/features/autopilot/validation/validate-workflow";
+import { applyAutopilotWorkflow } from "@/features/autopilot/adapters/apply-autopilot-workflow";
 
 type Props = {
   projectId: string;
@@ -91,6 +94,10 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
   const updateEdge = useUpdateEdge();
 
   const executeWorkfow = useMutation(trpc.executions.execute.mutationOptions());
+
+  const saveWorkflowMutation = useMutation(
+    trpc.autopilot.saveWorkflow.mutationOptions(),
+  );
 
   const nodeUpdateTimers = useRef<
     Record<string, ReturnType<typeof setTimeout>>
@@ -570,6 +577,38 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
 
   const createNodeMutation = useCreateNode();
 
+  const generateWorkflow = useCallback(
+    async (prompt: string) => {
+      try {
+        const workflow = await generateAutopilotWorkflow(prompt);
+
+        validateAutopilotWorkflow(workflow);
+
+        const { nodes: generatedNodes, edges: generatedEdges } =
+          applyAutopilotWorkflow(workflow, setNodes, setEdges);
+
+        saveWorkflowMutation.mutate({
+          workflowId,
+          name: workflow.name,
+          description: workflow.description,
+          nodes: generatedNodes,
+          edges: generatedEdges,
+        });
+
+        console.log("[Autopilot] Generated workflow:", workflow);
+        console.log("[Autopilot] Flow nodes:", generatedNodes);
+        console.log("[Autopilot] Flow edges:", generatedEdges);
+
+        return workflow;
+      } catch (error) {
+        console.error("[Autopilot] Failed to generate workflow:", error);
+
+        throw error;
+      }
+    },
+    [workflowId, setNodes, setEdges, saveWorkflowMutation],
+  );
+
   const addNode = useCallback(
     (type: AppFlowNode["type"], position: { x: number; y: number }) => {
       const node = createFlowNode(type, position);
@@ -723,6 +762,15 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
 
                 <Panel position="top-left" className="w-full">
                   <CanvasHeader projectId={projectId} workflowId={workflowId} />
+                  <button
+                    onClick={() =>
+                      generateWorkflow(
+                        "Build a SaaS expense tracker with Google authentication, PostgreSQL, Stripe, and an AI assistant",
+                      )
+                    }
+                  >
+                    Test Autopilot
+                  </button>
                 </Panel>
               </ReactFlow>
             </div>
