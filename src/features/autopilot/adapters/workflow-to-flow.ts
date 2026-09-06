@@ -1,4 +1,3 @@
-
 import { AppFlowNode } from "@/features/canvas/components/nodes/node-config";
 import type { AutopilotWorkflow } from "../planner/planner-schema";
 import { createFlowNode } from "@/features/canvas/services/nodes/create-node";
@@ -130,6 +129,7 @@ function calculateNodePositions(
 function createGeneratedNode(
   workflowNode: AutopilotWorkflow["nodes"][number],
   position: FlowPosition,
+  id: string,
 ): AppFlowNode {
   /**
    * Use your existing factory so generated nodes get exactly
@@ -142,25 +142,8 @@ function createGeneratedNode(
 
   return {
     ...node,
-
-    id: workflowNode.id,
-
-    data: {
-      ...node.data,
-
-      title: workflowNode.name,
-      description: workflowNode.purpose,
-
-      /**
-       * Keep factory defaults, but allow the planner to provide
-       * configuration.
-       */
-      config: {
-        ...node.data.config,
-        ...(workflowNode.config ?? {}),
-      },
-    },
-  } as AppFlowNode;
+    id: id,
+  };
 }
 
 export function autopilotWorkflowToFlow(workflow: AutopilotWorkflow): {
@@ -169,37 +152,54 @@ export function autopilotWorkflowToFlow(workflow: AutopilotWorkflow): {
 } {
   const positions = calculateNodePositions(workflow);
 
+  // Map Autopilot planner IDs → real UUIDs
+  const nodeIdMap = new Map<string, string>();
+
+  for (const workflowNode of workflow.nodes) {
+    nodeIdMap.set(workflowNode.id, crypto.randomUUID());
+  }
+
   const nodes: AppFlowNode[] = workflow.nodes.map((workflowNode) => {
     const position = positions.get(workflowNode.id) ?? {
       x: 0,
       y: 0,
     };
 
-    return createGeneratedNode(workflowNode, position);
+    return createGeneratedNode(
+      workflowNode,
+      position,
+      nodeIdMap.get(workflowNode.id)!,
+    );
   });
 
-  const edges: FlowEdge[] = workflow.edges.map((workflowEdge) => ({
-    id: crypto.randomUUID(),
+  const edges: FlowEdge[] = workflow.edges
+    .filter(
+      (workflowEdge) =>
+        nodeIdMap.has(workflowEdge.source) &&
+        nodeIdMap.has(workflowEdge.target),
+    )
+    .map((workflowEdge) => ({
+      id: crypto.randomUUID(),
 
-    source: workflowEdge.source,
-    target: workflowEdge.target,
+      source: nodeIdMap.get(workflowEdge.source)!,
+      target: nodeIdMap.get(workflowEdge.target)!,
 
-    sourceHandle: workflowEdge.sourceHandle ?? "output",
-    targetHandle: workflowEdge.targetHandle ?? "input",
+      sourceHandle: workflowEdge.sourceHandle ?? "output",
+      targetHandle: workflowEdge.targetHandle ?? "input",
 
-    type: "default",
+      type: "default",
 
-    data: {
-      config: {},
+      data: {
+        config: {},
 
-      metadata: {
-        executionState: "idle",
-        animated: false,
-        executionCount: 0,
-        disabled: false,
+        metadata: {
+          executionState: "idle",
+          animated: false,
+          executionCount: 0,
+          disabled: false,
+        },
       },
-    },
-  }));
+    }));
 
   return {
     nodes,

@@ -22,115 +22,119 @@ export const autopilotRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input }) => {
-      const result = await db.transaction(async (tx) => {
-        /*
-         * ----------------------------------------------------------
-         * 1. Verify workflow exists
-         * ----------------------------------------------------------
-         */
+      try {
+        const result = await db.transaction(async (tx) => {
+          /*
+           * ----------------------------------------------------------
+           * 1. Verify workflow exists
+           * ----------------------------------------------------------
+           */
 
-        const [workflow] = await tx
-          .select()
-          .from(workflowsTable)
-          .where(eq(workflowsTable.id, input.workflowId))
-          .limit(1);
+          const [workflow] = await tx
+            .select()
+            .from(workflowsTable)
+            .where(eq(workflowsTable.id, input.workflowId))
+            .limit(1);
 
-        if (!workflow) {
-          throw new Error("Workflow not found");
-        }
+          if (!workflow) {
+            throw new Error("Workflow not found");
+          }
 
-        /*
-         * ----------------------------------------------------------
-         * 2. Update workflow metadata
-         * ----------------------------------------------------------
-         */
+          /*
+           * ----------------------------------------------------------
+           * 2. Update workflow metadata
+           * ----------------------------------------------------------
+           */
 
-        await tx
-          .update(workflowsTable)
-          .set({
-            name: input.name,
-            description: input.description ?? null,
-          })
-          .where(eq(workflowsTable.id, input.workflowId));
+          await tx
+            .update(workflowsTable)
+            .set({
+              name: input.name,
+              description: input.description ?? null,
+            })
+            .where(eq(workflowsTable.id, input.workflowId));
 
-        /*
-         * ----------------------------------------------------------
-         * 3. Remove existing graph
-         * ----------------------------------------------------------
-         *
-         * Edges first because they reference node IDs logically.
-         */
+          /*
+           * ----------------------------------------------------------
+           * 3. Remove existing graph
+           * ----------------------------------------------------------
+           *
+           * Edges first because they reference node IDs logically.
+           */
 
-        await tx
-          .delete(edgesTable)
-          .where(eq(edgesTable.workflowId, input.workflowId));
+          await tx
+            .delete(edgesTable)
+            .where(eq(edgesTable.workflowId, input.workflowId));
 
-        await tx
-          .delete(nodesTable)
-          .where(eq(nodesTable.workflowId, input.workflowId));
+          await tx
+            .delete(nodesTable)
+            .where(eq(nodesTable.workflowId, input.workflowId));
 
-        /*
-         * ----------------------------------------------------------
-         * 4. Insert nodes
-         * ----------------------------------------------------------
-         */
+          /*
+           * ----------------------------------------------------------
+           * 4. Insert nodes
+           * ----------------------------------------------------------
+           */
 
-        if (input.nodes.length > 0) {
-          await tx.insert(nodesTable).values(
-            input.nodes.map((node) => ({
-              id: node.id,
+          if (input.nodes.length > 0) {
+            await tx.insert(nodesTable).values(
+              input.nodes.map((node) => ({
+                id: node.id,
 
-              workflowId: input.workflowId,
+                workflowId: input.workflowId,
 
-              type: node.type,
+                type: node.type,
 
-              title: node.title,
+                title: node.data.title,
 
-              description: node.description ?? null,
+                description: node.description ?? null,
 
-              positionX: node.position.x,
-              positionY: node.position.y,
+                positionX: node.position.x,
+                positionY: node.position.y,
 
-              config: node.data.config,
+                config: node.data.config,
 
-              metadata: node.data.metadata,
-            })),
-          );
-        }
+                metadata: node.data.metadata,
+              })),
+            );
+          }
 
-        /*
-         * ----------------------------------------------------------
-         * 5. Insert edges
-         * ----------------------------------------------------------
-         */
+          /*
+           * ----------------------------------------------------------
+           * 5. Insert edges
+           * ----------------------------------------------------------
+           */
 
-        if (input.edges.length > 0) {
-          await tx.insert(edgesTable).values(
-            input.edges.map((edge) => ({
-              id: edge.id,
+          if (input.edges.length > 0) {
+            await tx.insert(edgesTable).values(
+              input.edges.map((edge) => ({
+                id: edge.id,
 
-              workflowId: input.workflowId,
+                workflowId: input.workflowId,
 
-              source: edge.source,
-              target: edge.target,
+                source: edge.source,
+                target: edge.target,
 
-              sourceHandle: edge.sourceHandle ?? null,
-              targetHandle: edge.targetHandle ?? null,
+                sourceHandle: edge.sourceHandle ?? null,
+                targetHandle: edge.targetHandle ?? null,
 
-              config: edge.data.config,
+                config: edge.data.config,
 
-              metadata: edge.data.metadata,
-            })),
-          );
-        }
+                metadata: edge.data.metadata,
+              })),
+            );
+          }
 
-        return {
-          workflowId: input.workflowId,
-          nodeCount: input.nodes.length,
-          edgeCount: input.edges.length,
-        };
-      });
+          return {
+            workflowId: input.workflowId,
+            nodeCount: input.nodes.length,
+            edgeCount: input.edges.length,
+          };
+        });
 
-      return result;
+        return result;
+      } catch (error) {
+        console.log(error);
+      }
     }),
 });

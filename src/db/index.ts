@@ -1,13 +1,19 @@
-import { drizzle } from "drizzle-orm/neon-http";
+import { drizzle } from "drizzle-orm/neon-serverless";
 
-export function getDb() {
-  const connectionString = process.env.DATABASE_URL;
+import { Pool, neonConfig } from "@neondatabase/serverless";
+
+import ws from "ws";
+
+neonConfig.webSocketConstructor = ws;
+
+export function getDB() {
+  const connectionString = process.env.DATABASE_URL!;
 
   if (!connectionString) {
-    throw new Error("DATABASE_URL is not configured");
+    throw new Error("DATBASE_URL is not defined.");
   }
 
   return drizzle(connectionString);
 }
 
-export const db = getDb();
+export const db = getDB();
