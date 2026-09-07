@@ -11,12 +11,8 @@ import { getConnectingEdge } from "../graph/get-connecting-edge";
 
 import { createTools } from "./tool-factory";
 import { defaultModel } from "./model";
-import { executionEvents } from "./execution-events";
 import { interpolatePrompt } from "./prompt-interpolator";
 import { ExecutionContextManager } from "./execution-context-manager";
-import { createWorkspaceTools } from "./tools/workspace-tools";
-import { Workspace, workspaceManager } from "../workspace/workspace-manager";
-import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
 import { instructions } from "../../../../../instructions";
 import { getInputFromEdges } from "../graph/get-inputs-from-edges";
 import { PublishNodeStatus } from "./graph-executor";
@@ -82,9 +78,9 @@ Use the connected input as data for this task.`
       model: defaultModel,
       prompt,
       tools,
-      reasoning: "medium",
+      reasoning: agent.data.config.reasoning,
       stopWhen: ({ steps }) => steps.length >= 50,
-      instructions: instructions,
+      instructions: agent.data.config.instructions,
     });
 
     contextManager.setOutput(agent.id, {
