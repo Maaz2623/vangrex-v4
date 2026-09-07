@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  VariableConfig,
-  VariableFlowNode,
-  VariableType,
-} from "../types/variable-node";
+import { VariableConfig, VariableFlowNode } from "../types/variable-node";
 
 import { AppFlowNode } from "../node-config";
 
@@ -107,7 +103,7 @@ export const VariableSettings = ({
 
               <Select
                 value={config.type}
-                onValueChange={(value: VariableType) =>
+                onValueChange={(value: VariableConfig["type"]) =>
                   updateConfig({
                     type: value,
                   })
@@ -167,7 +163,7 @@ export const VariableSettings = ({
 
               <Select
                 value={config.type}
-                onValueChange={(value: VariableType) =>
+                onValueChange={(value: VariableConfig["type"]) =>
                   updateConfig({
                     type: value,
                   })

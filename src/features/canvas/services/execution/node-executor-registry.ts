@@ -3,7 +3,6 @@ import { FlowEdge } from "../../components/edges/types/base-edge";
 import { AppFlowNode } from "../../components/nodes/node-config";
 import {
   AgentFlowNode,
-  GithubFlowNode,
   NodeStatusType,
   OutputFlowNode,
 } from "../../components/nodes/types";
@@ -14,7 +13,6 @@ import { ExecutionContext } from "./execution-context";
 import { ExecutionContextManager } from "./execution-context-manager";
 import { executeOutput } from "./output-executor";
 import { executeVariable } from "./variable-executor";
-import { executeGithub } from "./github-executor";
 import { executeSandbox } from "./sandbox-executor";
 import { SandboxFlowNode } from "../../components/nodes/types/sandbox-node";
 

@@ -1,9 +1,30 @@
 import { DEFAULT_AGENT_CONFIG } from "../../components/nodes/agent/defaults";
 import { AppFlowNode } from "../../components/nodes/node-config";
+import { AgentFlowNode, OutputFlowNode } from "../../components/nodes/types";
+
+interface FlowPosition {
+  x: number;
+  y: number;
+}
+
+export function createFlowNode(
+  type: "agent",
+  position: FlowPosition,
+): AgentFlowNode;
+
+export function createFlowNode(
+  type: "output",
+  position: FlowPosition,
+): OutputFlowNode;
 
 export function createFlowNode(
   type: AppFlowNode["type"],
-  position: { x: number; y: number },
+  position: FlowPosition,
+): AppFlowNode;
+
+export function createFlowNode(
+  type: AppFlowNode["type"],
+  position: FlowPosition,
 ): AppFlowNode {
   const id = crypto.randomUUID();
 
@@ -88,6 +109,7 @@ export function createFlowNode(
           },
         },
       };
+
     case "variable":
       return {
         id,
@@ -113,5 +135,8 @@ export function createFlowNode(
           },
         },
       };
+
+    default:
+      throw new Error(`Unsupported node type: ${type}`);
   }
 }

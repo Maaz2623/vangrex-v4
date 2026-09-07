@@ -2,7 +2,7 @@ import { AgentSettings } from "../agent/agent-settings";
 import { AppFlowNode } from "../node-config";
 import { SandboxSettings } from "../sandbox/sandbox-settings";
 import { ToolSettings } from "../tool/tool-settings";
-import { AgentFlowNode, GithubFlowNode, VariableFlowNode } from "../types";
+import { AgentFlowNode, VariableFlowNode } from "../types";
 import { SandboxFlowNode } from "../types/sandbox-node";
 import { ToolFlowNode } from "../types/tool-node";
 import { VariableSettings } from "../variable/variable-settings";

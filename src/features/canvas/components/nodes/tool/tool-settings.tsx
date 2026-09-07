@@ -97,7 +97,7 @@ export const ToolSettings = ({ node, updateNode }: ToolSettingsProps) => {
                 placeholder="get_weather"
                 onChange={(e) =>
                   updateConfig({
-                    name: e.target.value,
+                    // name: e.target.value,
                   })
                 }
               />
@@ -113,7 +113,7 @@ export const ToolSettings = ({ node, updateNode }: ToolSettingsProps) => {
                 rows={6}
                 onChange={(e) =>
                   updateConfig({
-                    description: e.target.value,
+                    // description: e.target.value,
                   })
                 }
               />

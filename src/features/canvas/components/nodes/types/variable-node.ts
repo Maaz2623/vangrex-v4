@@ -1,18 +1,19 @@
-import { NodeConfig } from "../node-config";
+import { z } from "zod";
+
 import { BaseNodeData } from "./base-node";
 import { FlowNode } from "./flow-node";
 
-export type VariableType = "text" | "number" | "json" | "boolean";
+export const variableConfigSchema = z.object({
+  name: z.string(),
+  type: z.enum(["text", "number", "json", "boolean"]),
+  value: z.string(),
+  description: z.string(),
+  secret: z.boolean(),
+  editable: z.boolean(),
+  global: z.boolean(),
+});
 
-export interface VariableConfig extends NodeConfig {
-  name: string;
-  type: VariableType;
-  value: string;
-  description: string;
-  secret: boolean;
-  editable: boolean;
-  global: boolean;
-}
+export type VariableConfig = z.infer<typeof variableConfigSchema>;
 
 export type VariableNodeData = BaseNodeData<VariableConfig>;
 

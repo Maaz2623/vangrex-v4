@@ -1,4 +1,3 @@
-import { NodeConfig } from "../node-config";
 import { BaseNodeData } from "./base-node";
 import { FlowNode } from "./flow-node";
 

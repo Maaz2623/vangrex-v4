@@ -1,7 +1,6 @@
-import { NodeConfig } from "../node-config";
 import { FlowNode } from "./flow-node";
 
-export interface WebhookTriggerConfig extends NodeConfig {
+export interface WebhookTriggerConfig {
   path: string;
   method: "POST";
 }

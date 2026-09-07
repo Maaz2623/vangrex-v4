@@ -1,15 +1,20 @@
-import { NodeConfig } from "../node-config";
+import { z } from "zod";
+
 import { BaseNodeData } from "./base-node";
 import { FlowNode } from "./flow-node";
 
-export interface SandboxCredential {
-  key: string;
-  credentialId: string;
-}
+export const sandboxCredentialSchema = z.object({
+  key: z.string(),
+  credentialId: z.string(),
+});
 
-export interface SandboxConfig extends NodeConfig {
-  credentials: SandboxCredential[];
-}
+export const sandboxConfigSchema = z.object({
+  credentials: z.array(sandboxCredentialSchema),
+});
+
+export type SandboxCredential = z.infer<typeof sandboxCredentialSchema>;
+
+export type SandboxConfig = z.infer<typeof sandboxConfigSchema>;
 
 export type SandboxNodeData = BaseNodeData<SandboxConfig>;
 
