@@ -36,7 +36,9 @@ export const nodesRouter = createTRPCRouter({
         description: node.data.description,
         positionX: node.position.x,
         positionY: node.position.y,
-        config: node.data.config,
+        config: {
+          ...node.data.config,
+        },
         metadata: node.data.metadata,
       });
 

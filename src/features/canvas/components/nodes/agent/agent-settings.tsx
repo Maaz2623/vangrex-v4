@@ -1,7 +1,6 @@
 "use client";
 
 import { AgentConfig, AgentFlowNode } from "../types/agent-node";
-
 import { AppFlowNode } from "../node-config";
 
 import {
@@ -27,7 +26,6 @@ import {
 import { Switch } from "@/components/ui/switch";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
 
 interface AgentSettingsProps {
   node: AgentFlowNode;
@@ -45,16 +43,48 @@ export const AgentSettings = ({ node, updateNode }: AgentSettingsProps) => {
     updateNode(node.id, (current) => {
       const agent = current as AgentFlowNode;
 
-      const nextConfig: AgentConfig = {
-        ...agent.data.config,
-        ...partial,
+      return {
+        ...agent,
+        data: {
+          ...agent.data,
+          config: {
+            ...agent.data.config,
+            ...partial,
+          },
+        },
       };
+    });
+  };
+
+  const updateMetadata = (
+    key: "disabled" | "locked" | "collapsed",
+    value: boolean,
+  ) => {
+    updateNode(node.id, (current) => {
+      const agent = current as AgentFlowNode;
 
       return {
         ...agent,
         data: {
           ...agent.data,
-          config: nextConfig,
+          metadata: {
+            ...agent.data.metadata,
+            [key]: value,
+          },
+        },
+      };
+    });
+  };
+
+  const updateTitle = (title: string) => {
+    updateNode(node.id, (current) => {
+      const agent = current as AgentFlowNode;
+
+      return {
+        ...agent,
+        data: {
+          ...agent.data,
+          title,
         },
       };
     });
@@ -67,19 +97,7 @@ export const AgentSettings = ({ node, updateNode }: AgentSettingsProps) => {
           <Input
             placeholder="Node Name"
             value={node.data.title}
-            onChange={(e) => {
-              updateNode(node.id, (current) => {
-                const agent = current as AgentFlowNode;
-
-                return {
-                  ...agent,
-                  data: {
-                    ...agent.data,
-                    title: e.target.value,
-                  },
-                };
-              });
-            }}
+            onChange={(e) => updateTitle(e.target.value)}
             className="w-1/2"
           />
         </CardTitle>
@@ -92,14 +110,16 @@ export const AgentSettings = ({ node, updateNode }: AgentSettingsProps) => {
           <TabsList className="grid w-full grid-cols-3 rounded-none border-b bg-transparent">
             <TabsTrigger value="general">General</TabsTrigger>
 
-            <TabsTrigger value="input">Input</TabsTrigger>
+            <TabsTrigger value="instructions">Instructions</TabsTrigger>
 
             <TabsTrigger value="advanced">Advanced</TabsTrigger>
           </TabsList>
 
-          {/* ---------------- GENERAL ---------------- */}
+          {/* ==================== GENERAL ==================== */}
 
           <TabsContent value="general" className="mt-0 space-y-6 p-6">
+            {/* MODEL */}
+
             <div className="space-y-2">
               <Label htmlFor="agent-model">Model</Label>
 
@@ -107,7 +127,7 @@ export const AgentSettings = ({ node, updateNode }: AgentSettingsProps) => {
                 value={config.model}
                 onValueChange={(value) =>
                   updateConfig({
-                    model: value,
+                    model: value as AgentConfig["model"],
                   })
                 }
               >
@@ -115,111 +135,131 @@ export const AgentSettings = ({ node, updateNode }: AgentSettingsProps) => {
                   <SelectValue placeholder="Select a model" />
                 </SelectTrigger>
 
-                <SelectContent className="p-0.5">
-                  <SelectItem value="Gemini 2.5 Flash">
-                    Gemini 2.5 Flash
+                <SelectContent>
+                  <SelectItem value="google/gemini-3.5-flash-lite">
+                    Google · Gemini 3.5 Flash Lite
                   </SelectItem>
 
-                  <SelectItem value="Gemini 2.5 Pro">Gemini 2.5 Pro</SelectItem>
+                  <SelectItem value="google/gemini-2.5-flash">
+                    Google · Gemini 2.5 Flash
+                  </SelectItem>
 
-                  <SelectItem value="GPT-4.1">GPT-4.1</SelectItem>
+                  <SelectItem value="google/gemini-2.5-pro">
+                    Google · Gemini 2.5 Pro
+                  </SelectItem>
 
-                  <SelectItem value="GPT-4.1-mini">GPT-4.1 Mini</SelectItem>
+                  <SelectItem value="openai/gpt-5">OpenAI · GPT-5</SelectItem>
+
+                  <SelectItem value="openai/gpt-5-mini">
+                    OpenAI · GPT-5 Mini
+                  </SelectItem>
+
+                  <SelectItem value="anthropic/claude-sonnet-4.5">
+                    Anthropic · Claude Sonnet 4.5
+                  </SelectItem>
+
+                  <SelectItem value="anthropic/claude-opus-4.1">
+                    Anthropic · Claude Opus 4.1
+                  </SelectItem>
                 </SelectContent>
               </Select>
+
+              <p className="text-sm text-muted-foreground">
+                Select the model this agent will use for execution.
+              </p>
             </div>
 
+            {/* PROMPT */}
+
             <div className="space-y-2">
-              <Label htmlFor="agent-prompt">System Prompt</Label>
+              <Label htmlFor="agent-prompt">Prompt</Label>
 
               <Textarea
                 id="agent-prompt"
                 value={config.prompt}
-                rows={8}
-                placeholder="Describe what this agent should do..."
+                rows={10}
+                placeholder="Describe the task this agent should perform..."
                 onChange={(e) =>
                   updateConfig({
                     prompt: e.target.value,
                   })
                 }
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="agent-temperature">Temperature</Label>
-
-              <Input
-                id="agent-temperature"
-                type="number"
-                min={0}
-                max={2}
-                step={0.1}
-                value={config.temperature}
-                onChange={(e) => {
-                  const value = Number(e.target.value);
-
-                  updateConfig({
-                    temperature: Number.isNaN(value) ? 0.7 : value,
-                  });
-                }}
-              />
 
               <p className="text-sm text-muted-foreground">
-                Lower values produce more deterministic responses.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="agent-max-tokens">Maximum Tokens</Label>
-
-              <Input
-                id="agent-max-tokens"
-                type="number"
-                min={1}
-                step={1}
-                value={config.maxTokens}
-                onChange={(e) => {
-                  const value = Number(e.target.value);
-
-                  updateConfig({
-                    maxTokens: Number.isNaN(value) ? 4096 : value,
-                  });
-                }}
-              />
-            </div>
-          </TabsContent>
-
-          {/* ---------------- INPUT ---------------- */}
-
-          <TabsContent value="input" className="mt-0 space-y-6 p-6">
-            <div className="rounded-lg border bg-muted/40 p-4">
-              <h4 className="font-medium">Agent Input</h4>
-
-              <p className="mt-2 text-sm text-muted-foreground">
-                This agent receives its input from connected workflow nodes.
-                Input mapping and schema configuration will be available here.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="agent-input-variable">Input Variable</Label>
-
-              <Input
-                id="agent-input-variable"
-                placeholder="e.g. user_message"
-              />
-
-              <p className="text-sm text-muted-foreground">
-                Optional variable containing the input passed to this agent.
+                The task or request given to the agent during execution.
               </p>
             </div>
           </TabsContent>
 
-          {/* ---------------- ADVANCED ---------------- */}
+          {/* ==================== INSTRUCTIONS ==================== */}
 
-          <TabsContent value="advanced" className="mt-0 space-y-6 p-6">
+          <TabsContent value="instructions" className="mt-0 space-y-6 p-6">
+            {/* INSTRUCTIONS */}
+
+            <div className="space-y-2">
+              <Label htmlFor="agent-instructions">Instructions</Label>
+
+              <Textarea
+                id="agent-instructions"
+                value={config.instructions}
+                rows={12}
+                placeholder="Define how this agent should behave..."
+                onChange={(e) =>
+                  updateConfig({
+                    instructions: e.target.value,
+                  })
+                }
+              />
+
+              <p className="text-sm text-muted-foreground">
+                Define the agent's role, behavior, constraints, and how it
+                should approach tasks.
+              </p>
+            </div>
+
+            {/* REASONING */}
+
+            <div className="space-y-2">
+              <Label htmlFor="agent-reasoning">Reasoning</Label>
+
+              <Select
+                value={config.reasoning}
+                onValueChange={(value) =>
+                  updateConfig({
+                    reasoning: value as AgentConfig["reasoning"],
+                  })
+                }
+              >
+                <SelectTrigger id="agent-reasoning">
+                  <SelectValue placeholder="Select reasoning level" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+
+                  <SelectItem value="low">Low</SelectItem>
+
+                  <SelectItem value="medium">Medium</SelectItem>
+
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <p className="text-sm text-muted-foreground">
+                Controls how much reasoning effort the model should use when
+                processing the task.
+              </p>
+            </div>
+          </TabsContent>
+
+          {/* ==================== ADVANCED ==================== */}
+
+          <TabsContent value="advanced" className="mt-0 space-y-4 p-6">
+            {/* DISABLED */}
+
             <div className="flex items-center justify-between rounded-lg border p-4">
-              <div>
+              <div className="space-y-1">
                 <Label>Disabled</Label>
 
                 <p className="text-sm text-muted-foreground">
@@ -229,27 +269,16 @@ export const AgentSettings = ({ node, updateNode }: AgentSettingsProps) => {
 
               <Switch
                 checked={node.data.metadata.disabled}
-                onCheckedChange={(checked) => {
-                  updateNode(node.id, (current) => {
-                    const agent = current as AgentFlowNode;
-
-                    return {
-                      ...agent,
-                      data: {
-                        ...agent.data,
-                        metadata: {
-                          ...agent.data.metadata,
-                          disabled: checked,
-                        },
-                      },
-                    };
-                  });
-                }}
+                onCheckedChange={(checked) =>
+                  updateMetadata("disabled", checked)
+                }
               />
             </div>
 
+            {/* LOCKED */}
+
             <div className="flex items-center justify-between rounded-lg border p-4">
-              <div>
+              <div className="space-y-1">
                 <Label>Locked</Label>
 
                 <p className="text-sm text-muted-foreground">
@@ -259,27 +288,14 @@ export const AgentSettings = ({ node, updateNode }: AgentSettingsProps) => {
 
               <Switch
                 checked={node.data.metadata.locked}
-                onCheckedChange={(checked) => {
-                  updateNode(node.id, (current) => {
-                    const agent = current as AgentFlowNode;
-
-                    return {
-                      ...agent,
-                      data: {
-                        ...agent.data,
-                        metadata: {
-                          ...agent.data.metadata,
-                          locked: checked,
-                        },
-                      },
-                    };
-                  });
-                }}
+                onCheckedChange={(checked) => updateMetadata("locked", checked)}
               />
             </div>
 
+            {/* COLLAPSED */}
+
             <div className="flex items-center justify-between rounded-lg border p-4">
-              <div>
+              <div className="space-y-1">
                 <Label>Collapsed</Label>
 
                 <p className="text-sm text-muted-foreground">
@@ -289,22 +305,9 @@ export const AgentSettings = ({ node, updateNode }: AgentSettingsProps) => {
 
               <Switch
                 checked={node.data.metadata.collapsed}
-                onCheckedChange={(checked) => {
-                  updateNode(node.id, (current) => {
-                    const agent = current as AgentFlowNode;
-
-                    return {
-                      ...agent,
-                      data: {
-                        ...agent.data,
-                        metadata: {
-                          ...agent.data.metadata,
-                          collapsed: checked,
-                        },
-                      },
-                    };
-                  });
-                }}
+                onCheckedChange={(checked) =>
+                  updateMetadata("collapsed", checked)
+                }
               />
             </div>
           </TabsContent>

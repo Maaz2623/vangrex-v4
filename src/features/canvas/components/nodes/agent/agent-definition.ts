@@ -1,9 +1,9 @@
 import { BotIcon } from "lucide-react";
 import { AgentNode } from "./agent-node";
-import { defaultAgentConfig } from "./defaults";
 import { NodeCategory, NodeDefinition } from "../types/node-definition";
 import { AgentConfig } from "../types";
 import { Position } from "@xyflow/react";
+import { DEFAULT_AGENT_CONFIG } from "./defaults";
 
 export const agentDefinition: NodeDefinition<AgentConfig> = {
   type: "agent",
@@ -11,7 +11,7 @@ export const agentDefinition: NodeDefinition<AgentConfig> = {
   description: "Run prompts using LLM.",
   icon: BotIcon,
   component: AgentNode,
-  defaultConfig: defaultAgentConfig,
+  defaultConfig: DEFAULT_AGENT_CONFIG,
   handles: [
     {
       id: "input",
@@ -19,7 +19,6 @@ export const agentDefinition: NodeDefinition<AgentConfig> = {
       direction: "target",
       position: Position.Left,
       dataType: "text",
-
     },
     {
       id: "output",

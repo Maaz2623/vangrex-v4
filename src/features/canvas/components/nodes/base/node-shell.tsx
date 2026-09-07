@@ -9,7 +9,6 @@ import { NodeToolbar } from "./node-toolbar";
 import { NodeDefinition } from "../types/node-definition";
 import { BaseNodeData } from "../types/base-node";
 import { NodeStatus } from "./node-status";
-import { useNodeSettingsStore } from "@/features/canvas/store/node-settings-store";
 
 interface NodeShellProps<TConfig extends Record<string, unknown>> {
   definition: NodeDefinition<TConfig>;

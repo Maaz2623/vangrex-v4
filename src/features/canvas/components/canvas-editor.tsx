@@ -30,7 +30,7 @@ import { useExecutionStore } from "../store/execution-store";
 
 import { NodeSettingsSheet } from "./nodes/settings/node-settings-sheet";
 
-import { AgentFlowNode, NodeStatusType } from "./nodes/types";
+import { AgentConfig, AgentFlowNode, NodeStatusType } from "./nodes/types";
 import { AppFlowNode } from "./nodes/node-config";
 
 import { EdgeExecutionState } from "./edges/types/edge-status";
@@ -281,7 +281,9 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
 
         updateNodeMutation.mutate({
           id: node.id,
-          config: node.data.config,
+          config: {
+            ...node.data.config,
+          },
           title: node.data.title,
         });
 

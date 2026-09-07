@@ -1,3 +1,4 @@
+import { DEFAULT_AGENT_CONFIG } from "../../components/nodes/agent/defaults";
 import { AppFlowNode } from "../../components/nodes/node-config";
 
 export function createFlowNode(
@@ -21,10 +22,7 @@ export function createFlowNode(
           description: "AI agent",
 
           config: {
-            model: "Gemini 2.5 Flash",
-            prompt: "",
-            temperature: 0.7,
-            maxTokens: 4096,
+            ...DEFAULT_AGENT_CONFIG
           },
 
           metadata: {

@@ -1,8 +1,12 @@
-import { AgentConfig } from "../types";
+import type { AgentConfig } from "../types/agent-node";
 
-export const defaultAgentConfig: AgentConfig = {
-  model: "gemini-2.5-flash",
+export const DEFAULT_AGENT_CONFIG: AgentConfig = {
+  instructions:
+    "You are a helpful AI agent. Complete the assigned task accurately and return a useful result.",
+
   prompt: "",
-  temperature: 0.7,
-  maxTokens: 4096,
+
+  model: "google/gemini-3.5-flash-lite",
+
+  reasoning: "medium",
 };
