@@ -1,16 +1,5 @@
 import { DEFAULT_AGENT_CONFIG } from "../../components/nodes/agent/defaults";
 import { AppFlowNode } from "../../components/nodes/node-config";
-import { AgentFlowNode, OutputFlowNode } from "../../components/nodes/types";
-
-export function createFlowNode(
-  type: "agent",
-  position: { x: number; y: number },
-): AgentFlowNode;
-
-export function createFlowNode(
-  type: "output",
-  position: { x: number; y: number },
-): OutputFlowNode;
 
 export function createFlowNode(
   type: AppFlowNode["type"],
@@ -58,8 +47,71 @@ export function createFlowNode(
           },
         },
       };
-    default:
-      throw new Error(`Unsupported node type: ${type}`);
-    // keep your other cases...
+
+    case "sandbox":
+      return {
+        id,
+        type: "sandbox",
+        position,
+        data: {
+          title: "Sandbox",
+          description: "Sandbox Node",
+          config: {
+            credentials: [],
+          },
+          metadata: {
+            status: "idle",
+            disabled: false,
+            collapsed: false,
+            locked: false,
+          },
+        },
+      };
+
+    case "tool-call":
+      return {
+        id,
+        type: "tool-call",
+        position,
+        data: {
+          title: "Tool",
+          description: "Tool Node",
+          config: {
+            implementation: "terminal",
+            parameters: {},
+          },
+          metadata: {
+            status: "idle",
+            disabled: false,
+            collapsed: false,
+            locked: false,
+          },
+        },
+      };
+    case "variable":
+      return {
+        id,
+        type: "variable",
+        position,
+        data: {
+          title: "Variable",
+          description: "Variable Node",
+          config: {
+            type: "text",
+            description: "",
+            secret: false,
+            editable: false,
+            global: false,
+            name: "",
+            value: "",
+          },
+          metadata: {
+            status: "idle",
+            disabled: false,
+            collapsed: false,
+            locked: false,
+          },
+        },
+      };
   }
 }
