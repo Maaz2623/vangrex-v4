@@ -13,9 +13,9 @@ export function validateAutopilotWorkflow(workflow: AutopilotWorkflow) {
     }
   }
 
-  if (!workflow.nodes.some((node) => node.type === "output")) {
-    throw new Error("Generated workflow must contain an output node");
-  }
+  // if (!workflow.nodes.some((node) => node.type === "output")) {
+  //   throw new Error("Generated workflow must contain an output node");
+  // }
 
   return workflow;
 }

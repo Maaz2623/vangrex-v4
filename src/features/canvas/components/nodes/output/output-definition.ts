@@ -25,5 +25,7 @@ export const outputDefinition: NodeDefinition<OutputConfig> = {
     },
   ],
 
-  defaultConfig: {},
+  defaultConfig: {
+    output: "No output yet"
+  },
 } as const;

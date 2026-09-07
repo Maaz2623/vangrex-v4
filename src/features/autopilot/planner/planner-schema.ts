@@ -1,30 +1,48 @@
-import z from "zod";
+import { z } from "zod";
 
-export const autopilotNodeSchema = z.object({
+export const autopilotAgentNodeSchema = z.object({
   id: z.string(),
-  type: z.enum(["agent", "tool-call", "variable", "output", "sandbox"]),
+  type: z.literal("agent"),
   name: z.string(),
   purpose: z.string(),
-  config: z.record(z.string(), z.unknown()).default({}),
+
+  instructions: z.string(),
+  prompt: z.string(),
+  model: z.string(),
+  reasoning: z.enum(["none", "low", "medium", "high"]),
 });
 
-export const autopilotEdgeSchema = z.object({
+export const autopilotOutputNodeSchema = z.object({
+  id: z.string(),
+  type: z.literal("output"),
+  name: z.string(),
+  purpose: z.string(),
+});
+
+const nodeSchema = z.discriminatedUnion("type", [
+  autopilotAgentNodeSchema,
+  autopilotOutputNodeSchema,
+]);
+
+const edgeSchema = z.object({
   source: z.string(),
   target: z.string(),
-  sourceHandle: z.string().default("output"),
-  targetHandle: z.string().default("input"),
+  sourceHandle: z.literal("output"),
+  targetHandle: z.literal("input"),
 });
+
 export const autopilotWorkflowSchema = z.object({
   name: z.string(),
   description: z.string(),
 
-  nodes: z.array(autopilotNodeSchema).min(1),
+  nodes: z.array(nodeSchema),
 
-  edges: z.array(autopilotEdgeSchema),
+  edges: z.array(edgeSchema),
 
   executionPolicy: z.object({
     allowParallel: z.boolean(),
     maxIterations: z.number().int().positive(),
   }),
 });
+
 export type AutopilotWorkflow = z.infer<typeof autopilotWorkflowSchema>;

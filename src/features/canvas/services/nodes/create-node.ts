@@ -1,12 +1,20 @@
 import { DEFAULT_AGENT_CONFIG } from "../../components/nodes/agent/defaults";
 import { AppFlowNode } from "../../components/nodes/node-config";
+import { AgentFlowNode, OutputFlowNode } from "../../components/nodes/types";
+
+export function createFlowNode(
+  type: "agent",
+  position: { x: number; y: number },
+): AgentFlowNode;
+
+export function createFlowNode(
+  type: "output",
+  position: { x: number; y: number },
+): OutputFlowNode;
 
 export function createFlowNode(
   type: AppFlowNode["type"],
-  position: {
-    x: number;
-    y: number;
-  },
+  position: { x: number; y: number },
 ): AppFlowNode {
   const id = crypto.randomUUID();
 
@@ -16,44 +24,12 @@ export function createFlowNode(
         id,
         type: "agent",
         position,
-
         data: {
           title: "Agent",
           description: "AI agent",
-
           config: {
-            ...DEFAULT_AGENT_CONFIG
+            ...DEFAULT_AGENT_CONFIG,
           },
-
-          metadata: {
-            status: "idle",
-            disabled: false,
-            collapsed: false,
-            locked: false,
-          },
-        },
-      };
-
-    case "variable":
-      return {
-        id,
-        type: "variable",
-        position,
-
-        data: {
-          title: "Variable",
-          description: "Workflow variable",
-
-          config: {
-            name: "variable",
-            type: "text",
-            value: "",
-            description: "",
-            secret: false,
-            editable: true,
-            global: false,
-          },
-
           metadata: {
             status: "idle",
             disabled: false,
@@ -68,56 +44,11 @@ export function createFlowNode(
         id,
         type: "output",
         position,
-
         data: {
           title: "Output",
           description: "Workflow output",
-
-          config: {},
-
-          metadata: {
-            status: "idle",
-            disabled: false,
-            collapsed: false,
-            locked: false,
-          },
-        },
-      };
-
-    case "tool-call":
-      return {
-        id,
-        type: "tool-call",
-        position,
-
-        data: {
-          title: "Tool",
-          description: "Tool call",
-
           config: {
-            implementation: "weather",
-            parameters: {},
-          },
-
-          metadata: {
-            status: "idle",
-            disabled: false,
-            collapsed: false,
-            locked: false,
-          },
-        },
-      };
-
-    case "sandbox":
-      return {
-        id,
-        type: "sandbox",
-        position,
-        data: {
-          title: "Sandbox",
-          description: "Isolated execution environment",
-          config: {
-            credentials: [],
+            output: "No output yet",
           },
           metadata: {
             status: "idle",
@@ -127,5 +58,8 @@ export function createFlowNode(
           },
         },
       };
+    default:
+      throw new Error(`Unsupported node type: ${type}`);
+    // keep your other cases...
   }
 }

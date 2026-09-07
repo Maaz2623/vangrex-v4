@@ -2,6 +2,7 @@ import { AppFlowNode } from "@/features/canvas/components/nodes/node-config";
 import type { AutopilotWorkflow } from "../planner/planner-schema";
 import { createFlowNode } from "@/features/canvas/services/nodes/create-node";
 import { FlowEdge } from "@/features/canvas/components/edges/types/base-edge";
+import { AgentConfig } from "@/features/canvas/components/nodes/types";
 
 interface FlowPosition {
   x: number;
@@ -131,19 +132,43 @@ function createGeneratedNode(
   position: FlowPosition,
   id: string,
 ): AppFlowNode {
-  /**
-   * Use your existing factory so generated nodes get exactly
-   * the same defaults/metadata/handles as manually-created nodes.
-   */
-  const node = createFlowNode(
-    workflowNode.type as AppFlowNode["type"],
-    position,
-  );
 
-  return {
-    ...node,
-    id: id,
-  };
+  if (workflowNode.type === "agent") {
+    const node = createFlowNode("agent", position);
+
+    return {
+      ...node,
+      id,
+      data: {
+        ...node.data,
+        title: workflowNode.name,
+        description: workflowNode.purpose,
+        config: {
+          ...node.data.config,
+          instructions: workflowNode.instructions,
+          prompt: workflowNode.prompt,
+          model: workflowNode.model,
+          reasoning: workflowNode.reasoning,
+        } as AgentConfig,
+      },
+    };
+  }
+
+  if (workflowNode.type === "output") {
+    const node = createFlowNode("output", position);
+
+    return {
+      ...node,
+      id,
+      data: {
+        ...node.data,
+        title: workflowNode.name,
+        description: workflowNode.purpose,
+      },
+    };
+  }
+
+  throw new Error(`Unsupported Autopilot node type: ${workflowNode}`);
 }
 
 export function autopilotWorkflowToFlow(workflow: AutopilotWorkflow): {

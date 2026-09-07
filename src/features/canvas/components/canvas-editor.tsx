@@ -766,9 +766,7 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
                   <CanvasHeader projectId={projectId} workflowId={workflowId} />
                   <button
                     onClick={() =>
-                      generateWorkflow(
-                        "Build a SaaS expense tracker with Google authentication, PostgreSQL, Stripe, and an AI assistant",
-                      )
+                      generateWorkflow("Add an agent with prompt 'say hi'")
                     }
                   >
                     Test Autopilot
