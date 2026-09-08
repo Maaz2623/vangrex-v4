@@ -3,105 +3,7 @@ import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
 
 import { defaultModel } from "@/features/canvas/services/execution/model";
-
-/**
- * Vangrex Autopilot Planner Output Schema
- *
- * Direct schema — no unions.
- */
-const plannerOutputSchema = z.object({
-  name: z.string().min(1),
-
-  description: z.string(),
-
-  nodes: z.array(
-    z.object({
-      id: z.string().min(1),
-
-      type: z.enum(["agent", "tool-call", "variable", "output", "sandbox"]),
-
-      name: z.string().min(1),
-
-      purpose: z.string().min(1),
-
-      config: z.object({
-        // Agent
-        instructions: z.string().optional(),
-
-        prompt: z.string().optional(),
-
-        model: z
-          .enum([
-            "google/gemini-3.5-flash-lite",
-            "google/gemini-2.5-flash",
-            "google/gemini-2.5-pro",
-            "openai/gpt-5",
-            "openai/gpt-5-mini",
-            "anthropic/claude-sonnet-4.5",
-            "anthropic/claude-opus-4.1",
-          ])
-          .optional(),
-
-        reasoning: z.enum(["none", "low", "medium", "high"]).optional(),
-
-        // Tool
-        implementation: z
-          .enum([
-            "weather",
-            "read_file",
-            "write_file",
-            "terminal",
-            "github_create_repository",
-          ])
-          .optional(),
-
-        parameters: z.record(z.string(), z.unknown()).optional(),
-
-        // Variable
-        variableName: z.string().optional(),
-
-        variableType: z.enum(["text", "number", "json", "boolean"]).optional(),
-
-        value: z.string().optional(),
-
-        variableDescription: z.string().optional(),
-
-        secret: z.boolean().optional(),
-
-        editable: z.boolean().optional(),
-
-        global: z.boolean().optional(),
-
-        // Output
-        output: z.string().optional(),
-
-        // Sandbox
-        credentials: z
-          .array(
-            z.object({
-              key: z.string(),
-              credentialId: z.string(),
-            }),
-          )
-          .optional(),
-      }),
-    }),
-  ),
-
-  edges: z.array(
-    z.object({
-      source: z.string().min(1),
-
-      target: z.string().min(1),
-
-      sourceHandle: z.string().min(1),
-
-      targetHandle: z.string().min(1),
-    }),
-  ),
-});
-
-type PlannerOutput = z.infer<typeof plannerOutputSchema>;
+import { autopilotWorkflowSchema } from "../workflow/workflow-schema";
 
 const PLANNER_SYSTEM_PROMPT = `
 You are the Vangrex Autopilot Planner.
@@ -268,10 +170,7 @@ The planner designs the workflow only.
 It does not execute the workflow.
 `;
 
-export async function planAutopilotWorkflow(
-  request: string,
-): Promise<PlannerOutput | undefined> {
-  try {
+export async function planAutopilotWorkflow(request: string) {
     const result = await generateText({
       model: defaultModel,
 
@@ -282,7 +181,7 @@ export async function planAutopilotWorkflow(
       reasoning: "high",
 
       output: Output.object({
-        schema: plannerOutputSchema,
+        schema: autopilotWorkflowSchema,
 
         name: "VangrexAutopilotWorkflow",
 
@@ -294,17 +193,6 @@ export async function planAutopilotWorkflow(
     console.log(result.output);
 
     return result.output;
-  } catch (error) {
-    if (NoObjectGeneratedError.isInstance(error)) {
-      console.log("NoObjectGeneratedError");
-      console.log("Cause:", error.cause);
-      console.log("Text:", error.text);
-      console.log("Response:", error.response);
-      console.log("Usage:", error.usage);
+  
 
-      return undefined;
-    }
-
-    throw error;
-  }
 }

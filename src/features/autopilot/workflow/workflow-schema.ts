@@ -1,3 +1,10 @@
+import {
+  agentConfigSchema,
+  outputConfigSchema,
+  variableConfigSchema,
+} from "@/features/canvas/components/nodes/types";
+import { sandboxConfigSchema } from "@/features/canvas/components/nodes/types/sandbox-node";
+import { toolConfigSchema } from "@/features/canvas/components/nodes/types/tool-node";
 import * as z from "zod";
 
 export const autopilotNodeTypeSchema = z.enum([
@@ -16,52 +23,6 @@ export const autopilotEdgeSchema = z.object({
 });
 
 /**
- * Agent configuration
- */
-export const autopilotAgentConfigSchema = z.object({
-  instructions: z.string().min(1),
-  prompt: z.string().min(1),
-
-  model: z.enum([
-    "google/gemini-3.5-flash-lite",
-    "google/gemini-2.5-flash",
-    "google/gemini-2.5-pro",
-    "openai/gpt-5",
-    "openai/gpt-5-mini",
-    "anthropic/claude-sonnet-4.5",
-    "anthropic/claude-opus-4.1",
-  ]),
-
-  reasoning: z.enum(["none", "low", "medium", "high"]),
-});
-
-/**
- * Agent node
- */
-export const autopilotAgentNodeSchema = z.object({
-  id: z.string().min(1),
-  type: z.literal("agent"),
-  name: z.string().min(1),
-  purpose: z.string().min(1),
-  config: z.object({
-    instructions: z.string().min(1),
-    prompt: z.string().min(1),
-
-    model: z.enum([
-      "google/gemini-3.5-flash-lite",
-      "google/gemini-2.5-flash",
-      "google/gemini-2.5-pro",
-      "openai/gpt-5",
-      "openai/gpt-5-mini",
-      "anthropic/claude-sonnet-4.5",
-      "anthropic/claude-opus-4.1",
-    ]),
-
-    reasoning: z.enum(["none", "low", "medium", "high"]),
-  }),
-});
-
-/**
  * Other node types.
  *
  * Their individual config schemas will be added
@@ -70,21 +31,23 @@ export const autopilotAgentNodeSchema = z.object({
 export const autopilotGenericNodeSchema = z.object({
   id: z.string().min(1),
 
-  type: z.enum(["tool-call", "variable", "output", "sandbox"]),
+  type: z.enum(["tool-call", "variable", "output", "sandbox", "agent"]),
 
   name: z.string().min(1),
   purpose: z.string().min(1),
 
-  config: z.object({}),
+  config: z.union([
+    agentConfigSchema,
+    outputConfigSchema,
+    sandboxConfigSchema,
+    toolConfigSchema,
+    variableConfigSchema
+  ]),
 });
 
 /**
  * Autopilot node
  */
-export const autopilotNodeSchema = z.discriminatedUnion("type", [
-  autopilotAgentNodeSchema,
-  autopilotGenericNodeSchema,
-]);
 
 /**
  * Autopilot workflow
@@ -93,7 +56,7 @@ export const autopilotWorkflowSchema = z.object({
   name: z.string().min(1),
   description: z.string(),
 
-  nodes: z.array(autopilotNodeSchema),
+  nodes: z.array(autopilotGenericNodeSchema),
 
   edges: z.array(autopilotEdgeSchema),
 });
@@ -101,9 +64,8 @@ export const autopilotWorkflowSchema = z.object({
 /**
  * Types
  */
-export type AutopilotAgentConfig = z.infer<typeof autopilotAgentConfigSchema>;
 
-export type AutopilotNode = z.infer<typeof autopilotNodeSchema>;
+export type AutopilotNode = z.infer<typeof autopilotGenericNodeSchema>;
 
 export type AutopilotEdge = z.infer<typeof autopilotEdgeSchema>;
 
