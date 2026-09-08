@@ -597,6 +597,8 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
           },
         },
       );
+
+      return node;
     },
     [workflowId, createNodeMutation, setNodes],
   );
@@ -729,7 +731,7 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
 
                 <Panel position="top-left" className="w-full">
                   <CanvasHeader projectId={projectId} workflowId={workflowId} />
-                  <button>Test Autopilot</button>
+                  <button onClick={() => {}}>Test Autopilot</button>
                 </Panel>
               </ReactFlow>
             </div>
