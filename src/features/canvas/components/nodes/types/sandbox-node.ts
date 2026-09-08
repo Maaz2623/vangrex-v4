@@ -9,7 +9,12 @@ export const sandboxCredentialSchema = z.object({
 });
 
 export const sandboxConfigSchema = z.object({
-  credentials: z.array(sandboxCredentialSchema),
+  credentials: z.array(
+    z.object({
+      key: z.string(),
+      credentialId: z.string(),
+    }),
+  ),
 });
 
 export type SandboxCredential = z.infer<typeof sandboxCredentialSchema>;
