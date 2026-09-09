@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../init";
 import { sandboxFilesystem } from "@/features/sandbox/services/sandbox-filesystem";
-
+import { sandboxTerminal } from "@/features/sandbox/services/sandbox-terminal";
+import { tasks } from "@trigger.dev/sdk";
+import { sandboxTerminalTask } from "@/trigger/tasks/sandbox-terminal";
 
 export const sandboxRouter = createTRPCRouter({
   list: protectedProcedure
@@ -82,5 +84,28 @@ export const sandboxRouter = createTRPCRouter({
       );
 
       return { success: true };
+    }),
+
+  startTerminal: protectedProcedure
+    .input(
+      z.object({
+        sandboxId: z.string(),
+        cols: z.number().default(120),
+        rows: z.number().default(30),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const handle = await tasks.trigger<typeof sandboxTerminalTask>(
+        "sandbox-terminal",
+        {
+          sandboxId: input.sandboxId,
+          cols: input.cols,
+          rows: input.rows,
+        },
+      );
+
+      return {
+        runId: handle.id,
+      };
     }),
 });

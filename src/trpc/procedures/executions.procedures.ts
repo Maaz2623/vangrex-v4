@@ -28,6 +28,9 @@ export const executionsRouter = createTRPCRouter({
           read: {
             runs: [input.runId],
           },
+          write: {
+            inputStreams: [input.runId],
+          },
         },
         expirationTime: "1h",
       });

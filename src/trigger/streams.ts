@@ -18,3 +18,24 @@ export const nodeOutputStream = streams.define<{
 }>({
   id: "node-output",
 });
+
+export const terminalOutputStream = streams.define<{
+  sandboxId: string;
+  pid: number;
+  data: string;
+}>({
+  id: "terminal-output",
+});
+
+export const terminalInputStream = streams.input<{
+  pid: number;
+  data: string;
+}>({
+  id: "terminal-input",
+});
+
+export const terminalReadyStream = streams.define<{
+  pid: number;
+}>({
+  id: "terminal-ready",
+});

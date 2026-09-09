@@ -27,6 +27,8 @@ import { useCreateCredential } from "@/features/credentials/hooks/use-credential
 import { SandboxEditor } from "@/features/sandbox/components/sandbox-editor";
 import { SandboxFileExplorer } from "@/features/sandbox/components/sandbox-file-explorer";
 import { useExecutionStore } from "@/features/canvas/store/execution-store";
+import { SandboxTerminal } from "@/features/sandbox/components/sandbox-terminal";
+import { SandboxTerminalContainer } from "@/features/sandbox/components/sandbox-terminal-container";
 
 interface SandboxSettingsProps {
   node: SandboxFlowNode;
@@ -206,11 +208,17 @@ export const SandboxSettings = ({ node, updateNode }: SandboxSettingsProps) => {
             className="mt-0 h-[calc(100vh-180px)]  min-h-0"
           >
             {sandboxId ? (
-              <div className="flex h-[80vh] min-h-0">
-                <SandboxFileExplorer sandboxId={sandboxId} />
+              <div className="flex h-[80vh] min-h-0 flex-col">
+                <div className="flex min-h-0 flex-1">
+                  <SandboxFileExplorer sandboxId={sandboxId} />
 
-                <div className="min-w-0 flex-1">
-                  <SandboxEditor sandboxId={sandboxId} />
+                  <div className="min-w-0 flex-1">
+                    <SandboxEditor sandboxId={sandboxId} />
+                  </div>
+                </div>
+
+                <div className="h-64 shrink-0 border-t">
+                  <SandboxTerminalContainer sandboxId={sandboxId} />
                 </div>
               </div>
             ) : (
