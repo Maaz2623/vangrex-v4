@@ -16,10 +16,35 @@ export interface SandboxManager {
     userId: string,
     credentials?: SandboxCredential[],
   ): Promise<SandboxInstance>;
+
   setEnv(sandbox: SandboxInstance, env: Record<string, string>): Promise<void>;
+
   getUrl(sandbox: SandboxInstance, port: number): string;
+
   kill(sandbox: SandboxInstance): Promise<void>;
+
   get(id: string): Promise<SandboxInstance>;
+
+  // Filesystem
+  listFiles(sandbox: SandboxInstance, path?: string): Promise<unknown>;
+
+  readFile(sandbox: SandboxInstance, path: string): Promise<string>;
+
+  writeFile(
+    sandbox: SandboxInstance,
+    path: string,
+    content: string,
+  ): Promise<void>;
+
+  createDirectory(sandbox: SandboxInstance, path: string): Promise<void>;
+
+  deletePath(sandbox: SandboxInstance, path: string): Promise<void>;
+
+  renamePath(
+    sandbox: SandboxInstance,
+    oldPath: string,
+    newPath: string,
+  ): Promise<void>;
 }
 
 class E2BSandboxManager implements SandboxManager {
@@ -81,6 +106,40 @@ class E2BSandboxManager implements SandboxManager {
     const sandbox = await Sandbox.connect(id);
 
     return { id, sandbox };
+  }
+
+  async listFiles(sandbox: SandboxInstance, path = "/"): Promise<unknown> {
+    return await sandbox.sandbox.files.list(path);
+  }
+
+  async readFile(sandbox: SandboxInstance, path: string): Promise<string> {
+    const file = await sandbox.sandbox.files.read(path);
+
+    return file;
+  }
+
+  async writeFile(
+    sandbox: SandboxInstance,
+    path: string,
+    content: string,
+  ): Promise<void> {
+    await sandbox.sandbox.files.write(path, content);
+  }
+
+  async createDirectory(sandbox: SandboxInstance, path: string): Promise<void> {
+    await sandbox.sandbox.files.makeDir(path);
+  }
+
+  async deletePath(sandbox: SandboxInstance, path: string): Promise<void> {
+    await sandbox.sandbox.files.remove(path);
+  }
+
+  async renamePath(
+    sandbox: SandboxInstance,
+    oldPath: string,
+    newPath: string,
+  ): Promise<void> {
+    await sandbox.sandbox.files.rename(oldPath, newPath);
   }
 }
 

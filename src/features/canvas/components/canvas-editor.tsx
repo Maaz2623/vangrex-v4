@@ -752,6 +752,7 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
           node={selectedNode}
           updateNode={updateNode}
         />
+        
       </aside>
     </div>
   );

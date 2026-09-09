@@ -18,6 +18,8 @@ export function useExecutionEvents(runId: string | null) {
 
   const setOutput = useExecutionStore((state) => state.setOutput);
 
+  const setSandboxId = useExecutionStore((state) => state.setSandboxId);
+
   const setExecutionStatus = useCanvasStore(
     (state) => state.setExecutionStatus,
   );
@@ -72,6 +74,10 @@ export function useExecutionEvents(runId: string | null) {
 
     for (const event of outputParts) {
       setOutput(event.nodeId, event.output);
+
+      if (event.output.type === "sandbox") {
+        setSandboxId(event.output.sandboxId);
+      }
     }
   }, [outputParts, setOutput]);
 

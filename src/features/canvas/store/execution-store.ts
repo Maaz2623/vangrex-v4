@@ -4,7 +4,6 @@ import { ExecutionEvent } from "../services/execution/event-types";
 import { ExecutionOutput } from "../services/execution/execution-output";
 import { NodeStatusType } from "../components/nodes/types";
 
-
 export interface ExecutionLog {
   id: string;
   timestamp: number;
@@ -15,6 +14,10 @@ interface ExecutionStore {
   logs: ExecutionLog[];
 
   outputs: Record<string, ExecutionOutput>;
+
+  sandboxId: string | null;
+
+  setSandboxId: (sandboxId: string | null) => void;
 
   nodeStates: Record<string, NodeStatusType>;
 
@@ -47,6 +50,13 @@ export const useExecutionStore = create<ExecutionStore>((set) => ({
   nodeStates: {},
 
   edgeStates: {},
+
+  sandboxId: null,
+
+  setSandboxId: (sandboxId) =>
+    set({
+      sandboxId,
+    }),
 
   addLog: (event) =>
     set((state) => ({
@@ -157,5 +167,6 @@ export const useExecutionStore = create<ExecutionStore>((set) => ({
       outputs: {},
       nodeStates: {},
       edgeStates: {},
+      sandboxId: null,
     }),
 }));

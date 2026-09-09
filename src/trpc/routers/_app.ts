@@ -7,6 +7,7 @@ import { edgesRouter } from "../procedures/edges.procedures";
 import { executionsRouter } from "../procedures/executions.procedures";
 import { credentialsRouter } from "../procedures/credentials.procedure";
 import { autopilotRouter } from "../procedures/autopilot.procedure";
+import { sandboxRouter } from "../procedures/sandbox.procedure";
 export const appRouter = createTRPCRouter({
   projects: projectsRouter,
   workflows: workflowsRouter,
@@ -14,7 +15,8 @@ export const appRouter = createTRPCRouter({
   edges: edgesRouter,
   executions: executionsRouter,
   credentials: credentialsRouter,
-  autopilot: autopilotRouter
+  autopilot: autopilotRouter,
+  sandbox: sandboxRouter
 });
 // export type definition of API
 export type AppRouter = typeof appRouter;

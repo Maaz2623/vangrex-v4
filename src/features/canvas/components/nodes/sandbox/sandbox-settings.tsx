@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { AppFlowNode } from "../node-config";
 import { SandboxConfig, SandboxFlowNode } from "../types/sandbox-node";
 
@@ -19,15 +21,16 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Plus, Trash2 } from "lucide-react";
-import {
-  useCreateCredential,
-  useCredentials,
-  useDeleteCredential,
-} from "@/features/credentials/hooks/use-credentials";
-import { useState } from "react";
+
+import { useCreateCredential } from "@/features/credentials/hooks/use-credentials";
+
+import { SandboxEditor } from "@/features/sandbox/components/sandbox-editor";
+import { SandboxFileExplorer } from "@/features/sandbox/components/sandbox-file-explorer";
+import { useExecutionStore } from "@/features/canvas/store/execution-store";
 
 interface SandboxSettingsProps {
   node: SandboxFlowNode;
+
   updateNode: (
     nodeId: string,
     updater: (node: AppFlowNode) => AppFlowNode,
@@ -38,6 +41,8 @@ export const SandboxSettings = ({ node, updateNode }: SandboxSettingsProps) => {
   const [credentialValues, setCredentialValues] = useState<
     Record<string, string>
   >({});
+
+  const sandboxId = useExecutionStore((state) => state.sandboxId);
 
   const config = node.data.config;
 
@@ -89,7 +94,7 @@ export const SandboxSettings = ({ node, updateNode }: SandboxSettingsProps) => {
       ],
     });
   };
-  
+
   const removeCredential = (index: number) => {
     updateConfig({
       credentials: config.credentials.filter((_, i) => i !== index),
@@ -125,8 +130,10 @@ export const SandboxSettings = ({ node, updateNode }: SandboxSettingsProps) => {
 
       <CardContent className="p-0">
         <Tabs defaultValue="general" className="h-full">
-          <TabsList className="grid w-full grid-cols-3 rounded-none border-b bg-transparent">
+          <TabsList className="grid w-full grid-cols-4 rounded-none border-b bg-transparent">
             <TabsTrigger value="general">General</TabsTrigger>
+
+            <TabsTrigger value="files">Files</TabsTrigger>
 
             <TabsTrigger value="environment">Environment</TabsTrigger>
 
@@ -179,15 +186,45 @@ export const SandboxSettings = ({ node, updateNode }: SandboxSettingsProps) => {
                   <p className="font-medium">Current Sandbox</p>
 
                   <p className="text-sm text-muted-foreground">
-                    No sandbox has been created yet.
+                    {sandboxId
+                      ? "A sandbox is currently available."
+                      : "No sandbox has been created yet."}
                   </p>
                 </div>
 
                 <span className="text-xs text-muted-foreground">
-                  Not created
+                  {sandboxId ? "Active" : "Not created"}
                 </span>
               </div>
             </div>
+          </TabsContent>
+
+          {/* ---------------- FILES ---------------- */}
+
+          <TabsContent
+            value="files"
+            className="mt-0 h-[calc(100vh-180px)]  min-h-0"
+          >
+            {sandboxId ? (
+              <div className="flex h-[80vh] min-h-0">
+                <SandboxFileExplorer sandboxId={sandboxId} />
+
+                <div className="min-w-0 flex-1">
+                  <SandboxEditor sandboxId={sandboxId} />
+                </div>
+              </div>
+            ) : (
+              <div className="flex h-full items-center justify-center p-6">
+                <div className="max-w-sm text-center">
+                  <h3 className="font-medium">No sandbox running</h3>
+
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Execute the workflow to create a sandbox. Once the sandbox
+                    is running, its files will appear here.
+                  </p>
+                </div>
+              </div>
+            )}
           </TabsContent>
 
           {/* ---------------- ENVIRONMENT ---------------- */}
@@ -229,15 +266,20 @@ export const SandboxSettings = ({ node, updateNode }: SandboxSettingsProps) => {
                     </div>
 
                     {/* KEY */}
+
                     <div className="space-y-2">
                       <Label
-                        htmlFor={`credential-key-${credential.credentialId || index}`}
+                        htmlFor={`credential-key-${
+                          credential.credentialId || index
+                        }`}
                       >
                         Key
                       </Label>
 
                       <Input
-                        id={`credential-key-${credential.credentialId || index}`}
+                        id={`credential-key-${
+                          credential.credentialId || index
+                        }`}
                         value={credential.key}
                         placeholder="GITHUB_TOKEN"
                         onChange={(e) =>
@@ -249,15 +291,20 @@ export const SandboxSettings = ({ node, updateNode }: SandboxSettingsProps) => {
                     </div>
 
                     {/* VALUE */}
+
                     <div className="space-y-2">
                       <Label
-                        htmlFor={`credential-value-${credential.credentialId || index}`}
+                        htmlFor={`credential-value-${
+                          credential.credentialId || index
+                        }`}
                       >
                         Value
                       </Label>
 
                       <Input
-                        id={`credential-value-${credential.credentialId || index}`}
+                        id={`credential-value-${
+                          credential.credentialId || index
+                        }`}
                         type="password"
                         placeholder="Enter secret value"
                         value={credentialValues[credential.credentialId] ?? ""}
@@ -271,6 +318,7 @@ export const SandboxSettings = ({ node, updateNode }: SandboxSettingsProps) => {
                     </div>
 
                     {/* SAVE */}
+
                     <Button
                       type="button"
                       className="w-full"
