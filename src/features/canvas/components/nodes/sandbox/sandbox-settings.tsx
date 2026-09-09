@@ -203,12 +203,9 @@ export const SandboxSettings = ({ node, updateNode }: SandboxSettingsProps) => {
 
           {/* ---------------- FILES ---------------- */}
 
-          <TabsContent
-            value="files"
-            className="mt-0 h-[calc(100vh-180px)]  min-h-0"
-          >
+          <TabsContent value="files" className="mt-0 h-full  min-h-0">
             {sandboxId ? (
-              <div className="flex h-[80vh] min-h-0 flex-col">
+              <div className="flex h-[76vh] min-h-0 flex-col">
                 <div className="flex min-h-0 flex-1">
                   <SandboxFileExplorer sandboxId={sandboxId} />
 
@@ -217,9 +214,7 @@ export const SandboxSettings = ({ node, updateNode }: SandboxSettingsProps) => {
                   </div>
                 </div>
 
-                <div className="h-64 shrink-0 border-t">
-                  <SandboxTerminalContainer sandboxId={sandboxId} />
-                </div>
+                <SandboxTerminalContainer sandboxId={sandboxId} />
               </div>
             ) : (
               <div className="flex h-full items-center justify-center p-6">

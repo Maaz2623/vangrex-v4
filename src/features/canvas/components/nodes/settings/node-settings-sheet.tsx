@@ -32,7 +32,7 @@ export const NodeSettingsSheet = ({
       }}
     >
       <SheetContent side="right" className="w-[60vw] !max-w-[60vw] p-0">
-        <ScrollArea className="max-h-screen">
+        <ScrollArea className="">
           <NodeSettingsPanel
             projectId={projectId}
             workflowId={workflowId}

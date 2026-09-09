@@ -241,105 +241,92 @@ export function SandboxEditor({ sandboxId }: SandboxEditorProps) {
   const value = fileContents[selectedFile] ?? content ?? "";
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-[#0F172A]">
+    <div className="flex h-full min-h-0 flex-col bg-background">
       {/* Editor toolbar */}
-      <div className="flex h-9 shrink-0 items-center justify-between border-b border-border/60 bg-background px-2">
+      <div className="flex h-10 shrink-0 items-center justify-between border-b border-border/40 bg-background/90 px-3 backdrop-blur-sm">
+        {/* File information */}
         <div className="flex min-w-0 items-center gap-2">
-          <div className="truncate px-2 text-xs text-muted-foreground">
-            {selectedFile.split("/").pop()}
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="size-1.5 shrink-0 rounded-full bg-foreground/40" />
+
+            <span className="truncate text-[12px] font-medium tracking-tight text-foreground/85">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="size-1.5 rounded-full bg-foreground/30" />
+
+                <span className="truncate text-[12px] font-medium tracking-[-0.01em] text-foreground/80">
+                  {selectedFile.split("/").pop()}
+                </span>
+              </div>
+            </span>
           </div>
 
           {isDirty && !saveFileMutation.isPending && (
-            <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span className="size-1.5 rounded-full bg-current" />
+            <span className="flex items-center gap-1.5 rounded-[6px] bg-muted/70 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+              <span className="size-1.5 rounded-full bg-amber-400/80" />
               Unsaved
             </span>
           )}
 
           {saveFileMutation.isPending && (
-            <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span className="size-3 animate-spin rounded-full border border-muted-foreground border-t-transparent" />
-              Saving...
+            <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground/70">
+              <span className="size-2.5 animate-spin rounded-full border border-muted-foreground/30 border-t-foreground/70" />
+              Saving
             </span>
           )}
 
           {!isDirty && !saveFileMutation.isPending && !saveError && (
-            <span className="text-[11px] text-muted-foreground">Saved</span>
+            <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground/50">
+              <span className="size-1.5 rounded-full bg-emerald-500/60" />
+              Saved
+            </span>
           )}
 
           {saveError && (
             <span
-              className="max-w-48 truncate text-[11px] text-destructive"
+              className="max-w-48 truncate text-[10px] font-medium text-destructive/80"
               title={saveError}
             >
-              Failed to save
+              Save failed
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={handleCopy}
-            className="rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-            title="Copy selection"
-          >
+        {/* Editor controls */}
+        <div className="flex items-center gap-0.5">
+          <EditorButton onClick={handleCopy} title="Copy selection">
             Copy
-          </button>
+          </EditorButton>
 
-          <button
-            type="button"
-            onClick={formatDocument}
-            className="rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-            title="Format document"
-          >
+          <EditorButton onClick={formatDocument} title="Format document">
             Format
-          </button>
+          </EditorButton>
 
-          <button
-            type="button"
+          <EditorButton
+            active={wordWrap === "on"}
             onClick={toggleWordWrap}
-            className={`rounded px-2 py-1 text-xs ${
-              wordWrap === "on"
-                ? "bg-muted text-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            }`}
             title="Toggle word wrap"
           >
             Wrap
-          </button>
+          </EditorButton>
 
-          <button
-            type="button"
-            onClick={decreaseFontSize}
-            className="rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-            title="Decrease font size"
-          >
+          <div className="mx-1.5 h-4 w-px bg-border/50" />
+
+          <EditorButton onClick={decreaseFontSize} title="Decrease font size">
             A−
-          </button>
+          </EditorButton>
 
-          <button
-            type="button"
-            onClick={resetFontSize}
-            className="rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-            title="Reset font size"
-          >
-            A
-          </button>
+          <EditorButton onClick={resetFontSize} title="Reset font size">
+            <span className="text-[10px]">A</span>
+          </EditorButton>
 
-          <button
-            type="button"
-            onClick={increaseFontSize}
-            className="rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-            title="Increase font size"
-          >
+          <EditorButton onClick={increaseFontSize} title="Increase font size">
             A+
-          </button>
+          </EditorButton>
         </div>
       </div>
 
       {/* Monaco */}
-      <div className="min-h-0 flex-1">
+      <div className="min-h-0 flex-1 overflow-hidden">
         <Editor
           height="100%"
           theme="slate"
@@ -493,9 +480,11 @@ export function SandboxEditor({ sandboxId }: SandboxEditorProps) {
       </div>
 
       {/* Status bar */}
-      <div className="flex h-6 shrink-0 items-center justify-between border-t border-border/60 bg-background px-3 text-[11px] text-muted-foreground">
+      <div className="flex h-6 shrink-0 items-center justify-between border-t border-border/30 bg-background/70 px-3 text-[10px] text-muted-foreground/55">
         <div className="flex items-center gap-3">
-          <span>{getLanguage(selectedFile)}</span>
+          <span className="font-medium text-muted-foreground/70">
+            {getLanguage(selectedFile)}
+          </span>
 
           <span>UTF-8</span>
 
@@ -571,4 +560,39 @@ function getLanguage(path: string): string {
     default:
       return "plaintext";
   }
+}
+
+interface EditorButtonProps {
+  children: React.ReactNode;
+  onClick: () => void;
+  title?: string;
+  active?: boolean;
+}
+
+function EditorButton({
+  children,
+  onClick,
+  title,
+  active = false,
+}: EditorButtonProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className={[
+        "inline-flex h-7 items-center justify-center rounded-[7px] px-2",
+        "text-[10px] font-medium tracking-tight",
+        "transition-all duration-150",
+        "outline-none",
+        "focus-visible:ring-1 focus-visible:ring-ring/50",
+        active
+          ? "bg-foreground/[0.08] text-foreground shadow-sm"
+          : "text-muted-foreground/65 hover:bg-foreground/[0.06] hover:text-foreground",
+        "active:scale-[0.97]",
+      ].join(" ")}
+    >
+      {children}
+    </button>
+  );
 }
