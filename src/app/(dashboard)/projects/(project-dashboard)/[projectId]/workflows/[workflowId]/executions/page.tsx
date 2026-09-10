@@ -11,7 +11,7 @@ export default async function ExecutionsPage({ params }: ExecutionsPageProps) {
   const { projectId, workflowId } = await params;
 
   return (
-    <div className="h-full w-full">
+    <div className="h-screen w-full max-h-screen">
       <ExecutionsView projectId={projectId} workflowId={workflowId} />
     </div>
   );

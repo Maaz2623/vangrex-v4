@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 
 import { NodeStatusType } from "@/features/canvas/components/nodes/types";
+
 import { useExecution } from "../hooks/use-executions";
 
 interface ExecutionViewProps {
@@ -36,7 +37,6 @@ export function ExecutionView({
     }
 
     const start = new Date(execution.startedAt).getTime();
-
     const end = execution.completedAt
       ? new Date(execution.completedAt).getTime()
       : Date.now();
@@ -62,10 +62,9 @@ export function ExecutionView({
 
   if (isError) {
     return (
-      <div className="flex h-full w-full items-center justify-center">
+      <div className="flex h-full w-full items-center justify-center p-6">
         <div className="max-w-md text-center">
           <h2 className="text-sm font-medium">Failed to load execution</h2>
-
           <p className="mt-1 text-sm text-muted-foreground">
             {error?.message ??
               "Something went wrong while loading this execution."}
@@ -86,46 +85,64 @@ export function ExecutionView({
   }
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col">
+    <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background">
       {/* Header */}
-      <div className="shrink-0 border-b">
-        <div className="flex items-center justify-between px-6 py-4">
+      <header className="shrink-0 border-b bg-background">
+        <div className="flex min-w-0 items-center justify-between gap-6 px-6 py-4">
           <div className="min-w-0">
-            <div className="flex items-center gap-3">
-              <h1 className="truncate text-lg font-semibold">Execution</h1>
+            <div className="flex min-w-0 items-center gap-3">
+              <h1 className="truncate text-base font-semibold">
+                Execution
+              </h1>
 
               <ExecutionStatus status={execution.status} />
             </div>
 
-            <p className="mt-1 truncate font-mono text-xs text-muted-foreground">
-              {execution.id}
-            </p>
+            <div className="mt-1 flex min-w-0 items-center gap-2">
+              <span className="truncate font-mono text-[11px] text-muted-foreground">
+                {execution.id}
+              </span>
+            </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-6 text-sm">
+          <div className="flex shrink-0 items-center divide-x rounded-md border bg-muted/20">
             <ExecutionStat
               label="Nodes"
               value={String(execution.nodes?.length ?? 0)}
             />
 
-            <ExecutionStat label="Duration" value={duration ?? "—"} />
+            <ExecutionStat
+              label="Duration"
+              value={duration ?? "—"}
+            />
 
-            {execution.sandboxId && (
-              <ExecutionStat label="Sandbox" value={execution.sandboxId} />
-            )}
+            <ExecutionStat
+              label="Started"
+              value={
+                execution.startedAt
+                  ? formatDate(execution.startedAt)
+                  : "—"
+              }
+            />
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Main content */}
-      <div className="flex min-h-0 flex-1">
-        {/* Execution nodes */}
-        <div className="flex min-h-0 w-[360px] shrink-0 flex-col border-r">
+      {/* Main */}
+      <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+        {/* Node list */}
+        <aside className="flex min-h-0 w-[320px] shrink-0 flex-col border-r bg-muted/[0.12]">
           <div className="shrink-0 border-b px-4 py-3">
-            <h2 className="text-sm font-medium">Nodes</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-medium">Nodes</h2>
+
+              <span className="text-[11px] text-muted-foreground">
+                {execution.nodes?.length ?? 0}
+              </span>
+            </div>
 
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Execution progress and results
+              Execution steps and results
             </p>
           </div>
 
@@ -133,27 +150,37 @@ export function ExecutionView({
             {execution.nodes?.length ? (
               <div className="space-y-1">
                 {execution.nodes.map((node) => (
-                  <ExecutionNodeItem key={node.id} node={node} />
+                  <ExecutionNodeItem
+                    key={node.id}
+                    node={node}
+                  />
                 ))}
               </div>
             ) : (
-              <div className="px-3 py-8 text-center text-sm text-muted-foreground">
+              <div className="px-3 py-10 text-center text-xs text-muted-foreground">
                 No node executions found.
               </div>
             )}
           </div>
-        </div>
+        </aside>
 
-        {/* Execution details / workspace */}
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <div className="shrink-0 border-b px-4 py-3">
-            <h2 className="text-sm font-medium">Execution</h2>
-          </div>
+        {/* Detail */}
+        <main className="min-h-0 min-w-0 flex-1 overflow-hidden">
+          <div className="flex h-full min-h-0 min-w-0 flex-col">
+            <div className="shrink-0 border-b px-6 py-3">
+              <h2 className="text-sm font-medium">Execution details</h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Input, output, and execution errors
+              </p>
+            </div>
 
-          <div className="min-h-0 flex-1 overflow-auto p-6">
-            <ExecutionOverview execution={execution} />
+            <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
+              <div className="mx-auto w-full max-w-5xl min-w-0 p-6">
+                <ExecutionOverview execution={execution} />
+              </div>
+            </div>
           </div>
-        </div>
+        </main>
       </div>
     </div>
   );
@@ -179,24 +206,25 @@ function ExecutionStatus({ status }: ExecutionStatusProps) {
       label: "Pending",
       className: "bg-muted text-muted-foreground",
     },
-
     running: {
       label: "Running",
-      className: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
+      className:
+        "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
     },
-
     success: {
       label: "Success",
-      className: "bg-green-500/10 text-green-600 dark:text-green-400",
+      className:
+        "bg-green-500/10 text-green-600 dark:text-green-400",
     },
-
     error: {
       label: "Error",
-      className: "bg-red-500/10 text-red-600 dark:text-red-400",
+      className:
+        "bg-red-500/10 text-red-600 dark:text-red-400",
     },
     cancelled: {
       label: "Cancelled",
-      className: "bg-red-500",
+      className:
+        "bg-red-500/10 text-red-600 dark:text-red-400",
     },
   };
 
@@ -204,10 +232,9 @@ function ExecutionStatus({ status }: ExecutionStatusProps) {
 
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${current.className}`}
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${current.className}`}
     >
       <span className="mr-1.5 size-1.5 rounded-full bg-current" />
-
       {current.label}
     </span>
   );
@@ -217,12 +244,22 @@ function ExecutionStatus({ status }: ExecutionStatusProps) {
 /* Execution stat                                                             */
 /* -------------------------------------------------------------------------- */
 
-function ExecutionStat({ label, value }: { label: string; value: string }) {
+function ExecutionStat({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
   return (
-    <div className="text-right">
-      <div className="text-[11px] text-muted-foreground">{label}</div>
+    <div className="px-4 py-2 text-right">
+      <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </div>
 
-      <div className="max-w-[180px] truncate text-xs font-medium">{value}</div>
+      <div className="mt-0.5 max-w-[180px] truncate text-xs font-medium">
+        {value}
+      </div>
     </div>
   );
 }
@@ -244,56 +281,85 @@ function ExecutionNodeItem({
     error: string | null;
   };
 }) {
-  return (
-    <div className="rounded-md border px-3 py-2.5">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="truncate text-sm font-medium">{node.nodeTitle}</div>
-
-          <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
-            {node.nodeType}
-          </div>
-        </div>
-
-        <NodeStatus status={node.status} />
-      </div>
-
-      {(node.duration != null || node.error) && (
-        <div className="mt-2 text-xs text-muted-foreground">
-          {node.duration != null && (
-            <span>
-              {node.duration < 1000
-                ? `${node.duration}ms`
-                : `${(node.duration / 1000).toFixed(2)}s`}
-            </span>
-          )}
-
-          {node.error && (
-            <p className="mt-1 break-words text-red-500">{node.error}</p>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Node status                                                                */
-/* -------------------------------------------------------------------------- */
-
-function NodeStatus({ status }: { status: NodeStatusType }) {
-  const config: Record<NodeStatusType, string> = {
-    idle: "text-muted-foreground",
-    running: "text-yellow-500",
-    success: "text-green-500",
-    error: "text-red-500",
-    disabled: "text-muted-foreground",
+  const statusConfig: Record<
+    NodeStatusType,
+    {
+      label: string;
+      dot: string;
+      text: string;
+    }
+  > = {
+    idle: {
+      label: "Idle",
+      dot: "bg-muted-foreground/40",
+      text: "text-muted-foreground",
+    },
+    running: {
+      label: "Running",
+      dot: "bg-yellow-500",
+      text: "text-yellow-600 dark:text-yellow-400",
+    },
+    success: {
+      label: "Success",
+      dot: "bg-green-500",
+      text: "text-green-600 dark:text-green-400",
+    },
+    error: {
+      label: "Error",
+      dot: "bg-red-500",
+      text: "text-red-600 dark:text-red-400",
+    },
+    disabled: {
+      label: "Disabled",
+      dot: "bg-muted-foreground/40",
+      text: "text-muted-foreground",
+    },
   };
 
+  const current = statusConfig[node.status];
+
   return (
-    <span className={`shrink-0 text-xs font-medium ${config[status]}`}>
-      {status}
-    </span>
+    <div className="group min-w-0 rounded-md border bg-background px-3 py-2.5 transition-colors hover:bg-muted/30">
+      <div className="flex min-w-0 items-start gap-3">
+        <div
+          className={`mt-1.5 size-2 shrink-0 rounded-full ${current.dot}`}
+        />
+
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 items-center justify-between gap-2">
+            <div className="min-w-0 truncate text-sm font-medium">
+              {node.nodeTitle}
+            </div>
+
+            <span
+              className={`shrink-0 text-[10px] font-medium ${current.text}`}
+            >
+              {current.label}
+            </span>
+          </div>
+
+          <div className="mt-0.5 flex min-w-0 items-center justify-between gap-3">
+            <span className="truncate text-[11px] text-muted-foreground">
+              {node.nodeType}
+            </span>
+
+            {node.duration != null && (
+              <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+                {formatDuration(node.duration)}
+              </span>
+            )}
+          </div>
+
+          {node.error && (
+            <div className="mt-2 overflow-hidden rounded border border-red-500/20 bg-red-500/5 px-2 py-1.5">
+              <p className="break-words text-[11px] leading-relaxed text-red-500">
+                {node.error}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -311,29 +377,61 @@ function ExecutionOverview({
   };
 }) {
   return (
-    <div className="space-y-6">
-      <section>
-        <h3 className="text-sm font-medium">Input</h3>
-
+    <div className="min-w-0 space-y-4">
+      <DataSection
+        title="Input"
+        description="Data provided when the execution started."
+      >
         <JsonValue value={execution.input} />
-      </section>
+      </DataSection>
 
-      <section>
-        <h3 className="text-sm font-medium">Output</h3>
-
+      <DataSection
+        title="Output"
+        description="Final data produced by the workflow."
+      >
         <JsonValue value={execution.output} />
-      </section>
+      </DataSection>
 
       {execution.error && (
-        <section>
-          <h3 className="text-sm font-medium">Error</h3>
-
-          <pre className="mt-2 overflow-auto rounded-md border bg-muted/50 p-3 text-xs text-red-500">
-            {execution.error}
-          </pre>
-        </section>
+        <DataSection
+          title="Error"
+          description="The execution ended with an error."
+        >
+          <div className="min-w-0 overflow-hidden rounded-md border border-red-500/20 bg-red-500/5">
+            <pre className="max-w-full overflow-x-auto whitespace-pre-wrap break-words p-4 font-mono text-xs leading-relaxed text-red-500">
+              {execution.error}
+            </pre>
+          </div>
+        </DataSection>
       )}
     </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Data section                                                               */
+/* -------------------------------------------------------------------------- */
+
+function DataSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="min-w-0 overflow-hidden rounded-lg border bg-background">
+      <div className="border-b bg-muted/20 px-4 py-3">
+        <h3 className="text-sm font-medium">{title}</h3>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {description}
+        </p>
+      </div>
+
+      <div className="min-w-0 p-4">{children}</div>
+    </section>
   );
 }
 
@@ -344,7 +442,7 @@ function ExecutionOverview({
 function JsonValue({ value }: { value: unknown }) {
   if (value == null) {
     return (
-      <div className="mt-2 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+      <div className="rounded-md border border-dashed bg-muted/20 px-4 py-6 text-center text-xs text-muted-foreground">
         No data
       </div>
     );
@@ -359,8 +457,31 @@ function JsonValue({ value }: { value: unknown }) {
   }
 
   return (
-    <pre className="mt-2 max-h-[400px] overflow-auto rounded-md border bg-muted/30 p-3 text-xs">
-      {formatted}
-    </pre>
+    <div className="min-w-0 max-w-full overflow-hidden rounded-md border bg-muted/20">
+      <pre className="max-h-[500px] max-w-full overflow-x-auto overflow-y-auto whitespace-pre-wrap break-words p-4 font-mono text-xs leading-relaxed">
+        {formatted}
+      </pre>
+    </div>
   );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Formatting                                                                 */
+/* -------------------------------------------------------------------------- */
+
+function formatDuration(duration: number) {
+  if (duration < 1000) {
+    return `${duration}ms`;
+  }
+
+  return `${(duration / 1000).toFixed(2)}s`;
+}
+
+function formatDate(date: Date | string) {
+  return new Date(date).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }

@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
-
 import { useTRPC } from "@/trpc/client";
 import { useExecutions } from "../hooks/use-executions";
 
@@ -23,14 +22,12 @@ interface ExecutionsViewProps {
 function formatDuration(
   startedAt: Date | string | null,
   completedAt: Date | string | null,
+  now = Date.now(),
 ) {
-  if (!startedAt) {
-    return "—";
-  }
+  if (!startedAt) return "—";
 
   const start = new Date(startedAt).getTime();
-
-  const end = completedAt ? new Date(completedAt).getTime() : Date.now();
+  const end = completedAt ? new Date(completedAt).getTime() : now;
 
   const duration = Math.max(0, end - start);
 
@@ -42,9 +39,7 @@ function formatDuration(
 }
 
 function formatDate(date: Date | string | null) {
-  if (!date) {
-    return "—";
-  }
+  if (!date) return "—";
 
   return new Intl.DateTimeFormat("en-IN", {
     dateStyle: "medium",
@@ -59,41 +54,42 @@ export function ExecutionsView({ projectId, workflowId }: ExecutionsViewProps) {
 
   const { data: executions, isLoading, isError } = useExecutions(workflowId);
 
-  /*
-   * Force the running duration to update once per second.
-   *
-   * The value itself still comes from the persisted execution.
-   * This only causes the component to re-render while an execution
-   * has not completed.
-   */
+  // Used only to trigger a local rerender so running
+  // execution durations update every second.
+  const [now, setNow] = useState(() => Date.now());
+
   const hasRunningExecution = executions?.some(
     (execution) =>
       execution.status === "running" || execution.status === "pending",
   );
 
+  /**
+   * Local ticker.
+   *
+   * IMPORTANT:
+   * This does NOT refetch anything.
+   * It only updates `now`, causing the component to rerender
+   * and therefore recalculate the displayed duration.
+   */
   useEffect(() => {
     if (!hasRunningExecution) {
       return;
     }
 
     const interval = window.setInterval(() => {
-      queryClient.invalidateQueries({
-        queryKey: trpc.executions.list.queryKey({
-          workflowId,
-        }),
-      });
+      setNow(Date.now());
     }, 1000);
 
     return () => {
       window.clearInterval(interval);
     };
-  }, [hasRunningExecution, queryClient, trpc.executions.list, workflowId]);
+  }, [hasRunningExecution]);
 
-  /*
+  /**
    * Realtime execution events.
    *
-   * The important part is that an event causes the executions list
-   * to become stale immediately rather than waiting for completion.
+   * Actual execution data is refreshed when an event arrives.
+   * The local ticker above is completely independent of this.
    */
   useSubscription(
     trpc.executions.events.subscriptionOptions(undefined, {
@@ -112,7 +108,7 @@ export function ExecutionsView({ projectId, workflowId }: ExecutionsViewProps) {
   );
 
   return (
-    <div className="flex h-[85vh] flex-col">
+    <div className="flex h-[85vh] w-full flex-col">
       {/* Header */}
       <div className="shrink-0 border-b px-6 py-5">
         <h1 className="text-lg font-semibold tracking-tight">Executions</h1>
@@ -123,41 +119,29 @@ export function ExecutionsView({ projectId, workflowId }: ExecutionsViewProps) {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto p-6">
+      <div className="min-h-0 flex-1 overflow-auto p-6">
         {/* Loading */}
         {isLoading && (
-          <div className="flex h-64 items-center justify-center">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex h-32 items-center justify-center rounded-lg border">
+            <p className="text-sm text-muted-foreground">
               Loading executions...
-            </div>
+            </p>
           </div>
         )}
 
         {/* Error */}
         {!isLoading && isError && (
-          <div className="flex h-64 items-center justify-center rounded-lg border border-destructive/30 bg-destructive/5">
-            <div className="text-center">
-              <p className="font-medium text-destructive">
-                Failed to load executions
-              </p>
-
-              <p className="mt-1 text-sm text-muted-foreground">
-                Something went wrong while loading workflow executions.
-              </p>
-            </div>
+          <div className="flex h-32 items-center justify-center rounded-lg border">
+            <p className="text-sm text-destructive">
+              Failed to load executions.
+            </p>
           </div>
         )}
 
         {/* Empty */}
         {!isLoading && !isError && !executions?.length && (
-          <div className="flex h-64 items-center justify-center rounded-lg border border-dashed">
-            <div className="text-center">
-              <p className="font-medium">No executions yet</p>
-
-              <p className="mt-1 text-sm text-muted-foreground">
-                Run this workflow to see executions here.
-              </p>
-            </div>
+          <div className="flex h-32 items-center justify-center rounded-lg border">
+            <p className="text-sm text-muted-foreground">No executions yet.</p>
           </div>
         )}
 
@@ -219,7 +203,11 @@ export function ExecutionsView({ projectId, workflowId }: ExecutionsViewProps) {
 
                 {/* Duration */}
                 <div className="text-sm text-muted-foreground">
-                  {formatDuration(execution.startedAt, execution.completedAt)}
+                  {formatDuration(
+                    execution.startedAt,
+                    execution.completedAt,
+                    now,
+                  )}
                 </div>
               </button>
             ))}
@@ -229,10 +217,6 @@ export function ExecutionsView({ projectId, workflowId }: ExecutionsViewProps) {
     </div>
   );
 }
-
-/* -------------------------------------------------------------------------- */
-/* Status badge                                                               */
-/* -------------------------------------------------------------------------- */
 
 function StatusBadge({ status }: { status: ExecutionStatusType }) {
   const config: Record<

@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { executionNodesTable, executionsTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { NodeStatusType } from "../../components/nodes/types";
 
 /**
@@ -138,7 +138,12 @@ export async function updateExecutionNode(
   const [executionNode] = await db
     .update(executionNodesTable)
     .set(params)
-    .where(eq(executionNodesTable.executionId, executionId))
+    .where(
+      and(
+        eq(executionNodesTable.executionId, executionId),
+        eq(executionNodesTable.nodeId, nodeId),
+      ),
+    )
     .returning();
 
   return executionNode;
