@@ -6,6 +6,18 @@ import { tasks } from "@trigger.dev/sdk";
 import { sandboxTerminalTask } from "@/trigger/tasks/sandbox-terminal";
 import { sandboxManager } from "@/lib/sandbox/sandbox-manager";
 
+const uploadFileSchema = z.object({
+  sandboxId: z.string(),
+  path: z.string(),
+  content: z.string(),
+});
+
+const uploadZipSchema = z.object({
+  sandboxId: z.string(),
+  path: z.string(),
+  base64: z.string(),
+});
+
 export const sandboxRouter = createTRPCRouter({
   list: protectedProcedure
     .input(
@@ -122,6 +134,49 @@ export const sandboxRouter = createTRPCRouter({
 
       return {
         url: sandboxManager.getUrl(sandbox, input.port),
+      };
+    }),
+
+  uploadFile: protectedProcedure
+    .input(uploadFileSchema)
+    .mutation(async ({ input }) => {
+      await sandboxFilesystem.upload(
+        input.sandboxId,
+        input.path,
+        input.content,
+      );
+
+      return {
+        success: true,
+      };
+    }),
+
+  uploadZip: protectedProcedure
+    .input(uploadZipSchema)
+    .mutation(async ({ input }) => {
+      await sandboxFilesystem.uploadZip(
+        input.sandboxId,
+        input.path,
+        input.base64,
+      );
+
+      return { success: true };
+    }),
+
+  downloadFile: protectedProcedure
+    .input(
+      z.object({
+        sandboxId: z.string(),
+        path: z.string(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const content = await sandboxFilesystem.read(input.sandboxId, input.path);
+
+      const buffer = Buffer.isBuffer(content) ? content : Buffer.from(content);
+
+      return {
+        content: buffer.toString("base64"),
       };
     }),
 });

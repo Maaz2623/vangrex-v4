@@ -1,3 +1,5 @@
+// src/lib/sandbox/sandbox-filesystem.ts
+
 import { sandboxManager } from "@/lib/sandbox/sandbox-manager";
 import { FileType } from "e2b";
 
@@ -14,56 +16,83 @@ export class SandboxFilesystem {
     return await sandboxManager.get(sandboxId);
   }
 
-  async list(sandboxId: string, path = "/"): Promise<SandboxFile[]> {
-    const sandbox = await this.getSandbox(sandboxId);
-    const files = await sandbox.sandbox.files.list(path);
+  async list(sandboxId: string, path = "/") {
+    const { sandbox } = await this.getSandbox(sandboxId);
 
-    return files.map((file) => {
-      if (!file.type) {
-        throw new Error(`Missing file type for ${file.path}`);
-      }
-
-      if (!file.modifiedTime) {
-        throw new Error(`Missing modified time for ${file.path}`);
-      }
-
-      return {
-        name: file.name,
-        type: file.type,
-        path: file.path,
-        size: file.size,
-        modifiedTime: file.modifiedTime,
-      };
-    });
+    return await sandbox.files.list(path);
   }
 
-  async read(sandboxId: string, path: string): Promise<string> {
-    const sandbox = await this.getSandbox(sandboxId);
-    return await sandbox.sandbox.files.read(path);
+  async read(sandboxId: string, path: string) {
+    const { sandbox } = await this.getSandbox(sandboxId);
+
+    return await sandbox.files.read(path);
   }
 
-  async write(sandboxId: string, path: string, content: string): Promise<void> {
-    const sandbox = await this.getSandbox(sandboxId);
-    await sandbox.sandbox.files.write(path, content);
+  async write(sandboxId: string, path: string, content: string) {
+    const { sandbox } = await this.getSandbox(sandboxId);
+
+    await sandbox.files.write(path, content);
   }
 
-  async createDirectory(sandboxId: string, path: string): Promise<void> {
-    const sandbox = await this.getSandbox(sandboxId);
-    await sandbox.sandbox.files.makeDir(path);
+  async upload(sandboxId: string, path: string, base64: string) {
+    const { sandbox } = await this.getSandbox(sandboxId);
+
+    const buffer = Buffer.from(base64, "base64");
+
+    // Convert Node Buffer to a standalone ArrayBuffer
+    const arrayBuffer = buffer.buffer.slice(
+      buffer.byteOffset,
+      buffer.byteOffset + buffer.byteLength,
+    );
+
+    await sandbox.files.write(path, arrayBuffer);
   }
 
-  async delete(sandboxId: string, path: string): Promise<void> {
-    const sandbox = await this.getSandbox(sandboxId);
-    await sandbox.sandbox.files.remove(path);
-  }
 
-  async rename(
+   async uploadZip(
     sandboxId: string,
-    oldPath: string,
-    newPath: string,
-  ): Promise<void> {
-    const sandbox = await this.getSandbox(sandboxId);
-    await sandbox.sandbox.files.rename(oldPath, newPath);
+    destination: string,
+    base64: string,
+  ) {
+    const { sandbox } = await this.getSandbox(sandboxId);
+
+    const buffer = Buffer.from(base64, "base64");
+
+    const arrayBuffer = buffer.buffer.slice(
+      buffer.byteOffset,
+      buffer.byteOffset + buffer.byteLength,
+    );
+
+    const zipPath = "/tmp/vangrex-upload.zip";
+
+    // 1. Upload ZIP to sandbox.
+    await sandbox.files.write(zipPath, arrayBuffer);
+
+    // 2. Extract it into the requested destination.
+    await sandbox.commands.run(
+      `unzip -o -q "${zipPath}" -d "${destination}"`,
+    );
+
+    // 3. Remove temporary ZIP.
+    await sandbox.files.remove(zipPath);
+  }
+
+  async createDirectory(sandboxId: string, path: string) {
+    const { sandbox } = await this.getSandbox(sandboxId);
+
+    await sandbox.files.makeDir(path);
+  }
+
+  async delete(sandboxId: string, path: string) {
+    const { sandbox } = await this.getSandbox(sandboxId);
+
+    await sandbox.files.remove(path);
+  }
+
+  async rename(sandboxId: string, oldPath: string, newPath: string) {
+    const { sandbox } = await this.getSandbox(sandboxId);
+
+    await sandbox.files.rename(oldPath, newPath);
   }
 }
 
