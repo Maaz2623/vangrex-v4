@@ -139,7 +139,11 @@ class E2BSandboxManager implements SandboxManager {
   }
 
   getUrl(sandbox: SandboxInstance, port: number): string {
-    return sandbox.sandbox.getHost(port);
+    const host = sandbox.sandbox.getHost(port);
+
+    return host.startsWith("http://") || host.startsWith("https://")
+      ? host
+      : `https://${host}`;
   }
 }
 
