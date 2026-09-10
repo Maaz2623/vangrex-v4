@@ -83,13 +83,6 @@ export class GraphExecutor {
       status: "running",
     });
 
-    await this.persistNodeStatus({
-      executionId: context.executionId,
-      nodeId: node.id,
-      status: "running",
-      startedAt: nodeStartedAt,
-    });
-
     try {
       await this.runtime.runStep(`node-${node.id}`, () =>
         executor(node, nodes, edges, context, userId, this.publishNodeStatus),
