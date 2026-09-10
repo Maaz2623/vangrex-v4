@@ -15,6 +15,7 @@ import { executeOutput } from "./output-executor";
 import { executeVariable } from "./variable-executor";
 import { executeSandbox } from "./sandbox-executor";
 import { SandboxFlowNode } from "../../components/nodes/types/sandbox-node";
+import { PersistNodeStatus } from "./graph-executor";
 
 type PublishNodeStatus = (data: {
   executionId: string;
@@ -29,10 +30,11 @@ type Executor = (
   context: ExecutionContext,
   userId: string,
   publishNodeStatus: PublishNodeStatus,
+  persistNodeStatus: PersistNodeStatus
 ) => Promise<void>;
 
 export const nodeExecutorRegistry: Record<string, Executor> = {
-  agent: (node, nodes, edges, context, userId, publishNodeStatus) =>
+  agent: (node, nodes, edges, context, userId, publishNodeStatus, persistNodeStatus) =>
     executeAgent(
       node as AgentFlowNode,
       nodes,
@@ -40,6 +42,7 @@ export const nodeExecutorRegistry: Record<string, Executor> = {
       new ExecutionContextManager(context),
       userId,
       publishNodeStatus,
+      persistNodeStatus
     ),
   variable: (node, nodes, edges, context) =>
     executeVariable(

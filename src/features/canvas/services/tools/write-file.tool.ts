@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { ToolFlowNode } from "../../components/nodes/types/tool-node";
 import { ExecutionContext } from "../execution/execution-context";
-import { executeTool } from "../execution/execute-tool";
+import { executeTool, PersistNodeStatus } from "../execution/execute-tool";
 import { sandboxManager } from "@/lib/sandbox/sandbox-manager";
 import { PublishNodeStatus } from "../execution/graph-executor";
 
@@ -11,6 +11,7 @@ export function createWriteFileTool(
   node: ToolFlowNode,
   context: ExecutionContext,
   publishNodeStatus: PublishNodeStatus,
+  persistNodeStatus: PersistNodeStatus
 ) {
   return tool({
     description:
@@ -53,6 +54,7 @@ export function createWriteFileTool(
           };
         },
         publishNodeStatus,
+        persistNodeStatus
       ),
   });
 }

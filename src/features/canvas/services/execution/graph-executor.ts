@@ -85,7 +85,15 @@ export class GraphExecutor {
 
     try {
       await this.runtime.runStep(`node-${node.id}`, () =>
-        executor(node, nodes, edges, context, userId, this.publishNodeStatus),
+        executor(
+          node,
+          nodes,
+          edges,
+          context,
+          userId,
+          this.publishNodeStatus,
+          this.persistNodeStatus,
+        ),
       );
 
       context.nodeStates[node.id] = {

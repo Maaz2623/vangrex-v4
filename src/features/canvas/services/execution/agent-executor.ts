@@ -16,6 +16,7 @@ import { ExecutionContextManager } from "./execution-context-manager";
 import { instructions } from "../../../../../instructions";
 import { getInputFromEdges } from "../graph/get-inputs-from-edges";
 import { PublishNodeStatus } from "./graph-executor";
+import { PersistNodeStatus } from "./execute-tool";
 
 export async function executeAgent(
   agent: AgentFlowNode,
@@ -24,6 +25,7 @@ export async function executeAgent(
   contextManager: ExecutionContextManager,
   userId: string,
   publishNodeStatus: PublishNodeStatus,
+  persistNodeStatus: PersistNodeStatus,
 ) {
   const context = contextManager.getContext();
 
@@ -66,7 +68,12 @@ ${inputText}
 Use the connected input as data for this task.`
       : basePrompt;
 
-    const tools = createTools(connectedTools, context, publishNodeStatus);
+    const tools = createTools(
+      connectedTools,
+      context,
+      publishNodeStatus,
+      persistNodeStatus,
+    );
 
     const result = await generateText({
       model: defaultModel,

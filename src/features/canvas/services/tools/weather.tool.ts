@@ -1,7 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 import { ToolFlowNode } from "../../components/nodes/types/tool-node";
-import { executeTool } from "../execution/execute-tool";
+import { executeTool, PersistNodeStatus } from "../execution/execute-tool";
 import { ExecutionContext } from "../execution/execution-context";
 import { Workspace } from "../workspace/workspace-manager";
 import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
@@ -14,7 +14,8 @@ export interface WeatherToolParameters {
 export function createWeatherTool(
   node: ToolFlowNode,
   context: ExecutionContext,
-  publishNodeStatus: PublishNodeStatus
+  publishNodeStatus: PublishNodeStatus,
+  persistNodeStatus: PersistNodeStatus,
 ) {
   const parameters = node.data.config
     .parameters as unknown as WeatherToolParameters;
@@ -28,13 +29,19 @@ export function createWeatherTool(
 
     // weather.tool.ts
     execute: async ({ city }) =>
-      executeTool(node, context, async () => {
-        return {
-          city,
-          temperature: 28,
-          condition: "Cloudy",
-          units: parameters.units,
-        };
-      }, publishNodeStatus),
+      executeTool(
+        node,
+        context,
+        async () => {
+          return {
+            city,
+            temperature: 28,
+            condition: "Cloudy",
+            units: parameters.units,
+          };
+        },
+        publishNodeStatus,
+        persistNodeStatus,
+      ),
   });
 }

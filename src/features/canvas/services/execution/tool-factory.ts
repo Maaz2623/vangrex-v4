@@ -6,11 +6,13 @@ import { ExecutionContext } from "./execution-context";
 import { Workspace } from "../workspace/workspace-manager";
 import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
 import { PublishNodeStatus } from "./graph-executor";
+import { PersistNodeStatus } from "./execute-tool";
 
 export function createTools(
   toolNodes: ToolFlowNode[],
   context: ExecutionContext,
-  publishNodeStatus: PublishNodeStatus
+  publishNodeStatus: PublishNodeStatus,
+  persistNodeStatus: PersistNodeStatus
 ) {
   return Object.fromEntries(
     toolNodes.map((toolNode) => {
@@ -22,7 +24,7 @@ export function createTools(
         throw new Error(`Unknown tool: ${implementation}`);
       }
 
-      return [implementation, factory(toolNode, context, publishNodeStatus)];
+      return [implementation, factory(toolNode, context, publishNodeStatus, persistNodeStatus)];
     }),
   );
 }
