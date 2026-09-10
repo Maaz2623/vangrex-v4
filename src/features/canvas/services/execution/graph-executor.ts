@@ -1,4 +1,3 @@
-import { SandboxInstance } from "@/lib/sandbox/sandbox-manager";
 import { FlowEdge } from "../../components/edges/types/base-edge";
 import { AppFlowNode } from "../../components/nodes/node-config";
 import { getNextExecutionNodes } from "../graph/get-next-execution-nodes";
@@ -9,7 +8,7 @@ import { ExecutionRuntime } from "./execution-runtime";
 import { NodeStatusType } from "../../components/nodes/types";
 import { ExecutionOutput } from "./execution-output";
 
-type PublishNodeOutput = (data: {
+export type PublishNodeOutput = (data: {
   executionId: string;
   nodeId: string;
   output: ExecutionOutput;
@@ -21,11 +20,22 @@ export type PublishNodeStatus = (data: {
   status: NodeStatusType;
 }) => Promise<unknown>;
 
+export type PersistNodeStatus = (data: {
+  executionId: string;
+  nodeId: string;
+  status: NodeStatusType;
+  startedAt?: Date;
+  completedAt?: Date;
+  duration?: number;
+  error?: string | null;
+}) => Promise<unknown>;
+
 export class GraphExecutor {
   constructor(
     private readonly runtime: ExecutionRuntime,
     private readonly publishNodeStatus: PublishNodeStatus,
     private readonly publishNodeOutput: PublishNodeOutput,
+    private readonly persistNodeStatus: PersistNodeStatus,
   ) {}
 
   async execute(
@@ -36,7 +46,9 @@ export class GraphExecutor {
     userId: string,
   ) {
     const contextManager = new ExecutionContextManager(context);
+
     await this.executeNode(startNode, nodes, edges, context, userId);
+
     contextManager.finishExecution();
   }
 
@@ -57,11 +69,20 @@ export class GraphExecutor {
       throw new Error("Execution Id is required");
     }
 
+    const nodeStartedAt = new Date();
+
     context.nodeStates[node.id] = {
       ...context.nodeStates[node.id],
       nodeId: node.id,
       status: "running",
     };
+
+    await this.persistNodeStatus({
+      executionId: context.executionId,
+      nodeId: node.id,
+      status: "running",
+      startedAt: nodeStartedAt,
+    });
 
     try {
       await this.runtime.runStep(`node-${node.id}`, () =>
@@ -73,6 +94,16 @@ export class GraphExecutor {
         nodeId: node.id,
         status: "success",
       };
+
+      const completedAt = new Date();
+
+      await this.persistNodeStatus({
+        executionId: context.executionId,
+        nodeId: node.id,
+        status: "success",
+        completedAt,
+        duration: completedAt.getTime() - nodeStartedAt.getTime(),
+      });
 
       if (node.type !== "output") {
         const output = context.outputs[node.id];
@@ -91,6 +122,19 @@ export class GraphExecutor {
         nodeId: node.id,
         status: "error",
       };
+
+      const completedAt = new Date();
+
+      const message = error instanceof Error ? error.message : String(error);
+
+      await this.persistNodeStatus({
+        executionId: context.executionId,
+        nodeId: node.id,
+        status: "error",
+        completedAt,
+        duration: completedAt.getTime() - nodeStartedAt.getTime(),
+        error: message,
+      });
 
       throw error;
     }

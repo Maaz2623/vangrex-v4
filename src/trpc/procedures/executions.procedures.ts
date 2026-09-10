@@ -82,13 +82,26 @@ export const executionsRouter = createTRPCRouter({
         executionId: z.uuid(),
       }),
     )
-    .query(async ({ input, ctx }) => {
+    .query(async ({ input }) => {
       const [execution] = await db
         .select()
         .from(executionsTable)
         .where(eq(executionsTable.id, input.executionId));
 
-      return execution;
+      if (!execution) {
+        throw new Error(`Execution ${input.executionId} not found`);
+      }
+
+      const nodes = await db
+        .select()
+        .from(executionNodesTable)
+        .where(eq(executionNodesTable.executionId, input.executionId))
+        .orderBy(executionNodesTable.createdAt);
+
+      return {
+        ...execution,
+        nodes,
+      };
     }),
   list: protectedProcedure
     .input(

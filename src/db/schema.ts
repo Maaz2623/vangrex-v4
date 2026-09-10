@@ -23,11 +23,10 @@ export const executionStatusEnum = pgEnum("execution_status", [
 ]);
 
 export const executionNodeStatusEnum = pgEnum("execution_node_status", [
-  "pending",
+  "idle",
   "running",
   "success",
   "error",
-  "skipped",
 ]);
 
 export const credentialsTable = pgTable(
@@ -114,11 +113,11 @@ export const executionNodesTable = pgTable(
     nodeTitle: text("node_title").notNull(),
 
     status: varchar("status", {
-      enum: ["pending", "running", "success", "error", "skipped"],
+      enum: ["idle", "running", "success", "error", "disabled"],
       length: 20,
     })
       .notNull()
-      .default("pending"),
+      .default("idle"),
 
     input: jsonb("input").$type<Record<string, unknown> | null>().default(null),
 

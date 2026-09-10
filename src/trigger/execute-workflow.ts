@@ -10,8 +10,10 @@ import { ExecutionOutput } from "@/features/canvas/services/execution/execution-
 
 import {
   completeExecution,
+  createExecutionNode,
   failExecution,
   getExecution,
+  updateExecutionNode,
 } from "@/features/canvas/services/execution/execution-persistance";
 
 import { TriggerExecutionRuntime } from "./trigger-execution-runtime";
@@ -29,7 +31,6 @@ export type ExecuteWorkflowPayload = {
 
 export const executeWorkflowTask = task({
   id: "execute-workflow",
-
   maxDuration: 3600,
 
   run: async (payload: ExecuteWorkflowPayload, { ctx }) => {
@@ -82,10 +83,50 @@ export const executeWorkflowTask = task({
       throw new Error(`Execution ${executionId} not found`);
     }
 
+    /**
+     * Create a durable node record for every node
+     * before execution begins.
+     */
+    await Promise.all(
+      nodes.map((node) =>
+        createExecutionNode({
+          executionId,
+          nodeId: node.id,
+          nodeType: node.type,
+          nodeTitle: node.data.title,
+        }),
+      ),
+    );
+
+    /**
+     * Persist node lifecycle changes.
+     *
+     * This is deliberately separate from realtime
+     * publishing.
+     */
+    const persistNodeStatus = async (data: {
+      executionId: string;
+      nodeId: string;
+      status: NodeStatusType;
+      startedAt?: Date;
+      completedAt?: Date;
+      duration?: number;
+      error?: string | null;
+    }) => {
+      await updateExecutionNode(data.executionId, data.nodeId, {
+        status: data.status,
+        startedAt: data.startedAt,
+        completedAt: data.completedAt,
+        duration: data.duration,
+        error: data.error,
+      });
+
+      return data;
+    };
+
     const context: ExecutionContext = {
       executionId,
       workflowId,
-
       startedAt: Date.now(),
 
       nodeNames: Object.fromEntries(
@@ -93,9 +134,7 @@ export const executeWorkflowTask = task({
       ),
 
       outputs: {},
-
       variables: {},
-
       artifacts: [],
 
       metadata: {
@@ -133,6 +172,7 @@ export const executeWorkflowTask = task({
       runtime,
       publishNodeStatus,
       publishNodeOutput,
+      persistNodeStatus,
     );
 
     try {

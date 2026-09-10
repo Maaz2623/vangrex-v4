@@ -1,11 +1,22 @@
 import { useTRPC } from "@/trpc/client";
 import { useQuery } from "@tanstack/react-query";
 
-
 export function useExecutions(workflowId: string) {
-    const trpc = useTRPC()
+  const trpc = useTRPC();
 
-    return useQuery(trpc.executions.list.queryOptions({
-        workflowId
-    }))
+  return useQuery(
+    trpc.executions.list.queryOptions({
+      workflowId,
+    }),
+  );
+}
+
+export function useExecution(executionId: string) {
+  const trpc = useTRPC();
+
+  return useQuery(
+    trpc.executions.get.queryOptions({
+      executionId,
+    }),
+  );
 }

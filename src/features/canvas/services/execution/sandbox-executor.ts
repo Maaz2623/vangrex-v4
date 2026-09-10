@@ -6,6 +6,7 @@ import { SandboxFlowNode } from "../../components/nodes/types/sandbox-node";
 import { ExecutionContextManager } from "./execution-context-manager";
 import { executionEvents } from "./execution-events";
 import { PublishNodeStatus } from "./graph-executor";
+import { setExecutionSandbox } from "./execution-persistance";
 
 export interface SandboxOutput {
   type: "sandbox";
@@ -41,6 +42,8 @@ export async function executeSandbox(
       userId,
       node.data.config.credentials,
     );
+
+    await setExecutionSandbox(context.executionId, sandbox.id);
 
     contextManager.setMetadata("sandboxId", sandbox.id);
 
