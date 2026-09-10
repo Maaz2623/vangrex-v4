@@ -20,6 +20,8 @@ interface NodeShellProps<TConfig extends Record<string, unknown>> {
   preview: ReactNode;
 
   toolbar?: ReactNode;
+
+  onDoubleClick?: () => void;
 }
 
 export const NodeShell = <TConfig extends Record<string, unknown>>({
@@ -28,11 +30,13 @@ export const NodeShell = <TConfig extends Record<string, unknown>>({
   selected,
   preview,
   toolbar,
+  onDoubleClick,
 }: NodeShellProps<TConfig>) => {
   const Icon = definition.icon;
 
   return (
     <BaseNode
+      onDoubleClick={onDoubleClick}
       status={data.metadata.status}
       definition={definition}
       selected={selected}

@@ -20,6 +20,7 @@ export const SandboxNode = ({
       definition={sandboxDefinition}
       data={data}
       selected={selected}
+      onDoubleClick={() => open(id)}
       preview={<SandboxNodePreview data={data} />}
       toolbar={
         <>
