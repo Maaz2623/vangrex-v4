@@ -29,6 +29,8 @@ import { SandboxFileExplorer } from "@/features/sandbox/components/sandbox-file-
 import { useExecutionStore } from "@/features/canvas/store/execution-store";
 import { SandboxTerminal } from "@/features/sandbox/components/sandbox-terminal";
 import { SandboxTerminalContainer } from "@/features/sandbox/components/sandbox-terminal-container";
+import { SandboxBrowser } from "@/features/sandbox/components/sandbox-browser";
+import { cn } from "@/lib/utils";
 
 interface SandboxSettingsProps {
   node: SandboxFlowNode;
@@ -45,6 +47,10 @@ export const SandboxSettings = ({ node, updateNode }: SandboxSettingsProps) => {
   >({});
 
   const sandboxId = useExecutionStore((state) => state.sandboxId);
+
+  const [workspaceView, setWorkspaceView] = useState<"code" | "preview">(
+    "code",
+  );
 
   const config = node.data.config;
 
@@ -135,7 +141,7 @@ export const SandboxSettings = ({ node, updateNode }: SandboxSettingsProps) => {
           <TabsList className="grid w-full grid-cols-4 rounded-none border-b bg-transparent">
             <TabsTrigger value="general">General</TabsTrigger>
 
-            <TabsTrigger value="files">Files</TabsTrigger>
+            <TabsTrigger value="workspace">Workspace</TabsTrigger>
 
             <TabsTrigger value="environment">Environment</TabsTrigger>
 
@@ -204,22 +210,59 @@ export const SandboxSettings = ({ node, updateNode }: SandboxSettingsProps) => {
           {/* ---------------- FILES ---------------- */}
 
           <TabsContent
-            value="files"
-            className="mt-0 h-[calc(100vh-180px)]  min-h-0"
+            value="workspace"
+            className="mt-0 h-[calc(100vh-180px)] min-h-0"
           >
             {sandboxId ? (
               <div className="flex h-[80vh] min-h-0 flex-col">
-                <div className="flex min-h-0 flex-1">
-                  <SandboxFileExplorer sandboxId={sandboxId} />
+                {/* Workspace switch */}
+                <div className="flex h-10 shrink-0 items-center border-b border-border/50 px-3">
+                  <div className="flex items-center rounded-md bg-muted/50 p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setWorkspaceView("code")}
+                      className={cn(
+                        "rounded px-2.5 py-1 text-xs transition-colors",
+                        workspaceView === "code"
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      Code
+                    </button>
 
-                  <div className="min-w-0 flex-1">
-                    <SandboxEditor sandboxId={sandboxId} />
+                    <button
+                      type="button"
+                      onClick={() => setWorkspaceView("preview")}
+                      className={cn(
+                        "rounded px-2.5 py-1 text-xs transition-colors",
+                        workspaceView === "preview"
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      Preview
+                    </button>
                   </div>
                 </div>
 
-                <div className="h-64 shrink-0 border-t">
-                  <SandboxTerminalContainer sandboxId={sandboxId} />
+                {/* Workspace */}
+                <div className="min-h-0 flex-1">
+                  {workspaceView === "code" ? (
+                    <div className="flex h-full min-h-0">
+                      <SandboxFileExplorer sandboxId={sandboxId} />
+
+                      <div className="min-w-0 flex-1">
+                        <SandboxEditor sandboxId={sandboxId} />
+                      </div>
+                    </div>
+                  ) : (
+                    <SandboxBrowser sandboxId={sandboxId} />
+                  )}
                 </div>
+
+                {/* Terminal */}
+                <SandboxTerminalContainer sandboxId={sandboxId} />
               </div>
             ) : (
               <div className="flex h-full items-center justify-center p-6">
@@ -228,7 +271,7 @@ export const SandboxSettings = ({ node, updateNode }: SandboxSettingsProps) => {
 
                   <p className="mt-2 text-sm text-muted-foreground">
                     Execute the workflow to create a sandbox. Once the sandbox
-                    is running, its files will appear here.
+                    is running, its workspace will appear here.
                   </p>
                 </div>
               </div>

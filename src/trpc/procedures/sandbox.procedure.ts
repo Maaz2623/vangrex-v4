@@ -4,6 +4,7 @@ import { sandboxFilesystem } from "@/features/sandbox/services/sandbox-filesyste
 import { sandboxTerminal } from "@/features/sandbox/services/sandbox-terminal";
 import { tasks } from "@trigger.dev/sdk";
 import { sandboxTerminalTask } from "@/trigger/tasks/sandbox-terminal";
+import { sandboxManager } from "@/lib/sandbox/sandbox-manager";
 
 export const sandboxRouter = createTRPCRouter({
   list: protectedProcedure
@@ -106,6 +107,21 @@ export const sandboxRouter = createTRPCRouter({
 
       return {
         runId: handle.id,
+      };
+    }),
+
+  getPreviewUrl: protectedProcedure
+    .input(
+      z.object({
+        sandboxId: z.string(),
+        port: z.number().default(3000),
+      }),
+    )
+    .query(async ({ input }) => {
+      const sandbox = await sandboxManager.get(input.sandboxId);
+
+      return {
+        url: sandboxManager.getUrl(sandbox, input.port),
       };
     }),
 });

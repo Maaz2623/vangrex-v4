@@ -98,10 +98,6 @@ class E2BSandboxManager implements SandboxManager {
     console.log("[sandbox] killed: ", sandbox.id);
   }
 
-  getUrl(sandbox: SandboxInstance, port: number): string {
-    return sandbox.sandbox.getHost(port);
-  }
-
   async get(id: string): Promise<SandboxInstance> {
     const sandbox = await Sandbox.connect(id);
 
@@ -140,6 +136,10 @@ class E2BSandboxManager implements SandboxManager {
     newPath: string,
   ): Promise<void> {
     await sandbox.sandbox.files.rename(oldPath, newPath);
+  }
+
+  getUrl(sandbox: SandboxInstance, port: number): string {
+    return sandbox.sandbox.getHost(port);
   }
 }
 
