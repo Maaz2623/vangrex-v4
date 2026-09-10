@@ -19,12 +19,6 @@ export async function executeTool(
   contextManager.incrementNodesExecuted();
   contextManager.incrementToolsExecuted();
 
-  await publishNodeStatus({
-    executionId: context.executionId,
-    nodeId: toolNode.id,
-    status: "running",
-  });
-
   try {
     const result = await execute();
 
@@ -35,22 +29,10 @@ export async function executeTool(
 
     contextManager.finishNode(toolNode.id);
 
-    await publishNodeStatus({
-      executionId: context.executionId,
-      nodeId: toolNode.id,
-      status: "success",
-    });
-
     return result;
   } catch (error) {
     contextManager.incrementErrors();
     contextManager.failNode(toolNode.id);
-
-    await publishNodeStatus({
-      executionId: context.executionId,
-      nodeId: toolNode.id,
-      status: "error",
-    });
 
     throw error;
   }

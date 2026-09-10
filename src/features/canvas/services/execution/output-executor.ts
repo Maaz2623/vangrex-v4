@@ -22,32 +22,14 @@ export async function executeOutput(
     throw new Error("Execution Id is required");
   }
 
-  await publishNodeStatus({
-    executionId: context.executionId,
-    nodeId: node.id,
-    status: "running",
-  });
-
   try {
     const input = getInputFromEdges(node.id, edges, context);
 
     console.log("[output node] input:", input);
 
     contextManager.finishNode(node.id);
-
-    await publishNodeStatus({
-      executionId: context.executionId,
-      nodeId: node.id,
-      status: "success",
-    });
   } catch (error) {
     contextManager.failNode(node.id);
-
-    await publishNodeStatus({
-      executionId: context.executionId,
-      nodeId: node.id,
-      status: "error",
-    });
 
     throw error;
   }

@@ -66,12 +66,6 @@ ${inputText}
 Use the connected input as data for this task.`
       : basePrompt;
 
-    await publishNodeStatus({
-      executionId: context.executionId,
-      nodeId: agent.id,
-      status: "running",
-    });
-
     const tools = createTools(connectedTools, context, publishNodeStatus);
 
     const result = await generateText({
@@ -87,19 +81,9 @@ Use the connected input as data for this task.`
       type: "agent",
       text: result.text,
     });
-
-    await publishNodeStatus({
-      executionId: context.executionId,
-      nodeId: agent.id,
-      status: "success",
-    });
   } catch (error) {
     contextManager.incrementErrors();
-    await publishNodeStatus({
-      executionId: context.executionId,
-      nodeId: agent.id,
-      status: "error",
-    });
+
     throw error;
   }
 }

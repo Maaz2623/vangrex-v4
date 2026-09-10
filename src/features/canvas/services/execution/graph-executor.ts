@@ -77,6 +77,12 @@ export class GraphExecutor {
       status: "running",
     };
 
+    await this.publishNodeStatus({
+      executionId: context.executionId,
+      nodeId: node.id,
+      status: "running",
+    });
+
     await this.persistNodeStatus({
       executionId: context.executionId,
       nodeId: node.id,
@@ -96,6 +102,12 @@ export class GraphExecutor {
       };
 
       const completedAt = new Date();
+
+      await this.publishNodeStatus({
+        executionId: context.executionId,
+        nodeId: node.id,
+        status: "success",
+      });
 
       await this.persistNodeStatus({
         executionId: context.executionId,
@@ -126,6 +138,12 @@ export class GraphExecutor {
       const completedAt = new Date();
 
       const message = error instanceof Error ? error.message : String(error);
+
+      await this.publishNodeStatus({
+        executionId: context.executionId,
+        nodeId: node.id,
+        status: "error",
+      });
 
       await this.persistNodeStatus({
         executionId: context.executionId,

@@ -51,19 +51,9 @@ export async function executeSandbox(
       type: "sandbox",
       sandboxId: sandbox.id,
     });
-
-    await publishNodeStatus({
-      executionId: context.executionId,
-      nodeId: node.id,
-      status: "success",
-    });
   } catch (error) {
     contextManager.incrementErrors();
-    await publishNodeStatus({
-      executionId: context.executionId,
-      nodeId: node.id,
-      status: "error",
-    });
+
     throw error;
   }
 }
