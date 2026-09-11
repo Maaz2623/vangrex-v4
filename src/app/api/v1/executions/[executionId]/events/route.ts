@@ -17,7 +17,13 @@ const POLL_INTERVAL_MS = 500;
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ executionId: string }> },
+  {
+    params,
+  }: {
+    params: Promise<{
+      executionId: string;
+    }>;
+  },
 ) {
   try {
     const { executionId } = await params;
@@ -63,7 +69,22 @@ export async function GET(
     const stream = new ReadableStream({
       async start(controller) {
         let closed = false;
-        let interval: ReturnType<typeof setInterval> | undefined;
+        let polling = false;
+
+        let pollTimeout: ReturnType<typeof setTimeout> | undefined;
+
+        /*
+         * Track every event that has already been sent
+         * through this SSE connection.
+         *
+         * This prevents the exact same event from being
+         * emitted multiple times.
+         */
+        const sentEventIds = new Set<string>();
+
+        /*
+         * Cursor for polling.
+         */
         let lastCreatedAt: Date | null = null;
 
         const close = () => {
@@ -73,22 +94,34 @@ export async function GET(
 
           closed = true;
 
-          if (interval) {
-            clearInterval(interval);
-            interval = undefined;
+          if (pollTimeout) {
+            clearTimeout(pollTimeout);
+            pollTimeout = undefined;
           }
 
           try {
             controller.close();
           } catch {
-            // Stream may already be closed by the runtime.
+            // Stream may already be closed.
           }
         };
 
         const sendEvent = (event: typeof executionEventsTable.$inferSelect) => {
           if (closed) {
-            return;
+            return false;
           }
+
+          /*
+           * IMPORTANT:
+           *
+           * Never send the same database event twice
+           * during this connection.
+           */
+          if (sentEventIds.has(event.id)) {
+            return false;
+          }
+
+          sentEventIds.add(event.id);
 
           const payload = {
             id: event.id,
@@ -108,6 +141,96 @@ export async function GET(
           );
 
           lastCreatedAt = event.createdAt;
+
+          return true;
+        };
+
+        const getEvents = async () => {
+          /*
+           * First poll:
+           *
+           * Fetch all events for this execution.
+           */
+          if (!lastCreatedAt) {
+            return db
+              .select()
+              .from(executionEventsTable)
+              .where(eq(executionEventsTable.executionId, executionId))
+              .orderBy(
+                asc(executionEventsTable.createdAt),
+                asc(executionEventsTable.id),
+              );
+          }
+
+          /*
+           * Subsequent polls:
+           *
+           * Only fetch events created after the
+           * latest event we've processed.
+           */
+          return db
+            .select()
+            .from(executionEventsTable)
+            .where(
+              and(
+                eq(executionEventsTable.executionId, executionId),
+                gt(executionEventsTable.createdAt, lastCreatedAt),
+              ),
+            )
+            .orderBy(
+              asc(executionEventsTable.createdAt),
+              asc(executionEventsTable.id),
+            );
+        };
+
+        const processEvents = async () => {
+          if (closed) {
+            return;
+          }
+
+          /*
+           * Prevent overlapping database polls.
+           */
+          if (polling) {
+            return;
+          }
+
+          polling = true;
+
+          try {
+            const events = await getEvents();
+
+            for (const event of events) {
+              if (closed) {
+                return;
+              }
+
+              sendEvent(event);
+
+              /*
+               * Stop immediately when execution finishes.
+               */
+              if (TERMINAL_EVENTS.has(event.type)) {
+                close();
+                return;
+              }
+            }
+          } catch (error) {
+            console.error("Failed to poll execution events:", error);
+
+            close();
+            return;
+          } finally {
+            polling = false;
+          }
+
+          /*
+           * Schedule the next poll only after the
+           * current poll has completely finished.
+           */
+          if (!closed) {
+            pollTimeout = setTimeout(processEvents, POLL_INTERVAL_MS);
+          }
         };
 
         try {
@@ -116,18 +239,19 @@ export async function GET(
            * 1. Send events that already exist.
            * ---------------------------------------------------------
            */
-          const existingEvents = await db
-            .select()
-            .from(executionEventsTable)
-            .where(eq(executionEventsTable.executionId, executionId))
-            .orderBy(asc(executionEventsTable.createdAt));
+
+          const existingEvents = await getEvents();
 
           for (const event of existingEvents) {
+            if (closed) {
+              return;
+            }
+
             sendEvent(event);
 
             /*
-             * If we already reached a terminal event, there is
-             * nothing left to stream.
+             * If the execution has already finished,
+             * there is nothing else to stream.
              */
             if (TERMINAL_EVENTS.has(event.type)) {
               close();
@@ -137,11 +261,11 @@ export async function GET(
 
           /*
            * ---------------------------------------------------------
-           * 2. If execution is already terminal, close.
+           * 2. Execution may already be terminal.
            * ---------------------------------------------------------
            *
-           * This protects us if the execution finished but for some
-           * reason the terminal event was not persisted.
+           * This protects us if the execution finished but
+           * the terminal event wasn't persisted for some reason.
            */
           if (TERMINAL_STATUSES.has(execution.status)) {
             close();
@@ -150,65 +274,19 @@ export async function GET(
 
           /*
            * ---------------------------------------------------------
-           * 3. Poll for newly persisted events.
+           * 3. Start polling.
            * ---------------------------------------------------------
            */
-          interval = setInterval(async () => {
-            if (closed) {
-              return;
-            }
-
-            try {
-              let newEvents;
-
-              if (lastCreatedAt) {
-                newEvents = await db
-                  .select()
-                  .from(executionEventsTable)
-                  .where(
-                    and(
-                      eq(executionEventsTable.executionId, executionId),
-                      gt(executionEventsTable.createdAt, lastCreatedAt),
-                    ),
-                  )
-                  .orderBy(asc(executionEventsTable.createdAt));
-              } else {
-                /*
-                 * Normally this branch won't be reached because
-                 * existingEvents were loaded above, but it makes
-                 * the polling logic safe.
-                 */
-                newEvents = await db
-                  .select()
-                  .from(executionEventsTable)
-                  .where(eq(executionEventsTable.executionId, executionId))
-                  .orderBy(asc(executionEventsTable.createdAt));
-              }
-
-              for (const event of newEvents) {
-                sendEvent(event);
-
-                if (TERMINAL_EVENTS.has(event.type)) {
-                  close();
-                  return;
-                }
-              }
-            } catch (error) {
-              console.error("Failed to poll execution events:", error);
-
-              /*
-               * Don't leave a broken SSE connection hanging.
-               */
-              close();
-            }
-          }, POLL_INTERVAL_MS);
+          pollTimeout = setTimeout(processEvents, POLL_INTERVAL_MS);
 
           /*
            * ---------------------------------------------------------
            * 4. Handle client disconnect.
            * ---------------------------------------------------------
            */
-          request.signal.addEventListener("abort", close, { once: true });
+          request.signal.addEventListener("abort", close, {
+            once: true,
+          });
         } catch (error) {
           console.error("Failed to initialize execution event stream:", error);
 
@@ -218,8 +296,7 @@ export async function GET(
 
       cancel() {
         /*
-         * The client disconnected. The request abort handler
-         * performs the actual cleanup.
+         * The request abort handler handles cleanup.
          */
       },
     });
@@ -228,13 +305,11 @@ export async function GET(
       status: 200,
       headers: {
         "Content-Type": "text/event-stream; charset=utf-8",
+
         "Cache-Control": "no-cache, no-transform",
+
         Connection: "keep-alive",
 
-        /*
-         * Prevent buffering when running behind nginx/proxies
-         * that support this header.
-         */
         "X-Accel-Buffering": "no",
       },
     });
