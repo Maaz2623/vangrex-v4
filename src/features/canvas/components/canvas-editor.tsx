@@ -187,6 +187,8 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
     setExecuteAgentId,
     setDeleteNode,
     executionStatus,
+    executionId,
+    setExecutionId,
     setExecutionStatus,
     setRunId,
     runId,
@@ -521,6 +523,7 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
       {
         onSuccess: (data) => {
           setRunId(data.runId);
+          setExecutionId(data.executionId);
         },
         onError: (error) => {
           console.error("🔥 MUTATION ERROR:", error);
@@ -547,6 +550,7 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
       {
         onSuccess: (data) => {
           setRunId(data.runId);
+          setExecutionId(data.executionId);
           setExecutionStatus("running");
         },
 
@@ -730,7 +734,12 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
                 <Controls />
 
                 <Panel position="top-left" className="w-full">
-                  <CanvasHeader projectId={projectId} workflowId={workflowId} />
+                  <CanvasHeader
+                    nodes={nodes}
+                    edges={edges}
+                    projectId={projectId}
+                    workflowId={workflowId}
+                  />
                   <button onClick={() => {}}>Test Autopilot</button>
                 </Panel>
               </ReactFlow>
@@ -752,7 +761,6 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
           node={selectedNode}
           updateNode={updateNode}
         />
-        
       </aside>
     </div>
   );

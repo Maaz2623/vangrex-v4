@@ -20,9 +20,16 @@ interface CanvasStore {
   setExecutionStatus: (status: WorkflowExecutionStatus) => void;
   deleteNode: (nodeId: string) => void;
   setDeleteNode: (handler: (nodeId: string) => void) => void;
+  executionId: string | null;
+  setExecutionId: (executionId: string | null) => void;
 }
 
 export const useCanvasStore = create<CanvasStore>((set) => ({
+  executionId: null,
+  setExecutionId: (executionId) =>
+    set({
+      executionId: executionId,
+    }),
   selectedNodeId: null,
 
   setSelectedNode: (id) =>
