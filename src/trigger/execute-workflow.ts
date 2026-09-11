@@ -18,6 +18,7 @@ import {
 
 import { TriggerExecutionRuntime } from "./trigger-execution-runtime";
 import { nodeOutputStream, nodeStatusStream } from "./streams";
+import { publishExecutionEvent } from "@/features/canvas/services/execution/execution-event-publisher";
 
 export type ExecuteWorkflowPayload = {
   workflowId: string;
@@ -49,6 +50,13 @@ export const executeWorkflowTask = task({
       runId: ctx.run.id,
     });
 
+    await publishExecutionEvent({
+      executionId,
+      workflowId,
+      type: "execution.started",
+      data: {},
+    });
+
     const publishNodeStatus = async (data: {
       executionId: string;
       nodeId: string;
@@ -57,6 +65,27 @@ export const executeWorkflowTask = task({
       logger.log("Publishing node status", data);
 
       await nodeStatusStream.append(data);
+
+      const type =
+        data.status === "running"
+          ? "node.started"
+          : data.status === "success"
+            ? "node.completed"
+            : data.status === "error"
+              ? "node.failed"
+              : null;
+
+      if (type) {
+        await publishExecutionEvent({
+          executionId: data.executionId,
+          workflowId,
+          type,
+          data: {
+            nodeId: data.nodeId,
+            status: data.status,
+          },
+        });
+      }
 
       logger.log("Node status published", data);
 
@@ -71,6 +100,16 @@ export const executeWorkflowTask = task({
       logger.log("Publishing node output", data);
 
       await nodeOutputStream.append(data);
+
+      await publishExecutionEvent({
+        executionId: data.executionId,
+        workflowId,
+        type: "node.output",
+        data: {
+          nodeId: data.nodeId,
+          output: data.output,
+        },
+      });
 
       logger.log("Node output published", data);
 
@@ -182,12 +221,30 @@ export const executeWorkflowTask = task({
         output: context.outputs,
       });
 
+      await publishExecutionEvent({
+        executionId,
+        workflowId,
+        type: "execution.completed",
+        data: {},
+      });
+
       return {
         executionId,
         status: "completed",
       };
     } catch (error) {
       await failExecution(executionId, error);
+
+      const message = error instanceof Error ? error.message : String(error);
+
+      await publishExecutionEvent({
+        executionId,
+        workflowId,
+        type: "execution.failed",
+        data: {
+          error: message,
+        },
+      });
 
       throw error;
     }

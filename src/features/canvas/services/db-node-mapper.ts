@@ -1,127 +1,127 @@
-import { GithubConfig } from "svix";
-import { AppFlowNode } from "../components/nodes/node-config";
-import {
-  AgentConfig,
-  OutputConfig,
-  VariableConfig,
-} from "../components/nodes/types";
-import { SandboxConfig } from "../components/nodes/types/sandbox-node";
-import { ToolConfig } from "../components/nodes/types/tool-node";
+  import { GithubConfig } from "svix";
+  import { AppFlowNode } from "../components/nodes/node-config";
+  import {
+    AgentConfig,
+    OutputConfig,
+    VariableConfig,
+  } from "../components/nodes/types";
+  import { SandboxConfig } from "../components/nodes/types/sandbox-node";
+  import { ToolConfig } from "../components/nodes/types/tool-node";
 
-type DbNode = {
-  id: string;
-  type: string;
-  title: string;
-  description: string | null;
-  positionX: number;
-  positionY: number;
-  config: Record<string, unknown>;
-  metadata: {
-    disabled?: boolean;
-    collapsed?: boolean;
-    locked?: boolean;
-    status?: string;
-  } | null;
-};
-
-export function mapDbNodeToAppFlowNode(node: DbNode): AppFlowNode {
-  const metadata = node.metadata ?? {};
-
-  const data = {
-    title: node.title,
-    description: node.description ?? undefined,
+  type DbNode = {
+    id: string;
+    type: string;
+    title: string;
+    description: string | null;
+    positionX: number;
+    positionY: number;
+    config: Record<string, unknown>;
     metadata: {
-      disabled: metadata.disabled ?? false,
-      collapsed: metadata.collapsed ?? false,
-      locked: metadata.locked ?? false,
-    },
+      disabled?: boolean;
+      collapsed?: boolean;
+      locked?: boolean;
+      status?: string;
+    } | null;
   };
 
-  switch (node.type) {
-    case "agent":
-      return {
-        id: node.id,
-        type: "agent",
-        position: {
-          x: node.positionX,
-          y: node.positionY,
-        },
-        data: {
-          ...data,
-          config: node.config as AgentConfig,
-        },
-      };
+  export function mapDbNodeToAppFlowNode(node: DbNode): AppFlowNode {
+    const metadata = node.metadata ?? {};
 
-    case "tool-call":
-      return {
-        id: node.id,
-        type: "tool-call",
-        position: {
-          x: node.positionX,
-          y: node.positionY,
-        },
-        data: {
-          ...data,
-          config: node.config as ToolConfig,
-        },
-      };
+    const data = {
+      title: node.title,
+      description: node.description ?? undefined,
+      metadata: {
+        disabled: metadata.disabled ?? false,
+        collapsed: metadata.collapsed ?? false,
+        locked: metadata.locked ?? false,
+      },
+    };
 
-    case "variable":
-      return {
-        id: node.id,
-        type: "variable",
-        position: {
-          x: node.positionX,
-          y: node.positionY,
-        },
-        data: {
-          ...data,
-          config: node.config as VariableConfig,
-        },
-      };
+    switch (node.type) {
+      case "agent":
+        return {
+          id: node.id,
+          type: "agent",
+          position: {
+            x: node.positionX,
+            y: node.positionY,
+          },
+          data: {
+            ...data,
+            config: node.config as AgentConfig,
+          },
+        };
 
-    case "output":
-      return {
-        id: node.id,
-        type: "output",
-        position: {
-          x: node.positionX,
-          y: node.positionY,
-        },
-        data: {
-          ...data,
-          config: node.config as OutputConfig,
-        },
-      };
+      case "tool-call":
+        return {
+          id: node.id,
+          type: "tool-call",
+          position: {
+            x: node.positionX,
+            y: node.positionY,
+          },
+          data: {
+            ...data,
+            config: node.config as ToolConfig,
+          },
+        };
 
-    case "sandbox":
-      return {
-        id: node.id,
-        type: "sandbox",
-        position: {
-          x: node.positionX,
-          y: node.positionY,
-        },
-        data: {
-          ...data,
-          config: node.config as SandboxConfig,
-        },
-      };
+      case "variable":
+        return {
+          id: node.id,
+          type: "variable",
+          position: {
+            x: node.positionX,
+            y: node.positionY,
+          },
+          data: {
+            ...data,
+            config: node.config as VariableConfig,
+          },
+        };
 
-    // case "github":
-    //   return {
-    //     id: node.id,
-    //     type: "github",
-    //     position: {
-    //       x: node.positionX,
-    //       y: node.positionY,
-    //     },
-    //     data: {
-    //       ...data,
-    //       config: node.config as GithubConfig
-    //     }
-    //   }
-    default:
-      throw new Error(`Unsupported node type: ${node.type}`);
+      case "output":
+        return {
+          id: node.id,
+          type: "output",
+          position: {
+            x: node.positionX,
+            y: node.positionY,
+          },
+          data: {
+            ...data,
+            config: node.config as OutputConfig,
+          },
+        };
+
+      case "sandbox":
+        return {
+          id: node.id,
+          type: "sandbox",
+          position: {
+            x: node.positionX,
+            y: node.positionY,
+          },
+          data: {
+            ...data,
+            config: node.config as SandboxConfig,
+          },
+        };
+
+      // case "github":
+      //   return {
+      //     id: node.id,
+      //     type: "github",
+      //     position: {
+      //       x: node.positionX,
+      //       y: node.positionY,
+      //     },
+      //     data: {
+      //       ...data,
+      //       config: node.config as GithubConfig
+      //     }
+      //   }
+      default:
+        throw new Error(`Unsupported node type: ${node.type}`);
+    }
   }
-}

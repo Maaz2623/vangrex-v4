@@ -2,6 +2,7 @@ import { streams } from "@trigger.dev/sdk";
 
 import { NodeStatusType } from "@/features/canvas/components/nodes/types";
 import { ExecutionOutput } from "@/features/canvas/services/execution/execution-output";
+import { VangrexExecutionEvent } from "@/features/canvas/services/execution/execution-event";
 
 export const nodeStatusStream = streams.define<{
   executionId: string;
@@ -38,4 +39,8 @@ export const terminalReadyStream = streams.define<{
   pid: number;
 }>({
   id: "terminal-ready",
+});
+
+export const executionEventStream = streams.define<VangrexExecutionEvent>({
+  id: "execution-events",
 });
