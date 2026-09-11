@@ -1,0 +1,78 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[project]
+name = "vangrex"
+version = "0.1.0"
+description = "Official Python SDK for the Vangrex AI workflow platform"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+authors = [
+    { name = "Mohammed Maaz" }
+]
+
+dependencies = [
+    "httpx>=0.27.0,<1.0.0"
+]
+
+keywords = [
+    "vangrex",
+    "ai",
+    "workflow",
+    "automation",
+    "agents"
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0,<9.0",
+    "pytest-asyncio>=0.23,<2.0",
+    "respx>=0.21,<1.0",
+    "ruff>=0.6,<1.0",
+]
+
+
+[project.urls]
+Homepage = "https://vangrex.com"
+Repository = "https://github.com/Maaz2623/vangrex-v4"
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["vangrex"]
+
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "UP",
+    "B",
+]
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
