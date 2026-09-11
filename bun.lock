@@ -21,6 +21,7 @@
         "@trpc/client": "^11.18.0",
         "@trpc/server": "^11.18.0",
         "@trpc/tanstack-react-query": "^11.18.0",
+        "@vangrex/sdk": "^0.1.0",
         "@vercel/sandbox": "^3.1.0",
         "@xterm/addon-fit": "^0.11.0",
         "@xterm/xterm": "^6.0.0",
@@ -853,6 +854,8 @@
     "@types/validate-npm-package-name": ["@types/validate-npm-package-name@4.0.2", "", {}, "sha512-lrpDziQipxCEeK5kWxvljWYhUvOiB2A9izZd9B2AFarYAkqZshb4lPbRs7zKEic6eGtH8V/2qJW+dPp9OtF6bw=="],
 
     "@types/ws": ["@types/ws@8.18.1", "", { "dependencies": { "@types/node": "*" } }, "sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg=="],
+
+    "@vangrex/sdk": ["@vangrex/sdk@0.1.0", "", {}, "sha512-NZVAgBK4zY4DKG+FJECcDAp7vrB4Ql8L2F/0TfUYxNaysYIgk/mza7Ydux/yQhXQ4+S8xBYUttuWTnPvZfiuCw=="],
 
     "@vercel/backends": ["@vercel/backends@3.0.3", "", { "dependencies": { "@vercel/nft": "1.10.0", "@vercel/static-config": "3.4.3", "execa": "3.2.0", "fs-extra": "11.1.0", "get-port": "5.1.1", "oxc-transform": "0.111.0", "path-to-regexp": "8.3.0", "resolve.exports": "2.0.3", "rolldown": "1.0.0-rc.1", "srvx": "0.11.16", "ts-morph": "12.0.0", "tsx": "4.21.0", "zod": "3.22.4" }, "peerDependencies": { "@vercel/build-utils": "14.5.1" } }, "sha512-SJ5zEwtlPDhLEsucrmP5Xk9x3z28km841Zi+L+CKpCEMUA/85R5OnpUrhoJBxUQHjOy2gggcc3Udj8ZEAxpdaw=="],
 

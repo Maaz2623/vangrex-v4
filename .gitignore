@@ -2,6 +2,9 @@
 
 /.vangrex
 
+/packages/sdk/dist
+/packages/sdk/dist-test
+
 req-powershell.txt
 
 # dependencies

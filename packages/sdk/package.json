@@ -1,0 +1,49 @@
+{
+  "name": "@vangrex/sdk",
+  "version": "0.1.0",
+  "description": "Official SDK for the Vangrex AI workflow platform",
+  "license": "MIT",
+  "author": "Mohammed Maaz",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Maaz2623/vangrex-v4.git",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://github.com/Maaz2623/vangrex-v4",
+  "bugs": {
+    "url": "https://github.com/Maaz2623/vangrex-v4/issues"
+  },
+  "keywords": [
+    "vangrex",
+    "ai",
+    "workflow",
+    "automation",
+    "sdk"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.2",
+    "typescript": "^7.0.2"
+  }
+}

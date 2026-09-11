@@ -30,6 +30,6 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts",
     "trigger.config.ts"
-  ],
+, "packages/sdk/test.ts"  ],
   "exclude": ["node_modules"]
 }
