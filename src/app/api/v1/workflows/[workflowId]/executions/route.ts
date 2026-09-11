@@ -11,6 +11,7 @@ import { and, eq } from "drizzle-orm";
 import { createExecution } from "@/features/canvas/services/execution/execution-persistance";
 import { executeWorkflowTask } from "@/trigger/execute-workflow";
 import { mapDbNodeToAppFlowNode } from "@/features/canvas/services/db-node-mapper";
+import { requireApiKey } from "@/features/api-keys/api-key-auth";
 
 export async function POST(
   request: Request,
@@ -26,14 +27,12 @@ export async function POST(
     const body = await request.json().catch(() => ({}));
 
     const input = body.input ?? null;
-    const userId = body.userId;
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: "userId is required" },
-        { status: 401 },
-      );
-    }
+    const apiKey = await requireApiKey(request);
+
+    const userId = apiKey.userId;
+
+    const projectId = apiKey.projectId;
 
     // --------------------------------------------------
     // 1. Verify workflow ownership
@@ -46,11 +45,10 @@ export async function POST(
         name: workflowsTable.name,
       })
       .from(workflowsTable)
-      .innerJoin(projectsTable, eq(workflowsTable.projectId, projectsTable.id))
       .where(
         and(
           eq(workflowsTable.id, workflowId),
-          eq(projectsTable.ownerId, userId),
+          eq(workflowsTable.projectId, projectId),
         ),
       );
 

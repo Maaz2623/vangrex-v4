@@ -29,6 +29,45 @@ export const executionNodeStatusEnum = pgEnum("execution_node_status", [
   "error",
 ]);
 
+export const apiKeysTable = pgTable(
+  "api_keys",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projectsTable.id, { onDelete: "cascade" }),
+
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+
+    name: varchar("name", { length: 255 }).notNull(),
+
+    keyPrefix: varchar("key_prefix", { length: 32 }).notNull(),
+
+    keyHash: text("key_hash").notNull().unique(),
+
+    lastUsedAt: timestamp("last_used_at", {
+      withTimezone: true,
+    }),
+
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    })
+      .defaultNow()
+      .notNull(),
+
+    revokedAt: timestamp("revoked_at", {
+      withTimezone: true,
+    }),
+  },
+  (table) => [
+    index("api_keys_project_id_idx").on(table.projectId),
+    index("api_keys_user_id_idx").on(table.userId),
+  ],
+);
+
 export const credentialsTable = pgTable(
   "credentials",
   {
