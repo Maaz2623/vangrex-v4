@@ -29,6 +29,35 @@ export const executionNodeStatusEnum = pgEnum("execution_node_status", [
   "error",
 ]);
 
+export const executionEventsTable = pgTable(
+  "execution_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    executionId: uuid("execution_id")
+      .notNull()
+      .references(() => executionsTable.id, { onDelete: "cascade" }),
+
+    workflowId: uuid("workflow_id")
+      .notNull()
+      .references(() => workflowsTable.id, { onDelete: "cascade" }),
+
+    type: text("type").notNull(),
+
+    data: jsonb("data").$type<Record<string, unknown>>().notNull(),
+
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("execution_events_execution_id_idx").on(table.executionId),
+    index("execution_events_created_at_idx").on(table.createdAt),
+  ],
+);
+
 export const apiKeysTable = pgTable(
   "api_keys",
   {
