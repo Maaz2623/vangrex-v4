@@ -9,6 +9,7 @@ import {
   BlocksIcon,
   BookOpenIcon,
   BookOpenTextIcon,
+  CodeXmlIcon,
   Command,
   FileIcon,
   FolderKanbanIcon,
@@ -48,6 +49,7 @@ const dashboardNav = [
     href: "projects",
     icon: FolderKanbanIcon,
   },
+ 
 ];
 
 const projectNav = [
@@ -65,6 +67,11 @@ const projectNav = [
     title: "Secrets",
     href: "secrets",
     icon: KeyRoundIcon,
+  },
+   {
+    title: "API Keys",
+    href: "api-keys",
+    icon: CodeXmlIcon,
   },
   {
     title: "Settings",

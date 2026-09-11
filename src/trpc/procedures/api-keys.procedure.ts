@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { db } from "@/db";
 import { apiKeysTable, projectsTable } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 
 import {
   createApiKey,
@@ -11,6 +11,43 @@ import {
 import { createTRPCRouter, protectedProcedure } from "../init";
 
 export const apiKeysRouter = createTRPCRouter({
+   get: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().uuid(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const [project] = await db
+        .select({
+          id: projectsTable.id,
+        })
+        .from(projectsTable)
+        .where(
+          and(
+            eq(projectsTable.id, input.projectId),
+            eq(projectsTable.ownerId, ctx.auth.user.id),
+          ),
+        )
+        .limit(1);
+
+      if (!project) {
+        throw new Error("Project not found");
+      }
+
+      return db
+        .select({
+          id: apiKeysTable.id,
+          name: apiKeysTable.name,
+          keyPrefix: apiKeysTable.keyPrefix,
+          createdAt: apiKeysTable.createdAt,
+          lastUsedAt: apiKeysTable.lastUsedAt,
+          revokedAt: apiKeysTable.revokedAt,
+        })
+        .from(apiKeysTable)
+        .where(eq(apiKeysTable.projectId, project.id))
+        .orderBy(desc(apiKeysTable.createdAt));
+    }),
   create: protectedProcedure
     .input(
       z.object({
