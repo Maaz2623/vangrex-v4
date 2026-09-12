@@ -740,7 +740,6 @@ export const CanvasEditor = ({ projectId, workflowId }: Props) => {
                     projectId={projectId}
                     workflowId={workflowId}
                   />
-                  <button onClick={() => {}}>Test Autopilot</button>
                 </Panel>
               </ReactFlow>
             </div>

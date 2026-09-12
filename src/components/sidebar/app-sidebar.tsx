@@ -49,7 +49,6 @@ const dashboardNav = [
     href: "projects",
     icon: FolderKanbanIcon,
   },
- 
 ];
 
 const projectNav = [
@@ -59,16 +58,6 @@ const projectNav = [
     icon: WorkflowIcon,
   },
   {
-    title: "Knowledge",
-    href: "knowledge",
-    icon: BookOpenIcon,
-  },
-  {
-    title: "Secrets",
-    href: "secrets",
-    icon: KeyRoundIcon,
-  },
-   {
     title: "API Keys",
     href: "api-keys",
     icon: CodeXmlIcon,
@@ -96,36 +85,7 @@ const workflowNav = [
     href: "executions",
     icon: PlayIcon,
   },
-  {
-    title: "Variables",
-    href: "variables",
-    icon: VariableIcon,
-  },
-  {
-    title: "Secrets",
-    href: "secrets",
-    icon: KeyRoundIcon,
-  },
-  {
-    title: "Knowledge",
-    href: "knowledge",
-    icon: BookOpenTextIcon,
-  },
-  {
-    title: "Files",
-    href: "files",
-    icon: FileIcon,
-  },
-  {
-    title: "Logs",
-    href: "logs",
-    icon: LogsIcon,
-  },
-  {
-    title: "Versions",
-    href: "versions",
-    icon: HistoryIcon,
-  },
+
   {
     title: "Settings",
     href: "settings",
