@@ -18,10 +18,14 @@ import {
   Zap,
 } from "lucide-react";
 
-import { useExecutions } from "@/features/executions/hooks/use-executions";
+import {
+  useExecuteWorkflow,
+  useExecutions,
+} from "@/features/executions/hooks/use-executions";
 import { useGetWorkflow } from "@/features/workflows/hooks/use-workflows";
 import { useGetNodes } from "@/features/canvas/hooks/node.hooks";
 import { useGetEdges } from "@/features/canvas/hooks/edge.hooks";
+import { mapDbNodeToAppFlowNode } from "@/features/canvas/services/db-node-mapper";
 
 const OverviewPage = () => {
   const params = useParams();
@@ -29,6 +33,8 @@ const OverviewPage = () => {
 
   const projectId = params.projectId as string;
   const workflowId = params.workflowId as string;
+
+  const executeWorkflowMutation = useExecuteWorkflow(workflowId, projectId);
 
   const workflowQuery = useGetWorkflow({
     projectId,
@@ -43,6 +49,22 @@ const OverviewPage = () => {
   const nodes = nodesQuery.data ?? [];
   const edges = edgesQuery.data ?? [];
   const executions = executionsQuery.data ?? [];
+  const handleRunWorkflow = async () => {
+    if (executeWorkflowMutation.isPending || nodes.length === 0) return;
+
+    try {
+      const executionNodes = nodes.map(mapDbNodeToAppFlowNode);
+
+      const result = await executeWorkflowMutation.mutateAsync({
+        workflowId,
+        nodes: executionNodes,
+        edges,
+        input: undefined,
+      });
+    } catch {
+      // Error toast is already handled by useExecuteWorkflow.
+    }
+  };
 
   const isLoading =
     workflowQuery.isLoading ||
@@ -337,13 +359,11 @@ const OverviewPage = () => {
             </button>
 
             <button
-              onClick={() =>
-                router.push(`/projects/${projectId}/workflows/${workflowId}`)
-              }
+              onClick={handleRunWorkflow}
               className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
             >
               <Play className="h-4 w-4" />
-              Open workflow
+              Test Workflow
             </button>
           </div>
         </div>
@@ -643,9 +663,8 @@ const OverviewPage = () => {
                 icon={<Play className="h-4 w-4" />}
                 title="Run workflow"
                 description="Start a new execution"
-                onClick={() =>
-                  router.push(`/projects/${projectId}/workflows/${workflowId}`)
-                }
+                onClick={handleRunWorkflow}
+                // disabled={executeWorkflowMutation.isPending || nodes.length === 0}
               />
 
               <QuickAction
@@ -653,12 +672,12 @@ const OverviewPage = () => {
                 title="Edit workflow"
                 description={`${nodes.length} nodes · ${edges.length} connections`}
                 onClick={() =>
-                  router.push(`/projects/${projectId}/workflows/${workflowId}`)
+                  router.push(`/projects/${projectId}/workflows/${workflowId}/canvas`)
                 }
               />
 
               <QuickAction
-                icon={<ExternalLink className="h-4 w-4" />}
+                icon={<Activity className="h-4 w-4" />}
                 title="View executions"
                 description={`${executions.length} total executions`}
                 onClick={() =>
@@ -669,11 +688,13 @@ const OverviewPage = () => {
               />
 
               <QuickAction
-                icon={<Sparkles className="h-4 w-4" />}
-                title="Test workflow"
-                description="Run a test input"
+                icon={<Settings2 className="h-4 w-4" />}
+                title="Workflow settings"
+                description="Configure workflow settings"
                 onClick={() =>
-                  router.push(`/projects/${projectId}/workflows/${workflowId}`)
+                  router.push(
+                    `/projects/${projectId}/workflows/${workflowId}/settings`,
+                  )
                 }
               />
             </div>
