@@ -9,6 +9,8 @@ export interface ExecutionContext {
   workflowId: string;
   startedAt: number;
 
+  input: Record<string, unknown>;
+
   nodeNames: Record<string, string>;
 
   outputs: Record<string, ExecutionOutput>;

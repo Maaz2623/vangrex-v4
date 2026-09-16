@@ -1,4 +1,5 @@
 import { BaseEdgeMetadata } from "@/features/canvas/components/edges/types/base-edge";
+import { JSONSchema } from "@/types/json-schema";
 import { defineRelations } from "drizzle-orm";
 import {
   pgTable,
@@ -355,6 +356,9 @@ export const workflowsTable = pgTable("workflows", {
   description: text("description"),
 
   isEntryPoint: boolean("is_entry_point").notNull().default(false),
+
+  inputSchema: jsonb("input_schema").$type<JSONSchema | null>(),
+  outputSchema: jsonb("output_schema").$type<JSONSchema | null>(),
 
   createdAt: timestamp("created_at", {
     withTimezone: true,

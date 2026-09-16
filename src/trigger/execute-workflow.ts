@@ -19,6 +19,11 @@ import {
 import { TriggerExecutionRuntime } from "./trigger-execution-runtime";
 import { nodeOutputStream, nodeStatusStream } from "./streams";
 import { publishExecutionEvent } from "@/features/canvas/services/execution/execution-event-publisher";
+import { validateWorkflowInput } from "@/lib/validation/validate-workflow-input";
+import { db } from "@/db";
+import { workflowsTable } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { validateWorkflowOutput } from "@/lib/validation/validate-workflow-output";
 
 export type ExecuteWorkflowPayload = {
   workflowId: string;
@@ -26,7 +31,7 @@ export type ExecuteWorkflowPayload = {
   startNodeId: string;
   nodes: AppFlowNode[];
   edges: FlowEdge[];
-  input: unknown;
+  input: Record<string, unknown>;
   userId: string;
 };
 
@@ -163,7 +168,15 @@ export const executeWorkflowTask = task({
       return data;
     };
 
+    const [workflow] = await db
+      .select()
+      .from(workflowsTable)
+      .where(eq(workflowsTable.id, workflowId));
+
+    validateWorkflowInput(workflow.inputSchema, input);
+
     const context: ExecutionContext = {
+      input,
       executionId,
       workflowId,
       startedAt: Date.now(),
@@ -217,6 +230,16 @@ export const executeWorkflowTask = task({
     try {
       await graph.execute(startNode, nodes, edges, context, userId);
 
+      const outputNode = nodes.find((node) => node.type === "output");
+
+      if (!outputNode) {
+        throw new Error("Workflow has no output node");
+      }
+
+      const workflowOutput = context.outputs[outputNode.id];
+
+      validateWorkflowOutput(workflow.outputSchema, workflowOutput);
+      
       await completeExecution(executionId, {
         output: context.outputs,
       });

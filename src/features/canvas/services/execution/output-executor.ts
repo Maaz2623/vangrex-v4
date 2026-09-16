@@ -27,10 +27,45 @@ export async function executeOutput(
 
     console.log("[output node] input:", input);
 
+    const text = input
+      .map((item) => {
+        if (item.output.type === "agent") {
+          return item.output.text;
+        }
+
+        if (item.output.type === "output") {
+          return item.output.text;
+        }
+
+        if (item.output.type === "knowledge") {
+          return item.output.documents.join("\n");
+        }
+
+        if (
+          item.output.type === "tool" ||
+          item.output.type === "human" ||
+          item.output.type === "github"
+        ) {
+          return JSON.stringify(item.output.value);
+        }
+
+        if (item.output.type === "sandbox") {
+          return item.output.sandboxId;
+        }
+
+        return "";
+      })
+      .filter(Boolean)
+      .join("\n");
+
+    contextManager.setOutput(node.id, {
+      type: "output",
+      text,
+    });
+
     contextManager.finishNode(node.id);
   } catch (error) {
     contextManager.failNode(node.id);
-
     throw error;
   }
 }

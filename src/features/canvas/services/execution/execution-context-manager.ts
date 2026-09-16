@@ -21,8 +21,6 @@ export class ExecutionContextManager {
 
   setOutput(nodeId: string, output: ExecutionOutput) {
     this.context.outputs[nodeId] = output;
-
-
   }
 
   getVariable<T = unknown>(name: string): T | undefined {
@@ -121,5 +119,17 @@ export class ExecutionContextManager {
 
   getStats() {
     return this.context.stats;
+  }
+
+  getInput<T = unknown>(name?: string): T | undefined {
+    if (!name) {
+      return this.context.input as T;
+    }
+
+    return this.context.input[name] as T | undefined;
+  }
+
+  setInput(name: string, value: unknown) {
+    this.context.input[name] = value;
   }
 }

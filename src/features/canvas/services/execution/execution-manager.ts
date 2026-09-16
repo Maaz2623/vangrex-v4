@@ -1,14 +1,14 @@
-import { sandboxManager } from "@/lib/sandbox/sandbox-manager";
+import { useExecutionStore } from "../../store/execution-store";
+
 import { FlowEdge } from "../../components/edges/types/base-edge";
 import { AppFlowNode } from "../../components/nodes/node-config";
-import { useExecutionStore } from "../../store/execution-store";
-import { workspaceManager } from "../workspace/workspace-manager";
+
 import { ExecutionContext } from "./execution-context";
 import { getStartNodes } from "./get-start-nodes";
-import { GraphExecutor } from "./graph-executor";
+
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { tasks, logger, streams } from "@trigger.dev/sdk";
+
 import { executeWorkflowTask } from "@/trigger/execute-workflow";
 
 export class ExecutionManager {
@@ -23,9 +23,20 @@ export class ExecutionManager {
   ) {
     useExecutionStore.getState().clear();
 
+    const input =
+      options?.input &&
+      typeof options.input === "object" &&
+      !Array.isArray(options.input)
+        ? (options.input as Record<string, unknown>)
+        : {};
+
     const context: ExecutionContext = {
+      input,
+
       executionId: options?.executionId,
+
       workflowId: options?.workflowId ?? "manual",
+
       startedAt: Date.now(),
 
       nodeNames: Object.fromEntries(
@@ -33,12 +44,13 @@ export class ExecutionManager {
       ),
 
       outputs: {},
+
       variables: {},
 
       artifacts: [],
 
       metadata: {
-        input: options?.input ?? null,
+        input,
       },
 
       nodeStates: Object.fromEntries(
@@ -76,7 +88,7 @@ export class ExecutionManager {
       throw new Error("Unauthorized: no authenticated user.");
     }
 
-    console.log("[perf] before inngest.send", Date.now());
+    console.log("[perf] before trigger", Date.now());
 
     const handle = await executeWorkflowTask.trigger({
       workflowId: options?.workflowId ?? "manual",
@@ -84,10 +96,11 @@ export class ExecutionManager {
       nodes,
       edges,
       startNodeId: startNodes[0].id,
-      input: options?.input ?? null,
+      input,
       userId: session.user.id,
     });
-    console.log("[perf] after inngest.send", Date.now());
+
+    console.log("[perf] after trigger", Date.now());
 
     return {
       executionId,
