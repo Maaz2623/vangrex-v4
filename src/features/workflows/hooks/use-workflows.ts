@@ -105,3 +105,26 @@ export const useDeleteWorkflow = () => {
     }),
   );
 };
+
+export const useUpdateWorkflow = () => {
+  const trpc = useTRPC();
+
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    trpc.workflows.updateWorkflow.mutationOptions({
+      onSuccess: (data) => {
+        toast.success("Workflow updated.");
+        queryClient.invalidateQueries(
+          trpc.workflows.getWorkflow.queryOptions({
+            projectId: data.projectId,
+            workflowId: data.id,
+          }),
+        );
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    }),
+  );
+};

@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { projectsTable, workflowsTable } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { JSONSchema } from "@/types/json-schema";
 
 export const workflowsRouter = createTRPCRouter({
   getWorkflow: protectedProcedure
@@ -177,5 +178,48 @@ export const workflowsRouter = createTRPCRouter({
         id: deletedWorkflow.id,
         projectId: project.id,
       };
+    }),
+  updateWorkflow: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        workflowId: z.string(),
+        name: z.string().optional(),
+        description: z.string().optional(),
+
+        inputSchema: z.custom<JSONSchema>().nullable().optional(),
+        outputSchema: z.custom<JSONSchema>().nullable().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { workflowId, ...updates } = input;
+
+      const [workflow] = await db
+        .select({
+          id: workflowsTable.id,
+          projectId: workflowsTable.projectId,
+        })
+        .from(workflowsTable)
+        .where(
+          and(
+            eq(workflowsTable.id, workflowId),
+            eq(workflowsTable.projectId, input.projectId),
+          ),
+        );
+
+      if (!workflow) {
+        throw new Error("Workflow not found");
+      }
+
+      const [updatedWorkflow] = await db
+        .update(workflowsTable)
+        .set({
+          ...updates,
+          updatedAt: new Date(),
+        })
+        .where(eq(workflowsTable.id, workflowId))
+        .returning();
+
+      return updatedWorkflow;
     }),
 });

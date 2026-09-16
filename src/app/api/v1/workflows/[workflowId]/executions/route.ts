@@ -24,9 +24,15 @@ export async function POST(
   try {
     const { workflowId } = await params;
 
-    const body = await request.json().catch(() => ({}));
+    const body = await request.json();
 
-    const input = body.input ?? null;
+    console.log("========== API REQUEST DEBUG ==========");
+    console.log("body:", body);
+    console.log("body.input:", body.input);
+    console.log("typeof body.input:", typeof body.input);
+    console.log("=======================================");
+
+    const input = body.input;
 
     const apiKey = await requireApiKey(request);
 

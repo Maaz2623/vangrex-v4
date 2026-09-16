@@ -25,3 +25,11 @@ export interface JSONSchema {
 
   additionalProperties?: boolean;
 }
+
+export interface SchemaField {
+  id: string;
+  name: string;
+  type: JSONSchemaType;
+  description: string;
+  required: boolean;
+}

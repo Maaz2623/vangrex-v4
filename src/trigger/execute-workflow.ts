@@ -173,6 +173,13 @@ export const executeWorkflowTask = task({
       .from(workflowsTable)
       .where(eq(workflowsTable.id, workflowId));
 
+    console.log("========== WORKFLOW INPUT DEBUG ==========");
+    console.log("input:", input);
+    console.log("typeof input:", typeof input);
+    console.log("isArray:", Array.isArray(input));
+    console.log("schema:", workflow.inputSchema);
+    console.log("==========================================");
+
     validateWorkflowInput(workflow.inputSchema, input);
 
     const context: ExecutionContext = {
@@ -239,7 +246,7 @@ export const executeWorkflowTask = task({
       const workflowOutput = context.outputs[outputNode.id];
 
       validateWorkflowOutput(workflow.outputSchema, workflowOutput);
-      
+
       await completeExecution(executionId, {
         output: context.outputs,
       });
