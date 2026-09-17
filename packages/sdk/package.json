@@ -1,6 +1,6 @@
 {
   "name": "@vangrex/sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Official SDK for the Vangrex AI workflow platform",
   "license": "MIT",
   "author": "Mohammed Maaz",
@@ -8,10 +8,21 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "vangrex": "./dist/cli.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./workflow-types": {
+      "types": "./dist/workflow-types.d.ts",
+      "import": "./dist/workflow-types.js"
+    },
+    "./workflow-contract": {
+      "types": "./dist/workflow-contract.d.ts",
+      "import": "./dist/workflow-contract.js"
     }
   },
   "files": [

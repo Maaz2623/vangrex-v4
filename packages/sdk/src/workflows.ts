@@ -1,16 +1,17 @@
 import type { VangrexClient } from "./client.js";
 import type { RunWorkflowResponse } from "./types.js";
+import type { WorkflowMap } from "./workflow-types.js";
 
 export interface RunWorkflowOptions {
   signal?: AbortSignal;
 }
 
-export class WorkflowsResource {
+export class WorkflowsResource<TWorkflows extends WorkflowMap = WorkflowMap> {
   constructor(private readonly client: VangrexClient) {}
 
-  async run(
-    workflowId: string,
-    input: unknown = {},
+  async run<K extends keyof TWorkflows & string>(
+    workflowId: K,
+    input: TWorkflows[K]["input"],
     options: RunWorkflowOptions = {},
   ): Promise<RunWorkflowResponse> {
     if (!workflowId || typeof workflowId !== "string") {
