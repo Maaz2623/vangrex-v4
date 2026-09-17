@@ -1,45 +1,38 @@
-import Link from "next/link";
-import { ArrowLeft, Search } from "lucide-react";
+"use client";
 
-import { docsConfig } from "../lib/config";
-import { DocsMobileNav } from "./docs-mobile-nav";
+import Link from "next/link";
+
+import { Roboto_Mono } from "next/font/google";
+
+import { Logo } from "@/components/logo";
+import { cn } from "@/lib/utils";
+
 import { DocsSearch } from "./docs-search";
+
+const roboto = Roboto_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+});
 
 export function DocsHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-[1600px] items-center px-4">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-14 max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Logo */}
+        <Link
+          href="/docs"
+          className={cn("flex items-center", roboto.className)}
+        >
+          <Logo width={38} height={38} />
+
+          <span className="text-lg font-semibold">Vangrex / Docs</span>
+        </Link>
+
+        {/* Actions */}
         <div className="flex items-center gap-2">
-          <DocsMobileNav />
+          <DocsSearch />
 
-          <Link
-            href={docsConfig.links.docs}
-            className="flex items-center gap-2 font-semibold tracking-tight"
-          >
-            <span className="flex size-7 items-center justify-center rounded-md bg-foreground text-xs font-bold text-background">
-              V
-            </span>
-
-            <span className="hidden sm:inline">{docsConfig.name}</span>
-
-            <span className="hidden text-muted-foreground sm:inline">/</span>
-
-            <span className="hidden text-muted-foreground sm:inline">Docs</span>
-          </Link>
-        </div>
-
-        <div className="ml-auto flex items-center gap-2">
-          <div className="hidden md:block">
-            <DocsSearch />
-          </div>
-
-          <Link
-            href={docsConfig.links.home}
-            className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            aria-label="Back to Vangrex"
-          >
-            <ArrowLeft className="size-4" />
-          </Link>
+          {/* <ThemeToggle /> */}
         </div>
       </div>
     </header>
