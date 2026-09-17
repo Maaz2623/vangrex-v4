@@ -1,0 +1,836 @@
+---
+title: Nodes
+description: Understand how nodes work, how they are configured, and how they fit into a Vangrex workflow.
+---
+
+---
+
+# Nodes
+
+Nodes are the building blocks of Vangrex workflows.
+
+Each node represents an operation that can be performed during workflow execution.
+
+A workflow combines multiple nodes into a graph:
+
+```text id="9r2k8v"
+┌──────────┐
+│  Input   │
+└────┬─────┘
+     │
+     ▼
+┌──────────┐
+│ Process  │
+└────┬─────┘
+     │
+     ▼
+┌──────────┐
+│    AI    │
+└────┬─────┘
+     │
+     ▼
+┌──────────┐
+│  Output  │
+└──────────┘
+```
+
+The node performs the operation.
+
+The workflow determines how those operations are connected and executed.
+
+## What is a node?
+
+A node is a discrete unit of work inside a workflow.
+
+Conceptually:
+
+```text id="2j2m0q"
+Input
+  │
+  ▼
+Node
+  │
+  ├── Read input
+  ├── Perform operation
+  └── Produce output
+  │
+  ▼
+Next Node
+```
+
+A node can consume data from the workflow context and produce data for subsequent nodes.
+
+## Node configuration
+
+Each node has configuration that determines how it behaves.
+
+For example, an HTTP node might contain:
+
+```text id="7s1d4f"
+HTTP Node
+├── Method
+├── URL
+├── Headers
+├── Query parameters
+└── Request body
+```
+
+An AI node might contain:
+
+```text id="4g9wq3"
+AI Node
+├── Model
+├── Prompt
+├── Input
+└── Output configuration
+```
+
+A condition node might contain:
+
+```text id="z8x1cm"
+Condition Node
+├── Value
+├── Operator
+└── Comparison value
+```
+
+The configuration is part of the workflow definition.
+
+## Node inputs and outputs
+
+A node generally follows this pattern:
+
+```text id="0f6v6x"
+        Input
+          │
+          ▼
+    ┌───────────┐
+    │   Node    │
+    └─────┬─────┘
+          │
+          ▼
+       Output
+```
+
+For example:
+
+```text id="h4c3x9"
+Input
+  │
+  │ customerId
+  ▼
+Customer Lookup
+  │
+  │ customer
+  ▼
+AI Agent
+```
+
+The output of one operation can become input for another.
+
+## Node execution
+
+During an execution, Vangrex evaluates nodes according to the workflow graph.
+
+For a linear workflow:
+
+```text id="x3q6p8"
+Input
+  │
+  ▼
+Node A
+  │
+  ▼
+Node B
+  │
+  ▼
+Node C
+  │
+  ▼
+Output
+```
+
+The execution progresses through the graph.
+
+A node may be:
+
+- Pending
+- Running
+- Completed
+- Failed
+- Skipped
+
+The exact runtime states depend on the execution system.
+
+## Node types
+
+Vangrex workflows can contain different types of nodes.
+
+Common conceptual categories include:
+
+- Input nodes
+- Output nodes
+- AI nodes
+- Agent nodes
+- Tool nodes
+- HTTP nodes
+- Condition nodes
+- Transform nodes
+- Data nodes
+
+The available node types in your project depend on the capabilities implemented by Vangrex.
+
+## Input nodes
+
+Input nodes represent data entering the workflow.
+
+```text id="e5n4yd"
+Application
+     │
+     ▼
+  Input Node
+     │
+     ▼
+ Workflow
+```
+
+For example:
+
+```json id="w6t8ma"
+{
+  "customerId": "customer_123",
+  "message": "Where is my order?"
+}
+```
+
+The workflow can then use those values in subsequent nodes.
+
+## Output nodes
+
+Output nodes represent data leaving the workflow.
+
+```text id="d2p9qk"
+Workflow
+   │
+   ▼
+Output Node
+   │
+   ▼
+Application
+```
+
+For example:
+
+```json id="x4z7vn"
+{
+  "status": "resolved",
+  "response": "Your order is out for delivery."
+}
+```
+
+A well-defined output makes the workflow easier to integrate with applications.
+
+## AI nodes
+
+AI nodes provide model-powered capabilities inside workflows.
+
+A simple AI workflow can look like:
+
+```text id="s9v2hb"
+Input
+  │
+  ▼
+AI
+  │
+  ▼
+Output
+```
+
+The AI node may receive workflow data and use it as model input.
+
+For example:
+
+```text id="g3p6tz"
+Customer Request
+      │
+      ▼
+     AI
+      │
+      ▼
+Generated Response
+```
+
+AI nodes are useful for:
+
+- Generation
+- Summarization
+- Classification
+- Extraction
+- Reasoning
+- Transformation
+
+See [AI Models](/docs/ai/models).
+
+## Agent nodes
+
+An agent node provides a more dynamic AI execution model.
+
+Instead of only generating a response, an agent can use tools during execution.
+
+```text id="b7m5rx"
+                    ┌──────────────┐
+                    │ Search Tool  │
+                    └──────▲───────┘
+                           │
+Input ─────► AI Agent ─────┼────► Output
+                           │
+                    ┌──────┴───────┐
+                    │   API Tool   │
+                    └──────────────┘
+```
+
+Agents are useful when an AI system needs to interact with external capabilities.
+
+See [AI Agents](/docs/ai/agents).
+
+## Tool nodes
+
+Tool nodes expose capabilities that can be used during workflow execution.
+
+For example:
+
+```text id="2e7x5q"
+AI Agent
+   │
+   ├── Search
+   ├── HTTP API
+   ├── Data lookup
+   └── External service
+```
+
+A tool can retrieve data, perform an operation, or communicate with another system.
+
+See [AI Tools](/docs/ai/tools).
+
+## HTTP nodes
+
+An HTTP node can represent an external HTTP request.
+
+Conceptually:
+
+```text id="4f9m8q"
+Workflow
+   │
+   ▼
+HTTP Node
+   │
+   │ HTTPS request
+   ▼
+External API
+   │
+   ▼
+Response
+```
+
+For example:
+
+```text id="7k3m1p"
+GET
+https://api.example.com/customers/customer_123
+```
+
+The resulting response can then be passed to another node.
+
+HTTP operations are useful for connecting workflows to external services.
+
+## Condition nodes
+
+Condition nodes control branching.
+
+```text id="0v4t2n"
+             Condition
+             /       \
+            /         \
+         true         false
+          │             │
+          ▼             ▼
+       Node A         Node B
+```
+
+A condition can be used for:
+
+- Validation
+- Routing
+- Business rules
+- Classification
+- Fallback behavior
+
+For example:
+
+```text id="3w8xkq"
+Request
+   │
+   ▼
+Condition
+   │
+   ├── high priority ──► Escalate
+   │
+   └── normal ─────────► Process
+```
+
+## Transform nodes
+
+Transform nodes modify data between workflow stages.
+
+For example:
+
+```text id="q1m5sp"
+Input
+  │
+  │ raw data
+  ▼
+Transform
+  │
+  │ normalized data
+  ▼
+AI
+```
+
+A transformation might:
+
+- Rename fields
+- Select fields
+- Restructure objects
+- Format values
+- Combine data
+- Prepare model input
+
+Keeping transformations explicit can make data flow easier to understand.
+
+## Data nodes
+
+Data-related nodes can retrieve or manipulate application data when supported by the project.
+
+For example:
+
+```text id="e3n8vc"
+Input
+  │
+  ▼
+Data Lookup
+  │
+  ▼
+AI
+```
+
+A data node might retrieve customer information that is then provided to an AI agent.
+
+## Node connections
+
+Nodes become useful when connected.
+
+```text id="r2v6qm"
+[Input] ──► [HTTP] ──► [Transform] ──► [AI] ──► [Output]
+```
+
+Each connection contributes to the workflow graph.
+
+Connections can be linear:
+
+```text id="z6f8wy"
+A → B → C
+```
+
+or branching:
+
+```text id="x4c9ms"
+       ┌──► B
+A ─────┤
+       └──► C
+```
+
+or converging:
+
+```text id="d8p2qa"
+A ──► B ──┐
+          ├──► D
+C ──► E ──┘
+```
+
+## Node data flow
+
+Consider:
+
+```text id="v1s5mx"
+Input
+  │
+  │ customerId
+  ▼
+Lookup
+  │
+  │ customer
+  ▼
+AI Agent
+  │
+  │ response
+  ▼
+Output
+```
+
+The workflow context can carry information between these operations.
+
+The important distinction is:
+
+```text id="u9w7ek"
+Node
+ │
+ ├── Receives data
+ ├── Performs operation
+ └── Produces data
+```
+
+## Node configuration versus runtime state
+
+A node's configuration belongs to the workflow.
+
+Its runtime state belongs to an execution.
+
+For example:
+
+```text id="c6p3aw"
+Workflow
+└── AI Node
+    ├── Model: configured model
+    └── Prompt: configured prompt
+```
+
+During execution:
+
+```text id="8g4xqs"
+Execution
+└── AI Node
+    ├── Status: running
+    ├── Input: current input
+    └── Output: current result
+```
+
+This distinction allows the same node configuration to participate in many executions.
+
+## Node status
+
+During an execution, nodes can have different statuses.
+
+For example:
+
+```text id="m0s7cf"
+✓ Input       Completed
+✓ Validate    Completed
+● AI          Running
+○ Output      Pending
+```
+
+A failed execution might look like:
+
+```text id="q9a2mz"
+✓ Input       Completed
+✓ Validate    Completed
+✕ AI          Failed
+○ Output      Skipped
+```
+
+This information is useful for debugging and execution monitoring.
+
+## Node failures
+
+A node can fail for many reasons.
+
+For example:
+
+```text id="e6t8nr"
+HTTP Node
+    │
+    ├── Invalid URL
+    ├── Authentication failure
+    ├── Timeout
+    └── External API error
+```
+
+An AI node might fail because of:
+
+```text id="y3r8vk"
+AI Node
+    │
+    ├── Invalid configuration
+    ├── Provider failure
+    ├── Invalid input
+    └── Runtime error
+```
+
+The workflow should define appropriate behavior for important failure scenarios.
+
+## Branching with nodes
+
+Nodes can create sophisticated execution paths.
+
+For example:
+
+```text id="4z6h8c"
+                         Input
+                           │
+                           ▼
+                       Classify
+                           │
+                           ▼
+                      Condition
+                           │
+              ┌────────────┼────────────┐
+              │            │            │
+              ▼            ▼            ▼
+           Billing      Technical     General
+              │            │            │
+              ▼            ▼            ▼
+            Agent        Agent        Agent
+              │            │            │
+              └────────────┼────────────┘
+                           │
+                           ▼
+                         Output
+```
+
+This allows one workflow to handle multiple execution paths.
+
+## Parallel execution
+
+A graph can also contain independent branches.
+
+Conceptually:
+
+```text id="j5m2vn"
+              Input
+                │
+                ▼
+             Prepare
+                │
+       ┌────────┼────────┐
+       │        │        │
+       ▼        ▼        ▼
+    Search    Customer  Orders
+       │        │        │
+       └────────┼────────┘
+                │
+                ▼
+             Combine
+                │
+                ▼
+              Output
+```
+
+Whether independent nodes execute concurrently depends on the workflow execution engine and graph semantics.
+
+Design workflows around dependencies rather than assuming a particular execution order between unrelated branches.
+
+## Node naming
+
+Give nodes descriptive names.
+
+Prefer:
+
+```text id="h6m4sw"
+Validate Customer
+Fetch Order
+Generate Response
+Check Priority
+```
+
+over:
+
+```text id="v8n2jk"
+Node 1
+Node 2
+AI Node
+HTTP
+```
+
+Meaningful names make execution traces and debugging much easier.
+
+## Keep nodes focused
+
+A node should ideally have one clear responsibility.
+
+For example:
+
+```text id="p5x7qn"
+Validate
+   │
+   ▼
+Fetch Customer
+   │
+   ▼
+Generate Response
+```
+
+is easier to reason about than:
+
+```text id="w2m9sd"
+Do Everything
+```
+
+Focused nodes also make workflows easier to modify later.
+
+## Node composition
+
+The power of workflows comes from combining simple nodes.
+
+For example:
+
+```text id="b8x1fk"
+Input
+  │
+  ▼
+Validate
+  │
+  ▼
+HTTP
+  │
+  ▼
+Transform
+  │
+  ▼
+AI
+  │
+  ▼
+Condition
+  │
+  ├──► Success
+  │
+  └──► Fallback
+```
+
+Each node handles one part of the process.
+
+The workflow coordinates them.
+
+## Node reuse
+
+If the same operation appears repeatedly across workflows, consider whether it should become a reusable capability.
+
+For example:
+
+```text id="w4k7mp"
+Workflow A ──┐
+             │
+Workflow B ──┼──► Shared Capability
+             │
+Workflow C ──┘
+```
+
+The exact reuse mechanism depends on how your Vangrex project exposes custom and shared tooling.
+
+## Custom tooling
+
+Vangrex can be extended with application-specific capabilities as your platform evolves.
+
+A custom tool can conceptually look like:
+
+```text id="s1m9qa"
+AI Agent
+    │
+    ▼
+Custom Tool
+    │
+    ├── Application logic
+    ├── External API
+    └── Custom operation
+```
+
+This is useful when built-in nodes do not represent a capability your application needs.
+
+For platform-specific custom tooling capabilities, refer to the tooling features available in your Vangrex project.
+
+## Designing node boundaries
+
+When deciding whether something should be one node or several nodes, consider the responsibility of each operation.
+
+For example:
+
+```text id="q7r2vc"
+Fetch customer
+      │
+      ▼
+Normalize customer
+      │
+      ▼
+Analyze customer
+```
+
+These are three distinct responsibilities.
+
+Keeping them separate makes it possible to inspect each stage independently.
+
+## A complete workflow
+
+Putting the concepts together:
+
+```text id="n5d8yw"
+                         Input
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │  Validate   │
+                    └──────┬──────┘
+                           │
+                           ▼
+                  ┌──────────────────┐
+                  │ Customer Lookup  │
+                  └────────┬─────────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │  AI Agent   │
+                    └──────┬──────┘
+                           │
+                ┌──────────┼──────────┐
+                │          │          │
+                ▼          ▼          ▼
+             Search       API       Orders
+                │          │          │
+                └──────────┼──────────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │  Condition  │
+                    └──────┬──────┘
+                           │
+                  ┌────────┴────────┐
+                  │                 │
+                  ▼                 ▼
+              Escalate           Respond
+                  │                 │
+                  └────────┬────────┘
+                           │
+                           ▼
+                         Output
+```
+
+Each node contributes one part of the execution.
+
+## Node design checklist
+
+When creating nodes, consider:
+
+- Does the node have one clear responsibility?
+- What input does it consume?
+- What output does it produce?
+- Does it need configuration?
+- Can it fail?
+- What should happen when it fails?
+- Does it need AI?
+- Does it need access to a tool?
+- Should it branch execution?
+- Does its name clearly describe its purpose?
+
+## Next steps
+
+Now that you understand nodes, continue with [Inputs & Outputs](/docs/workflows/inputs-outputs) to learn how data enters and leaves a workflow.
+
+Then explore [Workflow Execution](/docs/workflows/execution) to understand how Vangrex runs the graph at runtime.

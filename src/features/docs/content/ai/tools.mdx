@@ -1,0 +1,1058 @@
+---
+title: AI Tools
+description: Give Vangrex agents controlled access to APIs, data, services, and application capabilities.
+---
+
+---
+
+# AI Tools
+
+Tools give AI agents the ability to interact with systems outside the model.
+
+A model can reason about information, but it cannot directly access your database, call your application APIs, or modify external systems.
+
+Tools provide that boundary.
+
+```text id="f8tq3m"
+                 Agent
+                   │
+                   ▼
+                 Model
+                   │
+            "I need data"
+                   │
+                   ▼
+                 Tool
+                   │
+          ┌────────┴────────┐
+          ▼                 ▼
+       External API       Database
+          │                 │
+          └────────┬────────┘
+                   ▼
+               Tool result
+                   │
+                   ▼
+                 Model
+```
+
+This allows an agent to reason about what it needs and use explicitly defined capabilities to obtain or modify information.
+
+---
+
+## What is a tool?
+
+A tool is an operation that an AI component can invoke.
+
+Conceptually:
+
+```text id="m2h9r1"
+Tool
+├── Name
+├── Description
+├── Input
+├── Execution
+└── Result
+```
+
+For example:
+
+```text id="8x1n9b"
+get_order
+```
+
+could accept:
+
+```json
+{
+  "orderId": "order_123"
+}
+```
+
+and return:
+
+```json
+{
+  "id": "order_123",
+  "status": "shipped",
+  "trackingNumber": "TRK_456"
+}
+```
+
+The agent does not need to know how the operation is implemented.
+
+It only needs to know what the tool does, what input it requires, and what result it returns.
+
+---
+
+## Tools create a boundary
+
+A useful way to think about tools is as a contract between an AI system and your application.
+
+```text id="2f9m7c"
+AI
+ │
+ │ structured request
+ ▼
+Tool
+ │
+ │ application logic
+ ▼
+External system
+ │
+ │ structured result
+ ▼
+Tool
+ │
+ ▼
+AI
+```
+
+The model decides **when a capability is needed**.
+
+The tool implementation determines **how that capability is actually performed**.
+
+This separation is important for security, reliability, and maintainability.
+
+---
+
+## Read tools
+
+Read tools retrieve information without intentionally changing external state.
+
+Examples:
+
+```text id="6m4x9e"
+get_customer
+get_order
+get_inventory
+search_documents
+get_account
+lookup_shipment
+```
+
+A support agent might use:
+
+```text id="3wq2a8"
+get_customer
+get_order
+get_shipment
+```
+
+to answer:
+
+```text
+"Where is my package?"
+```
+
+A typical flow is:
+
+```text id="s7j3xq"
+User request
+    ↓
+Agent
+    ↓
+get_order
+    ↓
+get_shipment
+    ↓
+Agent
+    ↓
+Response
+```
+
+---
+
+## Action tools
+
+Action tools modify external state.
+
+Examples include:
+
+```text id="c7h5jx"
+create_ticket
+send_email
+update_customer
+cancel_order
+issue_refund
+create_record
+```
+
+These tools require additional care because the result is not merely information retrieval.
+
+The operation may have permanent or externally visible consequences.
+
+---
+
+## Read vs action tools
+
+A useful architecture is:
+
+```text id="qv0e3h"
+                 Agent
+                   │
+          ┌────────┴────────┐
+          ▼                 ▼
+      Read tools        Action tools
+          │                 │
+      Retrieve          Modify state
+      information       externally
+```
+
+For sensitive actions, consider separating model reasoning from authorization and business-rule validation.
+
+For example:
+
+```text id="n8s4pk"
+Agent
+  ↓
+Determine requested action
+  ↓
+Structured output
+  ↓
+Workflow validation
+  ↓
+Authorization
+  ↓
+Action tool
+```
+
+This allows the AI to determine intent without giving it unrestricted authority over the application.
+
+---
+
+## Tool definitions
+
+Tool definitions communicate capabilities to the model.
+
+A useful tool definition should clearly describe:
+
+```text id="5j4k4h"
+Name
+Description
+Input parameters
+Parameter meaning
+Expected result
+Constraints
+```
+
+For example:
+
+```ts id="7p5d1f"
+const tool = {
+  name: "get_order",
+  description: "Retrieve the current status and details of a customer order.",
+  input: {
+    orderId: "The unique identifier of the order.",
+  },
+};
+```
+
+The description should explain **when the tool should be used**, not just repeat its name.
+
+---
+
+## Tool names
+
+Tool names should be:
+
+- Short
+- Specific
+- Consistent
+- Action-oriented
+
+Prefer:
+
+```text id="x6x1z8"
+get_order
+search_customers
+create_ticket
+get_shipment
+```
+
+over:
+
+```text id="f8a1yb"
+doThing
+helper
+database
+api
+process
+```
+
+The tool name is part of the interface exposed to the AI system, so clarity matters.
+
+---
+
+## Tool descriptions
+
+Compare:
+
+```text id="x3m6cw"
+"Gets order."
+```
+
+with:
+
+```text id="p1c8zq"
+"Retrieve the current status, items, and shipment
+information for a customer order using its order ID."
+```
+
+The second description gives the model useful information about the tool's purpose.
+
+A good description should answer:
+
+```text
+What does this tool do?
+When should it be used?
+What information does it provide?
+```
+
+---
+
+## Input schemas
+
+Tool inputs should be structured.
+
+For example:
+
+```json id="5w6d0f"
+{
+  "orderId": "order_123"
+}
+```
+
+rather than:
+
+```text id="q5n1se"
+"please get order order_123"
+```
+
+Structured input provides a predictable contract between the agent and the tool.
+
+For multiple parameters:
+
+```json id="qk7y9m"
+{
+  "customerId": "customer_123",
+  "orderId": "order_456",
+  "includeShipment": true
+}
+```
+
+Each parameter should have a clear meaning.
+
+---
+
+## Validate tool inputs
+
+Never assume that model-generated arguments are correct.
+
+A tool should validate its inputs before executing application logic.
+
+Conceptually:
+
+```text id="9s0v4e"
+Model
+  ↓
+Tool request
+  ↓
+Validate input
+  ↓
+Valid?
+ ┌───────┴───────┐
+ ↓               ↓
+Yes              No
+ ↓               ↓
+Execute       Tool error
+```
+
+For example:
+
+```ts id="t6g4qk"
+if (!orderId) {
+  throw new Error("orderId is required");
+}
+```
+
+For production systems, use appropriate schema validation rather than relying only on ad-hoc checks.
+
+---
+
+## Never trust model-generated arguments
+
+A model can produce incorrect arguments.
+
+For example:
+
+```json
+{
+  "orderId": "customer_123"
+}
+```
+
+when the tool expects an order ID.
+
+The tool should reject invalid input rather than blindly executing the request.
+
+This is especially important when tools perform mutations.
+
+---
+
+## Tool results
+
+Tool results should be structured and concise.
+
+For example:
+
+```json id="f1x8zq"
+{
+  "orderId": "order_123",
+  "status": "shipped",
+  "carrier": "Example Carrier",
+  "estimatedDelivery": "2026-09-20"
+}
+```
+
+This gives the model the information it needs without unnecessary implementation details.
+
+Avoid returning huge internal objects when only a few fields are relevant.
+
+---
+
+## Tool result errors
+
+Errors should communicate useful information to the agent.
+
+For example:
+
+```json id="7v6h1x"
+{
+  "error": "ORDER_NOT_FOUND",
+  "message": "No order was found for the provided order ID."
+}
+```
+
+This is more useful than:
+
+```text id="2s9m1c"
+Error 500
+```
+
+The agent can then decide whether to:
+
+```text id="g4x3c2"
+Ask for more information
+Try another tool
+Explain the problem
+Stop execution
+```
+
+The surrounding workflow can also apply deterministic error handling.
+
+---
+
+## Keep tool results bounded
+
+A tool should not automatically return everything it can access.
+
+For example, a database lookup might contain:
+
+```text id="4y9k2a"
+Customer profile
+Payment information
+Internal notes
+Orders
+Addresses
+Support history
+Metadata
+```
+
+If the agent only needs:
+
+```text id="3r6j2b"
+Order status
+Tracking number
+Estimated delivery
+```
+
+return those fields instead.
+
+Smaller results make agent context easier to manage.
+
+---
+
+## Tools and permissions
+
+Tool access should be explicit.
+
+For example:
+
+```text id="a8r7v2"
+Support Agent
+├── get_customer
+├── get_order
+└── get_shipment
+```
+
+A separate operations agent might have:
+
+```text id="x3j8v9"
+Operations Agent
+├── get_order
+├── update_order
+└── create_ticket
+```
+
+Do not expose capabilities simply because they exist.
+
+Expose the minimum set of tools required for the agent's objective.
+
+---
+
+## Sensitive tools
+
+Some tools have significantly higher consequences than others.
+
+For example:
+
+```text id="0p3m9w"
+Low impact
+├── search_documents
+├── get_order
+└── get_inventory
+
+Higher impact
+├── send_email
+├── update_customer
+├── cancel_order
+└── issue_refund
+```
+
+For higher-impact operations, consider:
+
+```text id="4n8y7j"
+Agent
+  ↓
+Requested action
+  ↓
+Validation
+  ↓
+Authorization
+  ↓
+Tool
+```
+
+The AI should not be treated as the authorization system.
+
+---
+
+## Tools inside deterministic workflows
+
+Tools do not have to be used exclusively by agents.
+
+A workflow can also use deterministic nodes to perform external operations.
+
+For example:
+
+```text id="z6p5w3"
+Trigger
+  ↓
+Validate input
+  ↓
+API request
+  ↓
+AI Agent
+  ↓
+Condition
+  ↓
+Database update
+```
+
+The important distinction is who determines the operation.
+
+```text id="k8q4h2"
+Deterministic node
+    → application decides the operation
+
+Agent tool
+    → model decides whether the capability is needed
+```
+
+Both approaches can exist in the same workflow.
+
+---
+
+## Tools and agents
+
+An agent can have several tools available:
+
+```text id="q2r7x6"
+                  ┌── get_customer
+                  │
+Agent ────────────┼── get_order
+                  │
+                  ├── get_shipment
+                  │
+                  └── create_ticket
+```
+
+The model can determine which capability is appropriate based on the user's request and the information already available.
+
+For example:
+
+```text id="d7c2n8"
+"Where is my order?"
+          ↓
+Agent
+          ↓
+get_order
+          ↓
+Order information
+          ↓
+get_shipment
+          ↓
+Shipment information
+          ↓
+Response
+```
+
+The exact sequence depends on the agent's instructions, context, tools, and model behavior.
+
+---
+
+## Tool calling loop
+
+A typical tool-enabled agent can be represented as:
+
+```text id="e3w5r8"
+                 ┌──────────────┐
+                 │ Agent input  │
+                 └──────┬───────┘
+                        ↓
+                 ┌──────────────┐
+                 │    Model     │
+                 └──────┬───────┘
+                        ↓
+                 Need a tool?
+                   ┌────┴────┐
+                  No        Yes
+                   │          │
+                   ▼          ▼
+                Output      Tool call
+                              │
+                              ▼
+                         Execute tool
+                              │
+                              ▼
+                         Tool result
+                              │
+                              └───────────→ Model
+```
+
+This loop can repeat until the agent produces its final output or execution reaches its configured limits.
+
+---
+
+## Multiple tool calls
+
+An agent may need several tools.
+
+For example:
+
+```text id="8b7y3m"
+User request
+    ↓
+Agent
+    ↓
+get_customer
+    ↓
+get_order
+    ↓
+get_shipment
+    ↓
+create_ticket
+    ↓
+Final response
+```
+
+Each tool result becomes part of the information available to the agent for subsequent reasoning.
+
+Because each additional tool call introduces latency and another possible failure point, keep the available tool set focused.
+
+---
+
+## Tool dependencies
+
+Sometimes one tool depends on information returned by another.
+
+For example:
+
+```text id="x4p6m9"
+get_customer
+     ↓
+customerId
+     ↓
+get_orders
+     ↓
+orderId
+     ↓
+get_shipment
+```
+
+This creates a natural dependency chain.
+
+Agents can determine the sequence dynamically when the necessary information is not known ahead of time.
+
+For predictable dependencies, however, deterministic workflow nodes may be simpler.
+
+---
+
+## Idempotency
+
+Action tools should consider whether repeated execution is safe.
+
+An agent may retry or request an operation more than once.
+
+For example:
+
+```text id="p9h5s2"
+create_ticket
+```
+
+could accidentally create duplicate tickets if the operation is repeated.
+
+Where appropriate, use idempotency keys or equivalent application-level protections.
+
+Conceptually:
+
+```ts id="m7k2v4"
+await createTicket({
+  idempotencyKey: "request_123",
+  customerId,
+  message,
+});
+```
+
+The exact implementation depends on your application.
+
+---
+
+## Tool retries
+
+Not every tool failure should be retried.
+
+A transient network failure may be retryable:
+
+```text id="z7m4q1"
+Timeout
+  ↓
+Retry
+  ↓
+Success
+```
+
+An invalid input generally should not be retried unchanged:
+
+```text id="h2v9k6"
+Invalid order ID
+  ↓
+Retry same request
+  ↓
+Invalid order ID
+```
+
+Differentiate between transient failures and permanent failures.
+
+---
+
+## Tool timeouts
+
+External systems can become slow or unavailable.
+
+A tool should have sensible timeout behavior.
+
+```text id="s6c1w8"
+Agent
+  ↓
+Tool
+  ↓
+Timeout
+  ↓
+Error handling
+```
+
+Do not allow a single external operation to block an entire agent execution indefinitely.
+
+---
+
+## Tool security
+
+Tools are an important security boundary.
+
+A tool should:
+
+- Validate all inputs
+- Enforce authentication
+- Enforce authorization
+- Restrict accessible resources
+- Avoid exposing unnecessary data
+- Handle errors safely
+- Protect sensitive operations
+- Apply appropriate rate limits
+
+The agent should not bypass your application's existing security model.
+
+---
+
+## Tool execution architecture
+
+A robust architecture looks like:
+
+```text id="e7r2m5"
+                 AI Agent
+                    │
+                    ▼
+                  Model
+                    │
+                    ▼
+              Tool request
+                    │
+                    ▼
+             Input validation
+                    │
+                    ▼
+              Authorization
+                    │
+                    ▼
+             Tool implementation
+                    │
+                    ▼
+             External system
+                    │
+                    ▼
+             Structured result
+                    │
+                    ▼
+                  Agent
+```
+
+This keeps the model outside the trusted application boundary.
+
+---
+
+## Example: order support toolset
+
+A customer support agent could use:
+
+```text id="w9d4x2"
+get_customer
+get_order
+get_shipment
+create_support_ticket
+```
+
+The agent instructions might conceptually define:
+
+```text id="b3k7q8"
+You help customers with order-related questions.
+
+Use order and shipment tools to retrieve current information.
+
+If the customer needs human assistance,
+create a support ticket.
+
+Never invent order or shipment information.
+```
+
+The resulting workflow could be:
+
+```text id="r8c5n1"
+Incoming request
+      ↓
+Support Agent
+      │
+      ├── get_customer
+      │
+      ├── get_order
+      │
+      ├── get_shipment
+      │
+      └── create_support_ticket
+      │
+      ↓
+Structured result
+      ↓
+Workflow
+      ↓
+Response
+```
+
+---
+
+## Tools and structured outputs
+
+Tools and structured outputs work well together.
+
+An agent can use tools to gather information and then produce a defined result:
+
+```text id="q5j8w2"
+Tool calls
+    ↓
+Agent reasoning
+    ↓
+Structured output
+    ↓
+Workflow
+```
+
+For example:
+
+```json id="k3x7p9"
+{
+  "intent": "shipping_issue",
+  "orderId": "order_123",
+  "requiresHuman": false,
+  "response": "Your order has shipped and is expected tomorrow."
+}
+```
+
+The workflow can then use:
+
+```text id="h7m4v6"
+intent
+orderId
+requiresHuman
+response
+```
+
+without having to parse natural-language output.
+
+---
+
+## Tools and custom application logic
+
+Tools are particularly useful when the capability already exists inside your application.
+
+For example, suppose your application already has:
+
+```ts id="d5q9n2"
+getCustomer();
+getOrder();
+createTicket();
+```
+
+A tool can expose those capabilities to an agent rather than duplicating the underlying business logic.
+
+```text id="n6x3m8"
+Existing application logic
+          ↓
+        Tool
+          ↓
+        Agent
+```
+
+This keeps business logic in your application while allowing AI components to use it.
+
+---
+
+## Avoid putting business logic in tool descriptions
+
+Tool descriptions should explain capabilities and constraints.
+
+They should not become a replacement for your application's business rules.
+
+Avoid relying on the model to enforce:
+
+```text id="v4m8s1"
+"If customer is premium and order > $500,
+you may issue a refund."
+```
+
+Instead:
+
+```text id="j2c7q5"
+Agent
+  ↓
+Request refund
+  ↓
+Workflow/business logic
+  ↓
+Check customer status
+  ↓
+Check order value
+  ↓
+Authorize refund
+  ↓
+Refund tool
+```
+
+The application should remain the source of truth for important business rules.
+
+---
+
+## Observability
+
+Tool calls should be visible as part of an execution trace.
+
+Conceptually:
+
+```text id="u8k4w3"
+Execution
+│
+└── Agent
+    │
+    ├── Model call
+    │
+    ├── Tool call
+    │   ├── Name
+    │   ├── Input
+    │   └── Result
+    │
+    ├── Model call
+    │
+    └── Final output
+```
+
+This makes it easier to debug:
+
+- Incorrect tool selection
+- Invalid arguments
+- Slow external APIs
+- Failed requests
+- Unexpected tool sequences
+- Excessive tool calls
+
+---
+
+## Tool design checklist
+
+Before exposing a tool to an agent, verify:
+
+- [ ] The tool has a clear name
+- [ ] The description explains when it should be used
+- [ ] Inputs are explicitly defined
+- [ ] Inputs are validated
+- [ ] Results are structured
+- [ ] Results contain only necessary information
+- [ ] Authentication is enforced
+- [ ] Authorization is enforced
+- [ ] Sensitive actions have appropriate controls
+- [ ] Retries are appropriate
+- [ ] Timeouts are defined
+- [ ] Repeated execution is safe or idempotent where necessary
+- [ ] Failures return useful information
+- [ ] Tool calls are observable
+
+---
+
+## Next steps
+
+Learn how to design instructions and context in [Prompts](/docs/ai/prompts).
+
+For the reasoning system that uses tools, see [Agents](/docs/ai/agents).
+
+For model configuration, continue with [Models](/docs/ai/models).
+
+For deterministic orchestration around AI tools, see [Workflow Execution](/docs/workflows/execution).

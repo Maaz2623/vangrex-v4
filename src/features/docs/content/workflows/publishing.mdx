@@ -1,0 +1,672 @@
+---
+title: Publishing
+description: Prepare, validate, and publish workflows so they can be used by applications and production systems.
+---
+
+---
+
+# Publishing
+
+Publishing turns a workflow from an editable draft into a workflow that can be consumed by applications.
+
+A typical workflow lifecycle looks like:
+
+```text id="p6x3mq"
+Draft
+  │
+  ▼
+Build
+  │
+  ▼
+Test
+  │
+  ▼
+Validate
+  │
+  ▼
+Publish
+  │
+  ▼
+Production
+```
+
+Publishing is an important boundary because application code can depend on the workflow's behavior.
+
+## Drafts
+
+New workflows should initially be treated as drafts.
+
+A draft is where you can:
+
+- Add nodes.
+- Remove nodes.
+- Change configuration.
+- Connect nodes.
+- Modify inputs.
+- Modify outputs.
+- Test execution.
+- Iterate on behavior.
+
+Conceptually:
+
+```text id="q8m4vx"
+Draft Workflow
+      │
+      ├── Nodes
+      ├── Connections
+      ├── Configuration
+      ├── Inputs
+      └── Outputs
+```
+
+Changes to a draft do not necessarily mean that the workflow is ready for application consumption.
+
+## Build before publishing
+
+A useful development cycle is:
+
+```text id="w3n7cp"
+Design
+  │
+  ▼
+Build
+  │
+  ▼
+Test
+  │
+  ▼
+Inspect
+  │
+  ▼
+Improve
+  │
+  └─────────────►
+```
+
+Do not treat publishing as part of the initial construction process.
+
+First make the workflow understandable and testable.
+
+## Validate the workflow
+
+Before publishing, verify the workflow structure.
+
+Check:
+
+```text id="m5q9xz"
+Workflow
+├── Valid nodes
+├── Valid connections
+├── Valid configuration
+├── Valid inputs
+├── Valid outputs
+└── Valid execution paths
+```
+
+A workflow should not be published while known structural problems remain.
+
+## Test with representative inputs
+
+Testing with a single happy-path input is usually not enough.
+
+For example, a customer-support workflow should be tested with different request types:
+
+```text id="v8c2pm"
+Normal request
+    │
+    ▼
+Billing request
+    │
+    ▼
+Technical request
+    │
+    ▼
+Invalid request
+    │
+    ▼
+Missing customer
+    │
+    ▼
+External API failure
+```
+
+This helps verify both normal and exceptional execution paths.
+
+## Test the input contract
+
+Verify that valid inputs work:
+
+```json id="a4m8qs"
+{
+  "customerId": "customer_123",
+  "message": "Where is my order?"
+}
+```
+
+Then test invalid inputs:
+
+```json id="j7x2vn"
+{
+  "message": "Where is my order?"
+}
+```
+
+and:
+
+```json id="r9k5mc"
+{
+  "customerId": 123,
+  "message": "Where is my order?"
+}
+```
+
+The workflow should respond according to its defined validation behavior.
+
+## Test the output contract
+
+A successful execution should produce the expected output structure.
+
+For example:
+
+```json id="c6p8wy"
+{
+  "response": "Your order is out for delivery.",
+  "status": "resolved"
+}
+```
+
+Check that:
+
+- Required output fields exist.
+- Types are correct.
+- Values are meaningful.
+- Different execution paths produce compatible output structures.
+
+## Test branches
+
+If your workflow contains conditions, test every important branch.
+
+For example:
+
+```text id="x3m7qp"
+                  Condition
+                  /       \
+                 /         \
+                ▼           ▼
+             Billing     Technical
+                │           │
+                ▼           ▼
+             Billing     Technical
+              Agent         Agent
+```
+
+Do not test only the first branch.
+
+A workflow can appear correct while another path contains an invalid connection or configuration.
+
+## Test failure paths
+
+Production workflows should be tested under failure conditions.
+
+For example:
+
+```text id="k5q8mx"
+External API
+     │
+     ├── success
+     │
+     ├── timeout
+     │
+     ├── authentication error
+     │
+     └── invalid response
+```
+
+Determine what the workflow should do in each case.
+
+Possible behaviors include:
+
+```text id="s7n2vc"
+Retry
+Fallback
+Stop
+Return error
+Continue
+Escalate
+```
+
+## Review AI behavior
+
+AI workflows require additional validation.
+
+Check:
+
+```text id="b4x9mp"
+Prompt
+  │
+  ▼
+Input Context
+  │
+  ▼
+Model
+  │
+  ▼
+Output
+```
+
+Verify that:
+
+- The model receives the intended input.
+- Instructions are explicit.
+- Required context is available.
+- Tool access is intentional.
+- Outputs follow the expected structure.
+- Failure behavior is defined.
+
+Do not assume that a successful test with one prompt guarantees consistent behavior across all inputs.
+
+See [AI Prompts](/docs/ai/prompts) and [AI Agents](/docs/ai/agents).
+
+## Review tool access
+
+If an AI agent can use tools, review those tools before publishing.
+
+For example:
+
+```text id="n8c4ws"
+AI Agent
+   │
+   ├── Search
+   ├── Customer Lookup
+   ├── Order API
+   └── Email
+```
+
+Consider:
+
+- Which tools are available?
+- What inputs can each tool receive?
+- What side effects can they perform?
+- Which tools are required?
+- What happens when a tool fails?
+
+Tool access should match the intended capability of the workflow.
+
+## Review secrets and credentials
+
+Before publishing, make sure credentials are handled through the appropriate secure configuration.
+
+Avoid embedding secrets directly into workflow configuration:
+
+```text id="p2m6xr"
+❌ API key inside node configuration
+```
+
+Prefer the platform's supported secret or credential mechanism:
+
+```text id="q7v3mc"
+Secure Credential
+      │
+      ▼
+Workflow Node
+      │
+      ▼
+External Service
+```
+
+The exact secret-management mechanism depends on the Vangrex implementation.
+
+## Review workflow inputs
+
+Before publishing, document the workflow's public input contract.
+
+For example:
+
+```text id="f8n2vw"
+Customer Support
+
+Required
+├── customerId: string
+└── message: string
+
+Optional
+└── priority: string
+```
+
+This contract becomes part of how application developers integrate with the workflow.
+
+## Review workflow outputs
+
+Do the same for the output contract.
+
+For example:
+
+```text id="z5m9qc"
+Customer Support
+
+Output
+├── response: string
+├── status: string
+└── confidence: number
+```
+
+Keep the output structure stable once applications depend on it.
+
+See [Inputs & Outputs](/docs/workflows/inputs-outputs).
+
+## Review node configuration
+
+Before publishing, inspect each node.
+
+```text id="r6x3mp"
+Node
+├── Name
+├── Type
+├── Configuration
+├── Inputs
+└── Connections
+```
+
+Make sure there are no temporary values, test URLs, debugging configuration, or incomplete settings.
+
+## Review connections
+
+The graph should have a clear execution path.
+
+For example:
+
+```text id="c9w5vk"
+Input
+  │
+  ▼
+Validate
+  │
+  ▼
+Process
+  │
+  ▼
+Output
+```
+
+Look for:
+
+- Unconnected nodes.
+- Unexpected branches.
+- Dead ends.
+- Incorrect destinations.
+- Missing output paths.
+- Accidental loops.
+
+## Unconnected nodes
+
+An unconnected node may never execute.
+
+For example:
+
+```text id="m3x8qp"
+Input ──► AI ──► Output
+
+Unused Node
+```
+
+Before publishing, determine whether the node is intentionally unused or should be connected.
+
+## Dead ends
+
+A branch should generally lead somewhere meaningful.
+
+For example:
+
+```text id="v7p2ms"
+Condition
+   │
+   ├── true ──► Process
+   │
+   └── false
+```
+
+If the false branch can occur, determine what should happen to that execution.
+
+For example:
+
+```text id="h4q9cx"
+Condition
+   │
+   ├── true ──► Process
+   │
+   └── false ─► Reject
+```
+
+## Execution verification
+
+Run the workflow after making the final changes.
+
+Inspect:
+
+```text id="k8m3vx"
+Execution
+├── Status
+├── Input
+├── Node execution
+├── Branch selection
+├── Tool calls
+├── Errors
+└── Output
+```
+
+The final execution should represent the workflow you intend to publish.
+
+## Publishing boundary
+
+Once published, applications can begin depending on the workflow.
+
+Conceptually:
+
+```text id="n6x1qr"
+                 Draft
+                   │
+                   │ publish
+                   ▼
+               Published
+                   │
+          ┌────────┼────────┐
+          │        │        │
+          ▼        ▼        ▼
+        Web App  Backend  Mobile
+```
+
+This makes publishing a meaningful lifecycle transition.
+
+## Published workflows
+
+A published workflow represents a stable capability that can be triggered externally.
+
+For example:
+
+```text id="x4m8ps"
+Published Workflow
+       │
+       ├── customer-support
+       ├── document-processing
+       └── lead-enrichment
+```
+
+Applications can then reference the workflow according to the Vangrex integration model.
+
+## Triggering a published workflow
+
+A published workflow can be triggered from an application using the SDK.
+
+For example:
+
+```ts id="p7c2mq"
+const execution = await vangrex.workflows.run("customer-support", {
+  customerId: "customer_123",
+  message: "Where is my order?",
+});
+```
+
+The application provides the workflow identifier and input.
+
+Vangrex creates the execution and runs the published workflow.
+
+See [SDK Workflows](/docs/sdk/workflows).
+
+## Publishing and application contracts
+
+Once an application depends on a workflow:
+
+```text id="s3q9mv"
+Application
+     │
+     │ expects
+     ▼
+Workflow Contract
+     │
+     ├── Input
+     └── Output
+```
+
+Changes to the workflow can therefore have application-level consequences.
+
+For example, changing:
+
+```text id="j6m2cx"
+customerId
+```
+
+to:
+
+```text id="f9p4qw"
+customer_id
+```
+
+may require application changes.
+
+Treat production workflow contracts deliberately.
+
+## Updating a published workflow
+
+When a published workflow needs changes, use the workflow's supported editing and publishing lifecycle rather than modifying production behavior without validation.
+
+A safe conceptual process is:
+
+```text id="w5x8nr"
+Published
+   │
+   ▼
+Edit
+   │
+   ▼
+Test
+   │
+   ▼
+Validate
+   │
+   ▼
+Publish Update
+```
+
+Test the updated workflow before making it available to production callers.
+
+## Workflow versions
+
+If your Vangrex deployment supports workflow versions, treat versions as immutable execution targets where appropriate.
+
+Conceptually:
+
+```text id="c7m1qs"
+Customer Support
+
+v1 ──► Existing Applications
+ │
+ └── stable behavior
+
+v2 ──► New Applications
+ │
+ └── Updated behavior
+```
+
+Versioning can help applications migrate between workflow contracts without requiring all consumers to change simultaneously.
+
+Use the versioning functionality exposed by your Vangrex implementation.
+
+## Development and production
+
+A useful deployment model separates workflow development from production usage.
+
+```text id="r8p3mx"
+Development
+    │
+    ▼
+Test
+    │
+    ▼
+Validation
+    │
+    ▼
+Production
+```
+
+This reduces the risk of untested changes affecting production applications.
+
+## Publishing checklist
+
+Before publishing, verify:
+
+- [ ] Workflow has a clear purpose.
+- [ ] All required nodes are configured.
+- [ ] Connections are correct.
+- [ ] There are no unintended unconnected nodes.
+- [ ] There are no unintended dead ends.
+- [ ] Inputs are validated.
+- [ ] Outputs follow the expected contract.
+- [ ] All important branches have been tested.
+- [ ] Failure paths have been tested.
+- [ ] External services use the correct configuration.
+- [ ] Secrets are handled securely.
+- [ ] AI prompts and model configuration have been reviewed.
+- [ ] Tool access has been reviewed.
+- [ ] Representative inputs have been tested.
+- [ ] Final executions have been inspected.
+- [ ] Application integrations have been considered.
+
+## From published workflow to production
+
+The complete lifecycle looks like:
+
+```text id="m2q7vx"
+                 Build
+                   │
+                   ▼
+                 Test
+                   │
+                   ▼
+               Validate
+                   │
+                   ▼
+                Publish
+                   │
+                   ▼
+              Production
+                   │
+          ┌────────┼────────┐
+          │        │        │
+          ▼        ▼        ▼
+       Backend   Web App   Mobile
+          │        │        │
+          └────────┼────────┘
+                   │
+                   ▼
+              Executions
+```
+
+The workflow becomes an application capability rather than just a visual graph.
+
+## Next steps
+
+Your workflow is now ready to be consumed by applications.
+
+Continue with [SDK Workflows](/docs/sdk/workflows) to learn how applications trigger workflows.
+
+For execution monitoring and runtime details, see [SDK Executions](/docs/sdk/executions).

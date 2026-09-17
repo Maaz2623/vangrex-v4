@@ -1,0 +1,872 @@
+---
+title: AI Overview
+description: Understand how AI fits into Vangrex workflows and how models, agents, tools, and prompts work together.
+---
+
+---
+
+# AI
+
+Vangrex lets you combine AI capabilities with deterministic workflow logic.
+
+Instead of building an AI application as one large model call, you can compose AI with:
+
+```text id="x7m2qc"
+Models
+Agents
+Tools
+Prompts
+Workflow Nodes
+Conditions
+APIs
+Data
+```
+
+A typical AI workflow might look like:
+
+```text id="p4k8vn"
+Input
+  │
+  ▼
+Prepare Context
+  │
+  ▼
+AI Agent
+  │
+  ├────► Search
+  │
+  ├────► Customer API
+  │
+  └────► Order API
+  │
+  ▼
+Validate
+  │
+  ▼
+Output
+```
+
+This allows AI to become one component of a larger execution system.
+
+## AI in a workflow
+
+An AI-powered workflow can be as simple as:
+
+```text id="m8q3ws"
+Input
+  │
+  ▼
+AI
+  │
+  ▼
+Output
+```
+
+Or it can combine multiple capabilities:
+
+```text id="c6v9rp"
+Input
+  │
+  ▼
+Validate
+  │
+  ▼
+Retrieve Data
+  │
+  ▼
+AI Agent
+  │
+  ├──► Tool A
+  ├──► Tool B
+  └──► Tool C
+  │
+  ▼
+Validate Response
+  │
+  ▼
+Output
+```
+
+The workflow determines when and where AI is used.
+
+## AI versus workflows
+
+AI and workflows solve different problems.
+
+AI is useful for tasks such as:
+
+```text id="r5x2mk"
+Reasoning
+Generation
+Classification
+Extraction
+Summarization
+Natural-language understanding
+```
+
+Workflows are useful for:
+
+```text id="v8c4qn"
+Sequencing
+Branching
+Validation
+Data movement
+External operations
+Retries
+Execution tracking
+```
+
+Together:
+
+```text id="z3m7wp"
+Workflow
+   │
+   ├── deterministic logic
+   │
+   ├── external operations
+   │
+   └── AI
+          │
+          ├── model
+          ├── prompt
+          └── tools
+```
+
+This separation makes complex AI systems easier to reason about.
+
+## Models
+
+A model performs the underlying AI computation.
+
+Conceptually:
+
+```text id="q9x5vc"
+Input
+  │
+  ▼
+Model
+  │
+  ▼
+Output
+```
+
+A model can be used for:
+
+- Text generation.
+- Classification.
+- Extraction.
+- Summarization.
+- Reasoning.
+- Structured output.
+
+See [Models](/docs/ai/models).
+
+## Agents
+
+An agent adds decision-making and tool usage around a model.
+
+Conceptually:
+
+```text id="n4p8qs"
+             ┌──────────────┐
+             │    Tool A    │
+             └──────▲───────┘
+                    │
+Input ─────► Agent ├────► Result
+                    │
+             ┌──────┴───────┐
+             │    Tool B    │
+             └──────────────┘
+```
+
+The agent can determine when a tool is needed and incorporate the tool result into its execution.
+
+See [Agents](/docs/ai/agents).
+
+## Tools
+
+Tools give AI access to capabilities outside the model itself.
+
+For example:
+
+```text id="w6m2xr"
+AI Agent
+   │
+   ├── Search
+   ├── Database
+   ├── HTTP API
+   ├── Customer system
+   └── Internal service
+```
+
+A model cannot directly perform an external operation simply because it was asked to do so.
+
+A tool provides the executable capability.
+
+See [Tools](/docs/ai/tools).
+
+## Prompts
+
+Prompts provide instructions and context to the model.
+
+A conceptual prompt structure is:
+
+```text id="k3v8mp"
+System Instructions
+       +
+Workflow Context
+       +
+User Input
+       +
+Tool Information
+       │
+       ▼
+     Model
+```
+
+Prompts should clearly communicate the task the model is expected to perform.
+
+See [Prompts](/docs/ai/prompts).
+
+## The AI execution model
+
+A useful mental model is:
+
+```text id="s7q2nc"
+                  Workflow
+                     │
+                     ▼
+                 AI Node
+                     │
+             ┌───────┴───────┐
+             │               │
+             ▼               ▼
+           Model           Agent
+                             │
+                    ┌────────┼────────┐
+                    │        │        │
+                    ▼        ▼        ▼
+                  Tool A   Tool B   Tool C
+                             │
+                             ▼
+                           Result
+```
+
+Not every AI node needs to be an agent.
+
+Choose the simplest execution model that satisfies the workflow.
+
+## Simple model call
+
+For a straightforward generation task:
+
+```text id="b9m4cx"
+Input
+  │
+  ▼
+Prompt
+  │
+  ▼
+Model
+  │
+  ▼
+Output
+```
+
+For example, generating a product description:
+
+```text id="v5x8qm"
+Product Data
+    │
+    ▼
+Prompt
+    │
+    ▼
+AI Model
+    │
+    ▼
+Description
+```
+
+There is no need for tool use if the model already has all required information.
+
+## AI agent workflow
+
+An agent is useful when the AI needs to interact with external capabilities.
+
+For example:
+
+```text id="f3k7wp"
+User Request
+     │
+     ▼
+  AI Agent
+     │
+     ├── Search Knowledge Base
+     │
+     ├── Get Customer
+     │
+     ├── Check Order
+     │
+     └── Create Support Ticket
+     │
+     ▼
+  Final Response
+```
+
+The workflow controls where the agent operates.
+
+The agent controls its reasoning and tool interaction within that capability.
+
+## Deterministic logic around AI
+
+AI does not need to control every decision.
+
+For example:
+
+```text id="m7q2vn"
+Input
+  │
+  ▼
+Validate
+  │
+  ▼
+AI Classification
+  │
+  ▼
+Condition
+  │
+  ├── billing ──► Billing Workflow
+  │
+  ├── support ──► Support Workflow
+  │
+  └── unknown ──► Manual Review
+```
+
+The AI performs classification.
+
+The workflow performs deterministic routing.
+
+This pattern can make system behavior easier to inspect.
+
+## AI output validation
+
+Model output should not automatically be assumed to be valid.
+
+A useful pattern is:
+
+```text id="c8p4mx"
+AI
+ │
+ ▼
+Validate
+ │
+ ├── valid ──► Continue
+ │
+ └── invalid ─► Retry / Fallback / Error
+```
+
+For example, if an AI node is expected to produce:
+
+```json id="x6n2vq"
+{
+  "category": "billing",
+  "priority": "high"
+}
+```
+
+the next node can verify that:
+
+```text id="q9m5wc"
+category is valid
+priority is valid
+required fields exist
+```
+
+This creates a boundary between probabilistic model output and deterministic application logic.
+
+## Structured AI output
+
+When downstream nodes need predictable data, structure the AI output accordingly.
+
+For example:
+
+```json id="r3k8ps"
+{
+  "intent": "order_status",
+  "priority": "normal",
+  "requiresHuman": false
+}
+```
+
+This is easier to consume than an unrestricted text response.
+
+The exact structured-output capabilities available depend on the model and Vangrex implementation.
+
+## AI and workflow context
+
+AI often needs information collected earlier in the workflow.
+
+For example:
+
+```text id="n5x7mq"
+Input
+  │
+  ▼
+Customer Lookup
+  │
+  ▼
+Order Lookup
+  │
+  ▼
+AI Agent
+```
+
+The agent can receive relevant information from the execution context:
+
+```text id="v8q2kc"
+Customer
++
+Order
++
+User Request
++
+Instructions
+       │
+       ▼
+    AI Agent
+```
+
+Only provide the context the model actually needs.
+
+## Context management
+
+More context is not automatically better.
+
+A useful pattern is:
+
+```text id="p4m9sx"
+Raw Data
+   │
+   ▼
+Select Relevant Fields
+   │
+   ▼
+Normalize
+   │
+   ▼
+AI Context
+```
+
+This reduces unnecessary information and makes the model's task clearer.
+
+## AI and external data
+
+AI agents frequently need information that is not present in the original request.
+
+For example:
+
+```text id="z6c3wp"
+User
+ │
+ │ "Where is my order?"
+ ▼
+AI Agent
+ │
+ └──► Order API
+          │
+          ▼
+       Order Data
+          │
+          ▼
+       AI Agent
+          │
+          ▼
+       Response
+```
+
+The tool provides current application data.
+
+The model uses that data to produce the response.
+
+## AI and business rules
+
+Business-critical rules should generally remain explicit where deterministic behavior is required.
+
+For example:
+
+```text id="k8x5mq"
+Order Value
+    │
+    ▼
+Condition
+    │
+    ├── > $1,000 ──► Manual Review
+    │
+    └── ≤ $1,000 ──► Continue
+```
+
+Rather than asking an AI model to make a decision that can be represented directly as a deterministic condition.
+
+AI can still be used for tasks such as:
+
+```text id="r2m7vc"
+Classify Request
+Summarize Case
+Generate Explanation
+```
+
+while the workflow enforces the final business rule.
+
+## AI and human review
+
+Some workflows may require human intervention.
+
+For example:
+
+```text id="x9q3mp"
+Input
+  │
+  ▼
+AI Analysis
+  │
+  ▼
+Confidence / Rule Check
+  │
+  ├── acceptable ──► Continue
+  │
+  └── uncertain ──► Human Review
+```
+
+This allows AI to assist with decisions without necessarily making every final decision automatically.
+
+The exact human-in-the-loop capabilities depend on your Vangrex implementation.
+
+## AI error handling
+
+AI operations can fail just like other workflow nodes.
+
+Possible failure conditions include:
+
+```text id="m6p2xw"
+Model error
+Provider error
+Timeout
+Invalid input
+Invalid output
+Tool failure
+Context failure
+```
+
+A workflow can explicitly handle these conditions:
+
+```text id="c4n8qs"
+AI
+ │
+ ├── success ──► Validate
+ │
+ └── error ────► Fallback
+```
+
+## AI fallback
+
+A fallback path can be useful when an AI operation cannot complete.
+
+For example:
+
+```text id="q7m3vx"
+             AI
+              │
+        ┌─────┴─────┐
+        │           │
+      success      error
+        │           │
+        ▼           ▼
+     Continue    Fallback
+```
+
+A fallback might:
+
+- Retry the operation.
+- Use another supported model.
+- Return a structured error.
+- Route to another workflow.
+- Request human review.
+
+The appropriate strategy depends on the application.
+
+## AI retries
+
+Retries should be used carefully.
+
+For transient failures:
+
+```text id="v3x8mp"
+AI
+ │
+ ✕
+ │
+ ▼
+Retry
+ │
+ ▼
+AI
+```
+
+may be appropriate.
+
+But retries do not solve every failure.
+
+For example, an invalid prompt or invalid tool input will generally require a workflow or configuration change.
+
+## AI observability
+
+When debugging AI workflows, inspect more than the final response.
+
+Useful information can include:
+
+```text id="n9c4ws"
+AI Node
+├── Input context
+├── Prompt
+├── Model
+├── Tool calls
+├── Tool results
+├── Output
+├── Status
+└── Error
+```
+
+This makes it easier to understand how the final result was produced.
+
+## AI cost and latency
+
+AI operations can introduce additional latency and usage costs.
+
+A workflow such as:
+
+```text id="s5m8qk"
+Input
+  │
+  ▼
+AI
+  │
+  ▼
+Output
+```
+
+may require one model operation.
+
+A more complex agent can involve:
+
+```text id="f2x7mc"
+Agent
+ │
+ ├── Search
+ ├── Model
+ ├── API
+ ├── Model
+ └── Final Response
+```
+
+The number of model and tool operations can affect execution time and resource usage.
+
+Design AI workflows around the actual work required.
+
+## Keep AI boundaries clear
+
+A useful architecture separates responsibilities:
+
+```text id="w8p3qn"
+Workflow
+│
+├── Validation
+├── Routing
+├── Data retrieval
+│
+└── AI
+    ├── Reasoning
+    ├── Generation
+    └── Tool selection
+```
+
+This makes it clear which parts of the system are deterministic and which rely on model behavior.
+
+## Example: document processing
+
+A document-processing workflow could look like:
+
+```text id="m4x9cv"
+Document
+   │
+   ▼
+Extract Text
+   │
+   ▼
+AI Extraction
+   │
+   ▼
+Validate Fields
+   │
+   ▼
+Normalize Data
+   │
+   ▼
+Output
+```
+
+The AI performs extraction.
+
+The workflow validates and normalizes the result.
+
+## Example: customer support
+
+A customer-support workflow could look like:
+
+```text id="p7q2mx"
+Request
+   │
+   ▼
+Validate
+   │
+   ▼
+Customer Lookup
+   │
+   ▼
+AI Agent
+   │
+   ├── Order API
+   ├── Search
+   └── Support API
+   │
+   ▼
+Response Validation
+   │
+   ▼
+Output
+```
+
+The agent handles natural-language reasoning and tool interaction.
+
+The workflow controls the surrounding process.
+
+## Example: content generation
+
+A content workflow can remain simple:
+
+```text id="c8m3wp"
+Content Brief
+     │
+     ▼
+Prompt
+     │
+     ▼
+AI Model
+     │
+     ▼
+Validate
+     │
+     ▼
+Output
+```
+
+No external tools are necessary if the model has all required information.
+
+## Example: AI routing
+
+AI can also be used to determine which deterministic workflow path should execute.
+
+```text id="z5n8qx"
+User Request
+     │
+     ▼
+AI Classifier
+     │
+     ▼
+Condition
+     │
+     ├── Sales ──────► Sales Workflow
+     │
+     ├── Support ────► Support Workflow
+     │
+     └── Billing ────► Billing Workflow
+```
+
+This pattern combines flexible language understanding with deterministic routing.
+
+## Choosing between an AI node and an agent
+
+Use a simple AI node when:
+
+```text id="r6x2mq"
+The model has all required information
++
+No external tools are needed
++
+The task is primarily generation or analysis
+```
+
+Use an agent when:
+
+```text id="v9m4cs"
+The AI needs external capabilities
++
+The next action depends on the model's reasoning
++
+Multiple tool interactions may be required
+```
+
+A simple model call is often easier to reason about when tools are unnecessary.
+
+## AI architecture
+
+A complete Vangrex AI workflow can be viewed as:
+
+```text id="h3q7mx"
+                         Workflow
+                            │
+             ┌──────────────┼──────────────┐
+             │              │              │
+             ▼              ▼              ▼
+        Deterministic     AI Node       External
+           Logic             │           Operations
+                             │
+                     ┌───────┴───────┐
+                     │               │
+                     ▼               ▼
+                   Model           Agent
+                                     │
+                              ┌──────┼──────┐
+                              │      │      │
+                              ▼      ▼      ▼
+                            Tool A Tool B Tool C
+```
+
+This is the foundation for building AI-powered applications with Vangrex.
+
+## AI development checklist
+
+Before deploying an AI workflow, verify:
+
+- [ ] The AI task is clearly defined.
+- [ ] The selected model is appropriate for the task.
+- [ ] The prompt provides sufficient instructions.
+- [ ] Only relevant context is provided.
+- [ ] Tool access is intentional.
+- [ ] Tool inputs are validated.
+- [ ] AI outputs are validated where required.
+- [ ] Business-critical rules remain deterministic where appropriate.
+- [ ] Failure paths are defined.
+- [ ] Retries are appropriate.
+- [ ] AI execution can be inspected and debugged.
+- [ ] Latency and usage are appropriate for the application.
+
+## Next steps
+
+Learn how models are configured and used in [Models](/docs/ai/models).
+
+Then explore [Agents](/docs/ai/agents) to build AI systems that can reason and use tools.
+
+For external capabilities, continue with [Tools](/docs/ai/tools).
+
+For model instructions and context design, see [Prompts](/docs/ai/prompts).

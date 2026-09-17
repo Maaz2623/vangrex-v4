@@ -1,0 +1,888 @@
+---
+title: Inputs & Outputs
+description: Define the data contracts that workflows consume and return when they execute.
+---
+
+---
+
+# Inputs & Outputs
+
+Inputs and outputs define the contract between your application and a Vangrex workflow.
+
+A workflow typically follows this shape:
+
+```text id="n4v8qs"
+Application
+    │
+    │ input
+    ▼
+Workflow
+    │
+    │ execution
+    ▼
+Workflow
+    │
+    │ output
+    ▼
+Application
+```
+
+A clear input and output contract makes workflows predictable and easier to integrate.
+
+## Workflow inputs
+
+Workflow inputs are the values provided when an execution starts.
+
+For example, a customer-support workflow might require:
+
+```text id="c8x2mw"
+Input
+├── customerId
+└── message
+```
+
+An application could provide those values when triggering the workflow:
+
+```ts id="q7m3ka"
+const execution = await vangrex.workflows.run("customer-support", {
+  customerId: "customer_123",
+  message: "Where is my order?",
+});
+```
+
+The workflow can then use those values throughout the execution.
+
+## Define an input contract
+
+Before integrating a workflow into an application, determine:
+
+- Which fields are required.
+- Which fields are optional.
+- What type each field contains.
+- What values are valid.
+- How nested data is structured.
+- What should happen when input is invalid.
+
+For example:
+
+```text id="v5s9pn"
+Customer Support
+
+customerId
+  type: string
+  required: yes
+
+message
+  type: string
+  required: yes
+
+priority
+  type: string
+  required: no
+```
+
+A corresponding input could be:
+
+```json id="a2k6ry"
+{
+  "customerId": "customer_123",
+  "message": "Where is my order?",
+  "priority": "normal"
+}
+```
+
+## Required inputs
+
+Required fields must be provided for the workflow to execute successfully.
+
+For example:
+
+```text id="j8x4cm"
+Required
+├── customerId
+└── message
+```
+
+An incomplete request such as:
+
+```json id="s3m7qw"
+{
+  "message": "Where is my order?"
+}
+```
+
+may fail validation because `customerId` is missing.
+
+Validate required inputs as early as possible.
+
+## Optional inputs
+
+Optional inputs allow callers to customize workflow behavior without requiring additional data.
+
+For example:
+
+```text id="d9p2fk"
+Required
+└── message
+
+Optional
+├── customerId
+├── language
+└── priority
+```
+
+An application can provide only the required field:
+
+```json id="m6q1zt"
+{
+  "message": "Where is my order?"
+}
+```
+
+Or provide additional context:
+
+```json id="r4c8vx"
+{
+  "customerId": "customer_123",
+  "message": "Where is my order?",
+  "language": "en",
+  "priority": "high"
+}
+```
+
+## Input types
+
+Inputs can represent different kinds of data.
+
+Common types include:
+
+```text id="w2n7qb"
+string
+number
+boolean
+array
+object
+null
+```
+
+For example:
+
+```json id="f8k3dp"
+{
+  "customerId": "customer_123",
+  "retryCount": 3,
+  "sendEmail": true,
+  "tags": ["support", "order"],
+  "metadata": {
+    "source": "web"
+  }
+}
+```
+
+The expected type should be defined by the workflow.
+
+## Nested inputs
+
+Inputs can contain nested objects.
+
+For example:
+
+```json id="p4x9sm"
+{
+  "customer": {
+    "id": "customer_123",
+    "name": "Alex",
+    "email": "alex@example.com"
+  },
+  "request": {
+    "message": "Where is my order?",
+    "priority": "high"
+  }
+}
+```
+
+Nested structures are useful when the workflow needs related data grouped together.
+
+## Arrays
+
+Inputs can also contain collections.
+
+For example:
+
+```json id="t6m1vc"
+{
+  "documents": [
+    {
+      "id": "doc_1",
+      "name": "invoice.pdf"
+    },
+    {
+      "id": "doc_2",
+      "name": "receipt.pdf"
+    }
+  ]
+}
+```
+
+A workflow can then process the collection according to its node configuration.
+
+## Input validation
+
+Input validation should happen near the beginning of a workflow.
+
+A typical pattern is:
+
+```text id="z3k7mh"
+Input
+  │
+  ▼
+Validate
+  │
+  ├── valid ────► Continue
+  │
+  └── invalid ──► Error
+```
+
+For example:
+
+```text id="y5q8nr"
+customerId exists?
+      │
+   ┌──┴──┐
+  yes    no
+   │      │
+   ▼      ▼
+Lookup   Error
+```
+
+Validation prevents invalid data from reaching later nodes.
+
+## Input validation and AI
+
+AI nodes should generally receive data that has already been validated and normalized when possible.
+
+Instead of:
+
+```text id="g1w4cx"
+Raw Input
+    │
+    ▼
+   AI
+```
+
+consider:
+
+```text id="k8p2sv"
+Raw Input
+    │
+    ▼
+Validate
+    │
+    ▼
+Normalize
+    │
+    ▼
+   AI
+```
+
+This gives the model cleaner and more predictable input.
+
+## Workflow context
+
+During execution, workflow data may be available through the execution context.
+
+Conceptually:
+
+```text id="r9c3wx"
+Workflow Input
+      │
+      ▼
+Execution Context
+      │
+      ├── Node A
+      ├── Node B
+      ├── Node C
+      └── Node D
+```
+
+Nodes can consume data produced earlier in the execution.
+
+For example:
+
+```text id="m2v6qa"
+Input
+  │
+  │ customerId
+  ▼
+Customer Lookup
+  │
+  │ customer
+  ▼
+AI Agent
+```
+
+The customer information retrieved by the lookup can then become part of the data available to the AI agent.
+
+## Node outputs
+
+Every useful processing step can produce output.
+
+For example:
+
+```text id="b7x5nm"
+Input
+  │
+  ▼
+Customer Lookup
+  │
+  └──► customer
+```
+
+The output might look like:
+
+```json id="e3q9vt"
+{
+  "id": "customer_123",
+  "name": "Alex",
+  "plan": "pro"
+}
+```
+
+The next node can use that result.
+
+## Transforming outputs
+
+A node does not necessarily need to pass its entire output to the next operation.
+
+For example:
+
+```text id="s8m4yk"
+Customer Lookup
+      │
+      │ customer
+      ▼
+Transform
+      │
+      │ customer.name
+      ▼
+AI
+```
+
+A transform operation can select or restructure the information required by the next node.
+
+## Workflow outputs
+
+Workflow outputs are the final values returned to the caller.
+
+For example:
+
+```text id="q5z1cp"
+Workflow
+   │
+   ▼
+Output
+├── response
+├── status
+└── confidence
+```
+
+The application might receive:
+
+```json id="u7n3mx"
+{
+  "response": "Your order is out for delivery.",
+  "status": "resolved",
+  "confidence": 0.94
+}
+```
+
+The output should contain the information the consuming application actually needs.
+
+## Output contracts
+
+Treat workflow outputs as an API contract.
+
+For example:
+
+```text id="h6p8rw"
+Customer Support Output
+
+response
+  type: string
+
+status
+  type: string
+
+confidence
+  type: number
+```
+
+This allows application code to rely on a predictable structure.
+
+```ts id="c3m7qa"
+const execution = await vangrex.workflows.run("customer-support", {
+  customerId: "customer_123",
+  message: "Where is my order?",
+});
+
+console.log(execution);
+```
+
+The exact execution response and output shape depend on the Vangrex SDK/API contract.
+
+See [SDK Workflows](/docs/sdk/workflows) and [Executions](/docs/sdk/executions).
+
+## Keep outputs stable
+
+Once a workflow is consumed by production applications, changing its output shape can require corresponding application changes.
+
+For example, changing:
+
+```json id="v1k5ds"
+{
+  "response": "Done",
+  "status": "resolved"
+}
+```
+
+to:
+
+```json id="n8x2fm"
+{
+  "result": {
+    "message": "Done"
+  }
+}
+```
+
+changes the contract.
+
+If your application expects:
+
+```ts id="a9q4wp"
+result.response;
+```
+
+a structural change can break that integration.
+
+Design output contracts deliberately.
+
+## Avoid leaking internal data
+
+Not every value produced during an execution needs to become part of the workflow output.
+
+For example:
+
+```text id="m7s3kx"
+Input
+  │
+  ▼
+Customer Lookup
+  │
+  ├── internal lookup metadata
+  ├── internal request information
+  └── customer
+          │
+          ▼
+        AI
+          │
+          ▼
+       Output
+```
+
+The final output should contain the public result required by the caller rather than every intermediate value.
+
+## Input-to-output example
+
+Consider a document extraction workflow.
+
+The input might be:
+
+```json id="r2c6zn"
+{
+  "documentUrl": "https://example.com/invoice.pdf"
+}
+```
+
+The workflow could be:
+
+```text id="f4x8mq"
+documentUrl
+     │
+     ▼
+Download Document
+     │
+     ▼
+Extract Content
+     │
+     ▼
+AI Extraction
+     │
+     ▼
+Validate
+     │
+     ▼
+Output
+```
+
+The output could be:
+
+```json id="k9v3ws"
+{
+  "invoiceNumber": "INV-1024",
+  "customer": "Acme Corp",
+  "total": 1250.5,
+  "currency": "USD"
+}
+```
+
+The caller does not need to know how each internal node produced the result.
+
+## Input-to-output example with branching
+
+Consider a support workflow:
+
+```text id="x6p1mr"
+Input
+  │
+  ▼
+Classify
+  │
+  ▼
+Condition
+  │
+  ├── Billing ───────► Billing Agent
+  │
+  ├── Technical ────► Technical Agent
+  │
+  └── General ──────► General Agent
+                         │
+                         ▼
+                       Output
+```
+
+Regardless of which branch executes, the workflow can produce a consistent output:
+
+```json id="q3m7vx"
+{
+  "response": "Here is the information you requested.",
+  "category": "general"
+}
+```
+
+Consistent outputs make branching workflows easier to consume.
+
+## Designing good input contracts
+
+A good input contract should be:
+
+### Explicit
+
+Document what the workflow expects.
+
+```text id="z4x8ck"
+message: string
+customerId: string
+```
+
+### Minimal
+
+Only require data that the workflow actually needs.
+
+```text id="n7q2sp"
+Required
+└── message
+```
+
+is preferable to requiring unrelated application state.
+
+### Predictable
+
+Use stable names and types.
+
+Prefer:
+
+```text id="m5c9wy"
+customerId
+```
+
+over:
+
+```text id="e8v2qa"
+customer_identifier_value
+```
+
+unless the longer name is necessary for your domain.
+
+### Validated
+
+Reject invalid input before expensive operations begin.
+
+```text id="p6k1rx"
+Input
+  │
+  ▼
+Validate
+  │
+  ▼
+Process
+```
+
+## Designing good output contracts
+
+A good output contract should be:
+
+- Stable.
+- Easy to consume.
+- Explicitly structured.
+- Limited to useful information.
+- Consistent across expected execution paths.
+
+For example:
+
+```json id="s8v4qn"
+{
+  "status": "success",
+  "data": {
+    "response": "Your order is out for delivery."
+  }
+}
+```
+
+A consistent structure can simplify application integration.
+
+## Inputs and SDK integration
+
+The workflow input contract becomes especially important when workflows are triggered from applications.
+
+For example:
+
+```ts id="w3p7mk"
+const execution = await vangrex.workflows.run("lead-enrichment", {
+  email: "alex@example.com",
+  company: "Acme Corp",
+});
+```
+
+The application should know:
+
+```text id="k2m9vx"
+Workflow
+┌─────────────────────────────┐
+│ lead-enrichment             │
+│                             │
+│ Required inputs:            │
+│ ├── email                   │
+│ └── company                 │
+└─────────────────────────────┘
+```
+
+This creates a clear boundary between your application and the workflow.
+
+## Inputs and secrets
+
+Do not treat ordinary workflow inputs as a substitute for secret management.
+
+For example, avoid designing a workflow where callers pass sensitive credentials as ordinary input:
+
+```json id="q8x5nr"
+{
+  "apiKey": "secret-value"
+}
+```
+
+when the credential is intended to be managed as a platform secret.
+
+Instead, keep credentials in the appropriate secure configuration and pass only the data required for the operation.
+
+## Input validation errors
+
+When input is invalid, the caller should receive an error that makes the problem understandable.
+
+For example:
+
+```text id="c5m8qp"
+Validation failed
+
+Missing required field:
+customerId
+```
+
+or:
+
+```text id="v7x2ms"
+Validation failed
+
+Invalid field:
+priority
+
+Expected:
+"low" | "normal" | "high"
+```
+
+Clear validation errors reduce debugging time.
+
+See [SDK Errors](/docs/sdk/errors).
+
+## Empty values
+
+Consider how the workflow should treat empty values.
+
+For example:
+
+```json id="h3n6wy"
+{
+  "message": ""
+}
+```
+
+An empty string may be technically valid as a string while still being invalid for the business operation.
+
+Validation can therefore include both:
+
+```text id="s1q4km"
+Type validation
+      +
+Business validation
+```
+
+For example:
+
+```text id="m8v2cx"
+message
+├── exists
+├── is a string
+└── is not empty
+```
+
+## Null values
+
+Define whether `null` is meaningful for each field.
+
+For example:
+
+```json id="r6p9tz"
+{
+  "customerId": null
+}
+```
+
+may mean something different from an omitted field:
+
+```json id="x2k7mq"
+{}
+```
+
+Do not rely on ambiguous behavior. Define the expected semantics of optional and nullable fields.
+
+## Versioning contracts
+
+As workflows evolve, consider how changes affect callers.
+
+A change such as:
+
+```text id="g5c8vn"
+Add optional field
+```
+
+is generally different from:
+
+```text id="q1m6rx"
+Rename required field
+```
+
+or:
+
+```text id="z8p3wy"
+Change output structure
+```
+
+Changes to required inputs and output structures can have integration consequences.
+
+Treat production workflow contracts as API contracts.
+
+## End-to-end example
+
+Here is a complete example of a workflow contract.
+
+### Input
+
+```json id="a4m8qs"
+{
+  "customerId": "customer_123",
+  "message": "Where is my order?"
+}
+```
+
+### Workflow
+
+```text id="w9c2pk"
+Input
+  │
+  ▼
+Validate
+  │
+  ▼
+Customer Lookup
+  │
+  ▼
+Order Lookup
+  │
+  ▼
+AI Agent
+  │
+  ▼
+Validate Response
+  │
+  ▼
+Output
+```
+
+### Output
+
+```json id="n6x3vr"
+{
+  "response": "Your order is out for delivery.",
+  "status": "resolved"
+}
+```
+
+### Application
+
+```ts id="f7q1mc"
+const execution = await vangrex.workflows.run("customer-support", {
+  customerId: "customer_123",
+  message: "Where is my order?",
+});
+```
+
+The application provides the input.
+
+Vangrex executes the workflow.
+
+The workflow produces the output.
+
+That separation is the foundation of application-to-workflow integration.
+
+## Input and output checklist
+
+Before publishing a workflow, verify:
+
+- [ ] Required inputs are clearly defined.
+- [ ] Optional inputs are clearly defined.
+- [ ] Input types are correct.
+- [ ] Nested structures are intentional.
+- [ ] Invalid values are rejected.
+- [ ] Empty and null values have defined behavior.
+- [ ] Intermediate data is handled appropriately.
+- [ ] The final output is explicitly defined.
+- [ ] Output structure is stable.
+- [ ] Internal execution data is not unnecessarily exposed.
+- [ ] All execution branches produce the expected output.
+- [ ] The SDK integration uses the documented contract.
+
+## Next steps
+
+Continue with [Workflow Execution](/docs/workflows/execution) to understand what happens after a workflow is triggered.
+
+For application integration, see [SDK Workflows](/docs/sdk/workflows) and [SDK Executions](/docs/sdk/executions).

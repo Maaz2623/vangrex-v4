@@ -1,0 +1,790 @@
+---
+title: Creating Workflows
+description: Learn how to create, configure, and structure workflows in Vangrex.
+---
+
+---
+
+# Creating Workflows
+
+A Vangrex workflow starts with a simple idea: define a process, break it into nodes, and connect those nodes into an executable graph.
+
+```text
+Process
+   │
+   ▼
+Nodes
+   │
+   ▼
+Connections
+   │
+   ▼
+Workflow
+   │
+   ▼
+Execution
+```
+
+This page walks through the core process of creating a workflow.
+
+## Start with the process
+
+Before adding nodes, define what the workflow should accomplish.
+
+For example, suppose you want to build a customer-support workflow.
+
+The process might be:
+
+```text
+Receive request
+      │
+      ▼
+Validate request
+      │
+      ▼
+Get customer information
+      │
+      ▼
+Analyze request
+      │
+      ▼
+Generate response
+      │
+      ▼
+Return result
+```
+
+Each meaningful step can become a node.
+
+## Create a workflow
+
+Create a new workflow from your Vangrex project.
+
+A new workflow starts as a draft.
+
+```text
+Project
+   │
+   ▼
+New Workflow
+   │
+   ▼
+Draft
+```
+
+The draft is where you build and configure the workflow before publishing it.
+
+Give the workflow a meaningful name.
+
+For example:
+
+```text
+Customer Support Agent
+```
+
+or:
+
+```text
+Document Processing
+```
+
+or:
+
+```text
+Lead Enrichment
+```
+
+A workflow name should describe the capability it provides.
+
+## Add nodes
+
+Nodes are the individual operations inside your workflow.
+
+For example:
+
+```text
+Input
+  │
+  ▼
+Validate
+  │
+  ▼
+AI Agent
+  │
+  ▼
+Output
+```
+
+Each node should have a clear responsibility.
+
+Start by adding the nodes required to represent your process.
+
+For a customer-support workflow:
+
+```text
+Input
+  │
+  ▼
+Customer Lookup
+  │
+  ▼
+AI Agent
+  │
+  ▼
+Response
+  │
+  ▼
+Output
+```
+
+See [Nodes](/docs/workflows/nodes) for a detailed explanation of node types and configuration.
+
+## Position your nodes
+
+The visual editor represents your workflow as a graph.
+
+A simple workflow might look like:
+
+```text
+┌──────────┐
+│  Input   │
+└────┬─────┘
+     │
+     ▼
+┌──────────┐
+│   AI     │
+└────┬─────┘
+     │
+     ▼
+┌──────────┐
+│  Output  │
+└──────────┘
+```
+
+The visual arrangement should make the execution path easy to understand.
+
+For larger workflows, group related operations together and avoid unnecessary crossing connections.
+
+## Connect nodes
+
+After adding nodes, connect them to define the execution graph.
+
+```text
+Input ─────► Validate ─────► AI ─────► Output
+```
+
+The connection establishes a relationship between the nodes.
+
+For example:
+
+```text
+Input
+  │
+  │ message
+  ▼
+AI
+```
+
+The AI node can use the data produced by the input stage.
+
+## Build branches
+
+Not every workflow needs to be linear.
+
+You can create conditional execution paths.
+
+For example:
+
+```text
+                 ┌─────────────┐
+                 │  Condition  │
+                 └──────┬──────┘
+                        │
+                  ┌─────┴─────┐
+                  │           │
+                true        false
+                  │           │
+                  ▼           ▼
+             Process A    Process B
+```
+
+This is useful when different inputs require different operations.
+
+For example:
+
+```text
+Request
+   │
+   ▼
+Classify
+   │
+   ▼
+Condition
+   │
+   ├──► Billing
+   │
+   ├──► Technical Support
+   │
+   └──► General Support
+```
+
+## Configure each node
+
+Nodes contain configuration that determines how they behave.
+
+For example, an AI node might require:
+
+```text
+Model
+Prompt
+Input
+Output configuration
+```
+
+An HTTP node might require:
+
+```text
+URL
+Method
+Headers
+Request body
+```
+
+A condition node might require:
+
+```text
+Value
+Operator
+Comparison value
+```
+
+The exact configuration depends on the node.
+
+Keep configuration close to the node that uses it.
+
+## Define workflow inputs
+
+Determine what your application needs to provide when starting the workflow.
+
+For example:
+
+```text
+Customer Support Workflow
+
+Input:
+├── customerId
+└── message
+```
+
+An application could then trigger the workflow with:
+
+```ts
+const execution = await vangrex.workflows.run("customer-support", {
+  customerId: "customer_123",
+  message: "Where is my order?",
+});
+```
+
+The input contract should be clear before the workflow is integrated into production.
+
+See [Inputs & Outputs](/docs/workflows/inputs-outputs).
+
+## Define workflow outputs
+
+Determine what the application should receive after the workflow completes.
+
+For example:
+
+```text
+Output:
+├── response
+├── status
+└── confidence
+```
+
+The resulting data might look like:
+
+```json
+{
+  "response": "Your order is out for delivery.",
+  "status": "resolved",
+  "confidence": 0.94
+}
+```
+
+A predictable output contract makes the workflow easier to consume from an application.
+
+## Connect data between nodes
+
+A workflow is more than a sequence of nodes.
+
+Data needs to move between them.
+
+For example:
+
+```text
+Input
+  │
+  │ customerId
+  ▼
+Customer Lookup
+  │
+  │ customer
+  ▼
+AI Agent
+  │
+  │ response
+  ▼
+Output
+```
+
+Each stage consumes information from the workflow context and produces information that subsequent stages can use.
+
+A useful mental model is:
+
+```text
+Input
+  │
+  ▼
+Node A
+  │
+  │ data
+  ▼
+Node B
+  │
+  │ transformed data
+  ▼
+Node C
+```
+
+## Add AI
+
+AI can be introduced wherever the workflow requires generation, reasoning, classification, extraction, or decision-making.
+
+For example:
+
+```text
+Input
+  │
+  ▼
+Retrieve Customer
+  │
+  ▼
+AI Agent
+  │
+  ▼
+Validate Response
+  │
+  ▼
+Output
+```
+
+An AI agent can also use tools:
+
+```text
+                  ┌──────────────┐
+                  │ Search Tool  │
+                  └──────▲───────┘
+                         │
+Input ─────► AI Agent ───┼────► Output
+                         │
+                  ┌──────┴───────┐
+                  │   API Tool   │
+                  └──────────────┘
+```
+
+The AI component becomes one part of the workflow rather than the entire orchestration layer.
+
+See [AI Agents](/docs/ai/agents) and [Tools](/docs/ai/tools).
+
+## Add deterministic logic
+
+Not every operation needs AI.
+
+For example:
+
+```text
+Input
+  │
+  ▼
+Validate
+  │
+  ▼
+Condition
+  │
+  ├──► API
+  │
+  └──► AI
+```
+
+Use deterministic nodes for operations where predictable behavior is important.
+
+This makes the workflow easier to understand and control.
+
+## Handle errors
+
+Consider what should happen when a node fails.
+
+For example:
+
+```text
+            ┌─────────────┐
+            │  API Call   │
+            └──────┬──────┘
+                   │
+              ┌────┴─────┐
+              │          │
+           Success      Error
+              │          │
+              ▼          ▼
+          Continue    Error Path
+```
+
+Error handling should be considered when designing the workflow rather than added only after failures occur.
+
+Depending on the workflow, you may want to:
+
+- Stop execution.
+- Retry an operation.
+- Use an alternative path.
+- Return a structured error.
+- Record failure information.
+- Continue with a fallback operation.
+
+## Test the workflow
+
+Before publishing, test the workflow with representative inputs.
+
+For example:
+
+```json
+{
+  "customerId": "customer_123",
+  "message": "Where is my order?"
+}
+```
+
+Check:
+
+- Nodes execute in the expected order.
+- Data is passed correctly.
+- Conditions produce the expected path.
+- AI nodes receive the intended context.
+- Tools receive valid inputs.
+- Output matches the expected contract.
+- Errors behave as expected.
+
+A useful test process is:
+
+```text
+Build
+  │
+  ▼
+Test Input
+  │
+  ▼
+Execute
+  │
+  ▼
+Inspect Nodes
+  │
+  ▼
+Inspect Output
+  │
+  ▼
+Fix
+  │
+  └────────► Test again
+```
+
+## Inspect execution
+
+When testing a workflow, inspect the execution rather than looking only at the final result.
+
+For example:
+
+```text
+Execution
+   │
+   ├── Input ✓
+   ├── Validation ✓
+   ├── Customer Lookup ✓
+   ├── AI Agent ✓
+   ├── Response ✓
+   └── Output ✓
+```
+
+If something goes wrong, the failed node can help identify where the workflow needs to be corrected.
+
+See [Execution](/docs/workflows/execution).
+
+## Iterate on the workflow
+
+Workflow development is iterative.
+
+A typical cycle is:
+
+```text
+Design
+  │
+  ▼
+Build
+  │
+  ▼
+Test
+  │
+  ▼
+Inspect
+  │
+  ▼
+Improve
+  │
+  └──────────────►
+```
+
+You can change node configuration, add or remove nodes, modify connections, and adjust AI behavior as you refine the workflow.
+
+## Keep workflows focused
+
+A workflow should generally represent a meaningful capability.
+
+For example:
+
+```text
+Good boundaries:
+
+Customer Support
+Document Processing
+Invoice Extraction
+Lead Enrichment
+Content Generation
+```
+
+Instead of building one enormous workflow containing unrelated application functionality:
+
+```text
+Everything
+├── Support
+├── Billing
+├── Marketing
+├── Authentication
+├── Analytics
+└── Notifications
+```
+
+Focused workflows are easier to test, reuse, understand, and integrate.
+
+## Reuse workflows
+
+A published workflow can be triggered by different parts of your application.
+
+```text
+                 Customer Support
+                       Workflow
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+          ▼               ▼               ▼
+       Web App        Mobile App       Backend Job
+          │               │               │
+          └───────────────┼───────────────┘
+                          │
+                       Vangrex
+```
+
+The workflow becomes a shared orchestration layer.
+
+## Workflow naming
+
+Use names that describe the capability rather than implementation details.
+
+Prefer:
+
+```text
+Customer Support
+Document Processing
+Lead Enrichment
+Content Generator
+```
+
+over names such as:
+
+```text
+Workflow 1
+Test Workflow
+New Flow
+AI Flow
+```
+
+Meaningful names become especially important as your project grows.
+
+## Organize complex workflows
+
+Large workflows can become difficult to reason about.
+
+When a workflow grows, consider:
+
+- Grouping related nodes.
+- Keeping the primary execution path visually clear.
+- Naming nodes descriptively.
+- Removing unnecessary connections.
+- Separating unrelated responsibilities.
+- Moving reusable processes into separate workflows where appropriate.
+
+A complex workflow might be organized conceptually as:
+
+```text
+┌─────────────────────────────────────────┐
+│             Customer Support            │
+│                                         │
+│  ┌─────────────┐    ┌───────────────┐  │
+│  │   Input     │───►│   Validation  │  │
+│  └─────────────┘    └───────┬───────┘  │
+│                              │          │
+│                              ▼          │
+│                       ┌──────────────┐  │
+│                       │   Customer   │  │
+│                       │   Context    │  │
+│                       └──────┬───────┘  │
+│                              │          │
+│                              ▼          │
+│                       ┌──────────────┐  │
+│                       │   AI Agent   │  │
+│                       └──────┬───────┘  │
+│                              │          │
+│                              ▼          │
+│                       ┌──────────────┐  │
+│                       │    Output    │  │
+│                       └──────────────┘  │
+└─────────────────────────────────────────┘
+```
+
+## Drafts and publishing
+
+During development, keep the workflow in its editable state.
+
+```text
+Draft
+  │
+  ▼
+Build
+  │
+  ▼
+Test
+  │
+  ▼
+Ready
+  │
+  ▼
+Publish
+```
+
+Publishing should be treated as a deliberate step because applications may depend on the workflow's behavior.
+
+See [Publishing](/docs/workflows/publishing).
+
+## From workflow to application
+
+Once the workflow is ready, your application can trigger it through the Vangrex SDK.
+
+```ts
+const execution = await vangrex.workflows.run("customer-support", {
+  customerId: "customer_123",
+  message: "I need help with my order",
+});
+```
+
+The resulting architecture is:
+
+```text
+Your Application
+       │
+       │ SDK
+       ▼
+Vangrex
+       │
+       ▼
+Customer Support
+Workflow
+       │
+       ▼
+Execution
+       │
+       ▼
+Result
+```
+
+This is the main path from visual workflow development to application integration.
+
+## A complete example
+
+A complete customer-support workflow might look like:
+
+```text
+                         Input
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │  Validate   │
+                    └──────┬──────┘
+                           │
+                           ▼
+                  ┌──────────────────┐
+                  │ Customer Lookup  │
+                  └────────┬─────────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │  AI Agent   │
+                    └──────┬──────┘
+                           │
+                 ┌─────────┼─────────┐
+                 │         │         │
+                 ▼         ▼         ▼
+              Search      API      Orders
+                 │         │         │
+                 └─────────┼─────────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │   Validate  │
+                    │   Response  │
+                    └──────┬──────┘
+                           │
+                           ▼
+                       Output
+```
+
+Your application only needs to provide the required input:
+
+```ts
+const execution = await vangrex.workflows.run("customer-support", {
+  customerId: "customer_123",
+  message: "Where is my order?",
+});
+```
+
+Vangrex handles the workflow orchestration.
+
+## Creating workflow checklist
+
+Before moving toward publishing, verify:
+
+- [ ] The workflow has a clear purpose.
+- [ ] Nodes represent meaningful operations.
+- [ ] Connections form the intended execution graph.
+- [ ] Inputs are clearly defined.
+- [ ] Outputs are clearly defined.
+- [ ] Data flows correctly between nodes.
+- [ ] Conditional paths have been tested.
+- [ ] AI nodes receive the intended context.
+- [ ] Tools receive the correct inputs.
+- [ ] Failure paths have been considered.
+- [ ] The workflow has been tested with representative data.
+- [ ] The workflow is ready to be published.
+
+## Next steps
+
+Now that you know how to create a workflow, learn more about the individual building blocks in [Nodes](/docs/workflows/nodes).
+
+Then continue with [Inputs & Outputs](/docs/workflows/inputs-outputs) to define the data contract between your application and your workflow.

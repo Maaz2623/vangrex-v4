@@ -1,0 +1,1019 @@
+---
+title: Workflow Execution
+description: Understand how Vangrex executes workflow graphs, tracks node state, and produces execution results.
+---
+
+---
+
+# Workflow Execution
+
+A workflow definition describes what should happen.
+
+An execution is a runtime instance of that workflow.
+
+When an application triggers a workflow, Vangrex creates an execution and evaluates the workflow graph.
+
+```text id="p7x3qm"
+Workflow Definition
+        │
+        │ trigger
+        ▼
+    Execution
+        │
+        ▼
+   Graph Evaluation
+        │
+        ▼
+   Node Execution
+        │
+        ▼
+     Result
+```
+
+This distinction is important:
+
+```text
+Workflow = definition
+
+Execution = one runtime instance
+```
+
+The same workflow can therefore be executed many times with different inputs.
+
+## Workflow versus execution
+
+Consider a workflow named:
+
+```text id="k4m8vx"
+Customer Support
+```
+
+The workflow defines:
+
+```text id="r2q6zn"
+Input
+  │
+  ▼
+Validate
+  │
+  ▼
+Customer Lookup
+  │
+  ▼
+AI Agent
+  │
+  ▼
+Output
+```
+
+An application might execute it multiple times:
+
+```text id="v8p1cs"
+Customer Support
+       │
+       ├── Execution 1
+       │
+       ├── Execution 2
+       │
+       ├── Execution 3
+       │
+       └── Execution 4
+```
+
+Each execution has its own runtime state and input.
+
+## Starting an execution
+
+A workflow execution can be started from an application using the Vangrex SDK.
+
+For example:
+
+```ts id="m3x7qw"
+const execution = await vangrex.workflows.run("customer-support", {
+  customerId: "customer_123",
+  message: "Where is my order?",
+});
+```
+
+The SDK sends the workflow trigger request to Vangrex.
+
+Vangrex then creates and processes the execution.
+
+See [SDK Workflows](/docs/sdk/workflows).
+
+## Execution lifecycle
+
+A typical execution lifecycle looks like:
+
+```text id="c6n9rp"
+Triggered
+   │
+   ▼
+Queued
+   │
+   ▼
+Running
+   │
+   ▼
+Completed
+```
+
+If something fails:
+
+```text id="w2m7ks"
+Triggered
+   │
+   ▼
+Queued
+   │
+   ▼
+Running
+   │
+   ▼
+Failed
+```
+
+The exact lifecycle and status values depend on the execution capabilities exposed by Vangrex.
+
+## Execution state
+
+An execution needs to track more than its final result.
+
+Conceptually:
+
+```text id="h8q3mv"
+Execution
+├── id
+├── workflow
+├── status
+├── input
+├── node state
+├── output
+├── error
+└── timestamps
+```
+
+This allows an execution to be inspected after it starts.
+
+## Execution ID
+
+Each execution should have a unique identifier.
+
+For example:
+
+```text id="x5r8pn"
+exec_01J8ABC123XYZ
+```
+
+The execution ID is useful when:
+
+- Tracking a workflow run.
+- Looking up execution status.
+- Displaying execution details.
+- Debugging failures.
+- Correlating application requests with Vangrex executions.
+
+For example:
+
+```ts id="q7m2vx"
+const execution = await vangrex.workflows.run("customer-support", {
+  customerId: "customer_123",
+  message: "Where is my order?",
+});
+
+console.log(execution.id);
+```
+
+Use the execution identifier as the stable reference for that particular run.
+
+## Node execution
+
+Vangrex evaluates the workflow graph and executes the nodes required by the current path.
+
+For a linear workflow:
+
+```text id="n3c8wy"
+Input
+  │
+  ▼
+Validate
+  │
+  ▼
+Lookup
+  │
+  ▼
+AI
+  │
+  ▼
+Output
+```
+
+Execution progresses through the graph:
+
+```text id="a6m1qz"
+Input       ✓
+Validate    ✓
+Lookup      ●
+AI          ○
+Output      ○
+```
+
+Where:
+
+```text
+✓ = completed
+● = running
+○ = pending
+```
+
+## Node state
+
+Each node can have its own runtime state.
+
+Conceptually:
+
+```text id="v9k4sp"
+Node
+├── pending
+├── running
+├── completed
+├── failed
+└── skipped
+```
+
+This is separate from the node's configuration.
+
+For example:
+
+```text id="p2x7mc"
+Node configuration
+├── model
+├── prompt
+└── settings
+
+Node runtime state
+├── status
+├── input
+├── output
+└── error
+```
+
+The configuration describes how the node should behave.
+
+The runtime state describes what happened during a particular execution.
+
+## Execution context
+
+During execution, nodes may need access to information produced by previous nodes.
+
+Conceptually:
+
+```text id="f8m3qw"
+                 Execution Context
+                        │
+          ┌─────────────┼─────────────┐
+          │             │             │
+          ▼             ▼             ▼
+       Node A         Node B        Node C
+```
+
+For example:
+
+```text id="z5r1vn"
+Input
+  │
+  │ customerId
+  ▼
+Customer Lookup
+  │
+  │ customer
+  ▼
+AI Agent
+```
+
+The execution context allows data to move through the workflow.
+
+## Data flow during execution
+
+Consider:
+
+```text id="q9c6mx"
+Input
+  │
+  │ message
+  ▼
+Classifier
+  │
+  │ category
+  ▼
+Condition
+  │
+  ├── billing ──► Billing Agent
+  │
+  └── support ──► Support Agent
+```
+
+The execution engine evaluates the current node, records its result, and uses that result when evaluating downstream nodes.
+
+This produces a runtime data flow:
+
+```text id="m4v8ks"
+Input
+  ↓
+Classifier
+  ↓
+Condition
+  ↓
+Selected Branch
+  ↓
+Output
+```
+
+## Linear execution
+
+The simplest execution graph is linear.
+
+```text id="c2p7wn"
+A → B → C → D
+```
+
+A typical execution might be:
+
+```text id="r6x3mq"
+A: completed
+B: completed
+C: completed
+D: running
+```
+
+After `D` completes:
+
+```text id="v8m1zs"
+A: completed
+B: completed
+C: completed
+D: completed
+```
+
+The execution can then be marked completed.
+
+## Branching execution
+
+Workflows can contain conditional paths.
+
+```text id="k7q2pc"
+             Condition
+             /       \
+            /         \
+           ▼           ▼
+       Path A         Path B
+```
+
+During execution, the condition determines which path should be evaluated.
+
+For example:
+
+```text id="x5n8mv"
+             Priority
+                │
+                ▼
+            Condition
+             /     \
+            /       \
+         high      normal
+          │           │
+          ▼           ▼
+       Escalate     Process
+```
+
+The execution follows the path selected by the workflow logic.
+
+## Skipped nodes
+
+A node may not execute when the graph path does not require it.
+
+For example:
+
+```text id="q3m6wp"
+Condition
+   │
+   ├── true ──► Node A
+   │
+   └── false ─► Node B
+```
+
+If the condition evaluates to `true`:
+
+```text id="s9x4kc"
+Condition   ✓
+Node A      ✓
+Node B      -
+```
+
+`Node B` was not required for this execution.
+
+Depending on the runtime, it can be represented as skipped or otherwise not executed.
+
+## Parallel branches
+
+Some workflow graphs contain independent branches.
+
+```text id="n8c5vr"
+              Input
+                │
+                ▼
+             Prepare
+                │
+       ┌────────┼────────┐
+       │        │        │
+       ▼        ▼        ▼
+    Search    Customer  Orders
+       │        │        │
+       └────────┼────────┘
+                │
+                ▼
+              Combine
+```
+
+When the execution engine supports parallel evaluation, independent operations may execute concurrently.
+
+The important concept is dependency:
+
+```text
+A ──► B
+```
+
+means `B` depends on `A`.
+
+While:
+
+```text
+A      B
+ \    /
+  \  /
+   C
+```
+
+means `C` depends on both `A` and `B`.
+
+Execution scheduling follows these graph relationships.
+
+## Execution completion
+
+An execution completes when the workflow reaches its terminal state.
+
+A successful execution might look like:
+
+```text id="w4p8mq"
+Input       ✓
+Validate    ✓
+Lookup      ✓
+AI          ✓
+Output      ✓
+            │
+            ▼
+        Completed
+```
+
+The final workflow output can then be returned to the caller.
+
+## Execution failure
+
+An execution can fail when a node encounters an unrecoverable error.
+
+For example:
+
+```text id="c7m2sx"
+Input       ✓
+Validate    ✓
+Lookup      ✓
+AI          ✕
+Output      -
+            │
+            ▼
+          Failed
+```
+
+The failed node should provide enough information to diagnose the problem.
+
+See [SDK Errors](/docs/sdk/errors).
+
+## Failure propagation
+
+A node failure can affect downstream nodes.
+
+For example:
+
+```text id="p5x8qn"
+A ✓
+│
+▼
+B ✕
+│
+▼
+C -
+```
+
+If `B` fails and there is no recovery path, `C` may not execute.
+
+A workflow can instead explicitly model fallback behavior:
+
+```text id="v3k7mw"
+             API
+              │
+        ┌─────┴─────┐
+        │           │
+      success      error
+        │           │
+        ▼           ▼
+      Result      Fallback
+        │           │
+        └─────┬─────┘
+              ▼
+            Output
+```
+
+## Retries
+
+Some operations can be retried when they fail.
+
+For example:
+
+```text id="m8q2xc"
+HTTP Request
+     │
+     ✕
+     │
+     ▼
+   Retry
+     │
+     ▼
+HTTP Request
+```
+
+Retries are particularly useful for transient failures such as temporary external service errors.
+
+Retries should not automatically be applied to every failure.
+
+For example, retrying an invalid request repeatedly will generally not resolve the underlying problem.
+
+## Idempotency
+
+When a node performs an external side effect, consider whether retrying it could produce duplicate effects.
+
+For example:
+
+```text id="k6v9sp"
+Create Payment
+      │
+      ✕
+      │
+      ▼
+     Retry
+```
+
+If the first request succeeded but the response was lost, blindly retrying could potentially create a duplicate operation.
+
+For important side effects, use appropriate idempotency mechanisms in the underlying service.
+
+## Timeouts
+
+External operations can take longer than expected.
+
+A workflow may therefore need execution time limits around operations such as:
+
+```text id="r2x7mq"
+HTTP Request
+AI Generation
+Database Operation
+External Tool
+```
+
+A timeout should be treated as a runtime failure condition that can be handled according to the workflow's design.
+
+## AI execution
+
+AI nodes introduce model execution into the workflow.
+
+For example:
+
+```text id="c8m4vy"
+Input
+  │
+  ▼
+Prepare Context
+  │
+  ▼
+AI Agent
+  │
+  ├──► Search Tool
+  │
+  ├──► Customer Tool
+  │
+  └──► Order Tool
+  │
+  ▼
+Output
+```
+
+An AI execution may involve multiple operations before producing its final result.
+
+For agentic workflows, inspect the execution at the appropriate level rather than assuming the model produces its result in a single operation.
+
+See [AI Agents](/docs/ai/agents).
+
+## Tool execution
+
+When an AI agent uses a tool, that tool becomes part of the runtime execution.
+
+Conceptually:
+
+```text id="f7q3zn"
+AI Agent
+   │
+   ├── Tool Call
+   │      │
+   │      ▼
+   │   Tool Execution
+   │      │
+   │      ▼
+   │   Tool Result
+   │      │
+   └──────┘
+```
+
+The agent can then continue based on the tool result.
+
+This is especially useful for workflows that combine reasoning with deterministic external operations.
+
+## Execution logs
+
+Execution logs help explain what happened during a workflow run.
+
+A conceptual execution trace might look like:
+
+```text id="n6p1cx"
+[10:32:01] Input started
+[10:32:01] Input completed
+
+[10:32:01] Validate started
+[10:32:01] Validate completed
+
+[10:32:02] Customer Lookup started
+[10:32:02] Customer Lookup completed
+
+[10:32:02] AI Agent started
+[10:32:05] AI Agent completed
+
+[10:32:05] Output completed
+```
+
+Logs are particularly useful when the final output does not explain why an execution behaved unexpectedly.
+
+## Execution observability
+
+When debugging a workflow, inspect:
+
+```text id="s4m8qy"
+Execution
+├── Overall status
+├── Input
+├── Node statuses
+├── Node outputs
+├── Errors
+├── Tool activity
+└── Final output
+```
+
+This gives you a complete picture of the execution rather than only the final response.
+
+## Execution history
+
+A workflow can have many executions:
+
+```text id="q8x3mv"
+Customer Support
+      │
+      ├── exec_001
+      ├── exec_002
+      ├── exec_003
+      ├── exec_004
+      └── exec_005
+```
+
+Each execution represents a separate runtime instance.
+
+Execution history is useful for:
+
+- Debugging.
+- Monitoring.
+- Investigating failures.
+- Reviewing inputs and outputs.
+- Correlating application activity with workflow runs.
+
+## Execution from an application
+
+A common application architecture is:
+
+```text id="z5m2qp"
+User Request
+     │
+     ▼
+Your Application
+     │
+     │ Vangrex SDK
+     ▼
+Vangrex Workflow
+     │
+     ▼
+Execution
+     │
+     ▼
+Result
+     │
+     ▼
+Your Application
+```
+
+For example:
+
+```ts id="y7c4mn"
+const execution = await vangrex.workflows.run("document-processing", {
+  documentUrl: "https://example.com/document.pdf",
+});
+```
+
+The application does not need to implement the workflow's internal graph execution itself.
+
+Vangrex owns the orchestration layer.
+
+## Long-running executions
+
+Not every workflow needs to complete immediately.
+
+A workflow may involve:
+
+```text id="k3x8wp"
+Large document
+     │
+     ▼
+Processing
+     │
+     ▼
+AI analysis
+     │
+     ▼
+Validation
+     │
+     ▼
+Result
+```
+
+For longer-running workflows, applications may need to track the execution after the initial trigger.
+
+The execution ID provides the reference needed to associate subsequent status or result requests with the original execution.
+
+See [SDK Executions](/docs/sdk/executions).
+
+## Execution status versus workflow status
+
+These are different concepts.
+
+A workflow might be:
+
+```text id="p9m5cx"
+Workflow
+Status: Published
+```
+
+while one execution is:
+
+```text id="v4q7ns"
+Execution
+Status: Running
+```
+
+Another execution of the same workflow could be:
+
+```text id="r6x2mk"
+Execution
+Status: Completed
+```
+
+The workflow describes the reusable definition.
+
+The execution describes one run of that definition.
+
+## Execution result
+
+A completed execution can expose the workflow's result.
+
+For example:
+
+```text id="c7n3qw"
+Execution
+   │
+   ├── status: completed
+   ├── id: exec_123
+   └── output
+          │
+          ▼
+      Workflow Result
+```
+
+The result should follow the output contract defined by the workflow.
+
+See [Inputs & Outputs](/docs/workflows/inputs-outputs).
+
+## Correlating executions
+
+Applications often need to connect an execution to their own request or entity.
+
+For example:
+
+```text id="x8m2vp"
+Application Request
+request_789
+      │
+      ▼
+Vangrex Execution
+exec_123
+      │
+      ▼
+Application Result
+```
+
+Store the Vangrex execution ID alongside your application's own request identifier when appropriate.
+
+This makes it easier to trace:
+
+```text
+Application Request
+        ↓
+Vangrex Execution
+        ↓
+Workflow Nodes
+        ↓
+Final Result
+```
+
+## Designing for observability
+
+A production workflow should make failures diagnosable.
+
+Prefer:
+
+```text id="m1q7sz"
+Validate
+  │
+  ▼
+Lookup
+  │
+  ▼
+Transform
+  │
+  ▼
+AI
+  │
+  ▼
+Output
+```
+
+over an opaque operation where many unrelated responsibilities are hidden inside a single node.
+
+Smaller, clearly named nodes provide better execution visibility.
+
+## Execution example
+
+Consider a customer-support workflow:
+
+```text id="b6v9xr"
+Input
+  │
+  ▼
+Validate
+  │
+  ▼
+Customer Lookup
+  │
+  ▼
+Classify
+  │
+  ▼
+Condition
+  │
+  ├── Billing ──────► Billing Agent
+  │
+  ├── Technical ───► Technical Agent
+  │
+  └── General ─────► General Agent
+                          │
+                          ▼
+                        Output
+```
+
+An execution might produce:
+
+```text id="h3p8mk"
+Execution: exec_123
+
+Input          ✓
+Validate       ✓
+Customer       ✓
+Classify       ✓
+Condition      ✓
+Billing Agent  ✓
+Output         ✓
+
+Status: Completed
+```
+
+The application can then consume the resulting output.
+
+## Execution debugging workflow
+
+When an execution fails, use a structured debugging process:
+
+```text id="q5m2vc"
+Execution Failed
+       │
+       ▼
+Identify Failed Node
+       │
+       ▼
+Inspect Input
+       │
+       ▼
+Inspect Node Configuration
+       │
+       ▼
+Inspect Error
+       │
+       ▼
+Fix Workflow
+       │
+       ▼
+Run Again
+```
+
+Start at the failed node rather than changing unrelated parts of the workflow.
+
+## Production execution checklist
+
+Before putting a workflow into production, verify:
+
+- [ ] Inputs are validated.
+- [ ] Outputs have a stable structure.
+- [ ] Important nodes have clear names.
+- [ ] Failure paths have been considered.
+- [ ] External operations have appropriate timeout behavior.
+- [ ] Retries are appropriate for transient failures.
+- [ ] Side effects are safe to retry where necessary.
+- [ ] AI and tool failures are handled.
+- [ ] Execution IDs can be correlated with application requests.
+- [ ] Execution history provides enough information for debugging.
+- [ ] Long-running executions can be tracked appropriately.
+
+## The execution model
+
+The complete Vangrex execution model can be summarized as:
+
+```text id="t8x4mq"
+                    Workflow
+                       │
+                       │ trigger
+                       ▼
+                   Execution
+                       │
+                       ▼
+                 Execution Context
+                       │
+             ┌─────────┼─────────┐
+             │         │         │
+             ▼         ▼         ▼
+           Node A    Node B    Node C
+             │         │         │
+             └─────────┼─────────┘
+                       │
+                       ▼
+                    Output
+                       │
+                       ▼
+                  Application
+```
+
+The workflow defines the graph.
+
+The execution runs the graph.
+
+The execution context carries runtime data.
+
+The nodes perform the work.
+
+The output becomes the result consumed by the application.
+
+## Next steps
+
+To trigger and monitor executions from your application, continue with [SDK Executions](/docs/sdk/executions).
+
+For the workflow's publishing lifecycle, see [Publishing](/docs/workflows/publishing).

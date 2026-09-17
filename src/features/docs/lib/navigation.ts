@@ -63,7 +63,7 @@ export const docsNavigation: DocsNavSection[] = [
     items: [
       {
         title: "Overview",
-        href: "/docs/workflows",
+        href: "/docs/workflows/overview",
         slug: ["workflows", "overview"],
       },
       {
@@ -99,7 +99,7 @@ export const docsNavigation: DocsNavSection[] = [
     items: [
       {
         title: "Overview",
-        href: "/docs/ai",
+        href: "/docs/ai/overview",
         slug: ["ai", "overview"],
       },
       {

@@ -1,0 +1,750 @@
+---
+title: AI Models
+description: Understand how models power AI nodes and agents in Vangrex.
+---
+
+---
+
+# Models
+
+Models provide the intelligence behind AI features in Vangrex.
+
+A model receives context and instructions and produces an output.
+
+```text
+Input
+  ↓
+Instructions + Context
+  ↓
+Model
+  ↓
+Output
+```
+
+Vangrex workflows can use models directly or through higher-level AI components such as agents.
+
+```text
+                    Vangrex
+                       │
+          ┌────────────┴────────────┐
+          ↓                         ↓
+      AI Node                    Agent
+          │                         │
+          └──────────┬──────────────┘
+                     ↓
+                   Model
+                     ↓
+                  Output
+```
+
+---
+
+## What is a model?
+
+A model is the underlying AI system responsible for processing input and generating output.
+
+Depending on the model and configuration, it may support capabilities such as:
+
+- Text generation
+- Structured output
+- Tool calling
+- Reasoning
+- Multimodal input
+- Large context windows
+
+Different models make different tradeoffs.
+
+```text
+Model selection
+├── Capability
+├── Latency
+├── Cost
+├── Context window
+├── Output quality
+└── Feature support
+```
+
+The appropriate model depends on the task your workflow needs to perform.
+
+---
+
+## Models in Vangrex
+
+Models are primarily used by AI-related workflow components.
+
+A simple AI workflow might look like:
+
+```text
+Input
+  ↓
+Prompt
+  ↓
+Model
+  ↓
+Output
+```
+
+An agent adds additional execution logic:
+
+```text
+Input
+  ↓
+Agent
+  ↓
+Model
+  ↓
+Decision
+  ↓
+Tool
+  ↓
+Result
+  ↓
+Model
+  ↓
+Final output
+```
+
+The model remains the intelligence layer while the surrounding Vangrex components handle orchestration.
+
+---
+
+## Model configuration
+
+A model configuration typically determines:
+
+```text
+Provider
+Model
+Generation settings
+Output format
+```
+
+Conceptually:
+
+```ts
+const modelConfig = {
+  provider: "provider",
+  model: "model-name",
+  temperature: 0.2,
+};
+```
+
+The exact configuration available depends on the model integration and capabilities exposed by Vangrex.
+
+Keep model-specific configuration separate from your workflow's business logic whenever possible.
+
+---
+
+## Choosing a model
+
+Model selection should be based on the requirements of the task.
+
+Consider:
+
+### Capability
+
+Does the model provide the capabilities your workflow needs?
+
+For example, an agent that relies on tool calling needs a model that supports the required tool interaction mechanism.
+
+### Latency
+
+Some applications need responses quickly.
+
+For interactive applications, latency can be more important than small differences in output quality.
+
+### Cost
+
+Model usage can become a significant part of application cost.
+
+For high-volume workflows, even a small per-request difference can become meaningful.
+
+### Context
+
+If the workflow processes large amounts of information, context capacity becomes important.
+
+```text
+Small context
+    ↓
+Simple classification
+
+Large context
+    ↓
+Documents
+Conversation history
+Research
+Application data
+```
+
+### Output requirements
+
+If your workflow consumes structured output, choose a model and configuration that reliably supports the required output format.
+
+---
+
+## Model and workflow separation
+
+Avoid coupling your workflow logic directly to a specific model wherever possible.
+
+Instead of designing:
+
+```text
+Workflow
+   ↓
+Specific model
+   ↓
+Specific output assumptions
+```
+
+prefer:
+
+```text
+Workflow
+   ↓
+AI component
+   ↓
+Configured model
+   ↓
+Defined output
+```
+
+This makes model changes easier.
+
+For example:
+
+```text
+                  ┌── Model A
+                  │
+AI Component ─────┼── Model B
+                  │
+                  └── Model C
+```
+
+The surrounding workflow can remain largely unchanged.
+
+---
+
+## Temperature and generation settings
+
+Some model providers expose generation parameters that influence how output is produced.
+
+One commonly used parameter is temperature.
+
+Conceptually:
+
+```text
+Lower temperature
+    ↓
+More constrained generation
+
+Higher temperature
+    ↓
+More variation in generation
+```
+
+The appropriate value depends on the task.
+
+For example:
+
+```text
+Classification
+    → lower variation
+
+Structured extraction
+    → lower variation
+
+Creative generation
+    → potentially higher variation
+```
+
+Do not assume that a higher value is inherently better.
+
+Generation settings should be treated as part of the AI component's configuration and tested against representative inputs.
+
+---
+
+## Structured output
+
+Many workflows need machine-readable results rather than free-form text.
+
+For example:
+
+```json
+{
+  "intent": "support",
+  "priority": "high",
+  "requiresHuman": true
+}
+```
+
+This can then flow into deterministic workflow logic:
+
+```text
+Model
+  ↓
+Structured output
+  ↓
+Condition
+  ├── Human review
+  └── Automated processing
+```
+
+Structured output is especially useful when the next workflow node expects specific fields.
+
+---
+
+## Why structured output matters
+
+Consider an AI model producing:
+
+```text
+This appears to be a high priority support issue and should
+probably be escalated to a human.
+```
+
+A downstream workflow has to interpret that text.
+
+With structured output:
+
+```json
+{
+  "priority": "high",
+  "requiresHuman": true
+}
+```
+
+the workflow can directly evaluate:
+
+```text
+requiresHuman === true
+```
+
+This creates a cleaner boundary between probabilistic AI behavior and deterministic application logic.
+
+---
+
+## Models and agents
+
+Agents use models differently from simple AI generation nodes.
+
+A normal generation task might involve one model call:
+
+```text
+Input
+  ↓
+Model
+  ↓
+Output
+```
+
+An agent may require several model calls:
+
+```text
+Input
+  ↓
+Model
+  ↓
+Decision
+  ↓
+Tool
+  ↓
+Result
+  ↓
+Model
+  ↓
+Decision
+  ↓
+Tool
+  ↓
+Result
+  ↓
+Model
+  ↓
+Final output
+```
+
+This means model configuration can affect the behavior of an entire agent execution.
+
+See [Agents](/docs/ai/agents) for the agent execution model.
+
+---
+
+## Tool calling
+
+Models used by agents may need to determine when a tool should be invoked.
+
+For example:
+
+```text
+User:
+"Where is order 123?"
+
+       ↓
+
+Model:
+"I need the order status."
+
+       ↓
+
+Tool call:
+get_order({ orderId: "123" })
+
+       ↓
+
+Tool result:
+{
+  "status": "shipped"
+}
+
+       ↓
+
+Model:
+"Tell the user that the order has shipped."
+
+       ↓
+
+Final output
+```
+
+The model does not directly execute the external operation.
+
+The agent runtime coordinates the model's tool request with the configured tool.
+
+---
+
+## Model context
+
+Models operate on the context supplied to them.
+
+A useful conceptual representation is:
+
+```text
+Model context
+├── System instructions
+├── User input
+├── Workflow data
+├── Conversation history
+├── Tool definitions
+└── Previous tool results
+```
+
+The amount and structure of this context can affect model behavior.
+
+Keep the context:
+
+- Relevant
+- Consistent
+- Well structured
+- As small as practical
+
+Avoid passing large amounts of unrelated application data to every model call.
+
+---
+
+## Context limits
+
+Models have finite context capacity.
+
+A workflow that continuously adds information can eventually produce an unnecessarily large context.
+
+For example:
+
+```text
+Request
+  ↓
+Conversation history
+  ↓
+Document
+  ↓
+Tool result
+  ↓
+Another document
+  ↓
+Another tool result
+  ↓
+Model
+```
+
+As context grows, consider whether every previous item is still necessary.
+
+For long-running AI workflows, context management should be treated as part of workflow design.
+
+---
+
+## Model failures
+
+Model calls can fail for reasons such as:
+
+```text
+Provider errors
+Timeouts
+Rate limits
+Invalid configuration
+Unsupported capabilities
+Malformed output
+```
+
+Your workflow should account for failures rather than assuming every model call succeeds.
+
+A typical execution path might be:
+
+```text
+Model call
+   ↓
+Success ─────────→ Continue
+   │
+   └── Failure
+          ↓
+        Retry
+          ↓
+      Still fails
+          ↓
+      Error handling
+```
+
+The appropriate retry behavior depends on the type of failure.
+
+---
+
+## Provider abstraction
+
+AI systems may use multiple model providers.
+
+Conceptually:
+
+```text
+                  AI component
+                       │
+          ┌────────────┼────────────┐
+          ↓            ↓            ↓
+      Provider A   Provider B   Provider C
+          │            │            │
+       Model A      Model B      Model C
+```
+
+Keeping provider-specific details behind the model configuration makes your workflows easier to maintain.
+
+It also allows applications to evolve as new models become available.
+
+---
+
+## Multi-model workflows
+
+A workflow does not necessarily need to use the same model for every AI task.
+
+For example:
+
+```text
+Customer message
+      ↓
+Classification model
+      ↓
+Determine intent
+      ↓
+Research agent
+      ↓
+More capable model
+      ↓
+Generate response
+```
+
+Different tasks can have different requirements.
+
+A lightweight model may be sufficient for classification while a more capable model may be appropriate for complex reasoning.
+
+---
+
+## Model routing
+
+More advanced workflows can dynamically select a model.
+
+For example:
+
+```text
+Request
+   ↓
+Classify complexity
+   ↓
+Condition
+   ├── Simple → Fast model
+   │
+   └── Complex → More capable model
+```
+
+This can help separate workloads based on their requirements.
+
+Model routing should remain explicit enough that you can understand why a particular execution selected a particular model.
+
+---
+
+## Cost-aware architecture
+
+AI costs are often affected by:
+
+```text
+Number of model calls
+Input tokens
+Output tokens
+Model selection
+Context size
+Tool-driven iterations
+```
+
+An agent can make multiple model calls for a single workflow execution.
+
+For example:
+
+```text
+Simple generation
+    → 1 model call
+
+Agent
+    → 1 model call
+    → tool
+    → 1 model call
+    → tool
+    → 1 model call
+```
+
+When designing production workflows, measure actual execution behavior rather than estimating cost from a single model call.
+
+---
+
+## Model observability
+
+Model execution should be observable as part of the workflow execution.
+
+A useful trace can conceptually expose:
+
+```text
+Execution
+│
+├── AI node
+│   ├── Model
+│   ├── Input
+│   ├── Output
+│   └── Duration
+│
+└── Next node
+```
+
+For agents:
+
+```text
+Execution
+│
+└── Agent
+    ├── Model call
+    ├── Tool call
+    ├── Tool result
+    ├── Model call
+    └── Final output
+```
+
+This makes it easier to understand unexpected behavior and performance.
+
+---
+
+## Testing models
+
+Model output is probabilistic, so testing should use representative examples rather than relying on a single successful request.
+
+For example:
+
+```text
+Normal input
+Edge case
+Missing information
+Ambiguous request
+Invalid input
+Very long input
+Unexpected tool result
+Model failure
+```
+
+For structured output, validate that the generated result conforms to the expected structure before allowing it to drive important downstream actions.
+
+---
+
+## Model versioning
+
+Model behavior can change as providers introduce new versions or configurations.
+
+For production workflows, keep track of the model configuration used by important executions.
+
+Conceptually:
+
+```text
+Workflow
+  ↓
+AI component
+  ↓
+Provider
+  ↓
+Model
+  ↓
+Configuration
+```
+
+If output behavior changes unexpectedly, the model configuration is one of the execution details worth inspecting.
+
+---
+
+## Model selection checklist
+
+When configuring a model, consider:
+
+- [ ] Does it support the required capabilities?
+- [ ] Is its context capacity sufficient?
+- [ ] Is its latency appropriate?
+- [ ] Is its cost appropriate for the expected volume?
+- [ ] Does it support the required output format?
+- [ ] Does it support the required tool interaction?
+- [ ] Have representative inputs been tested?
+- [ ] Is the configuration observable during execution?
+- [ ] Can the workflow tolerate model failures?
+
+---
+
+## Recommended architecture
+
+For production AI workflows, a useful separation is:
+
+```text
+┌────────────────────────────────────────────┐
+│                Workflow                    │
+│                                            │
+│  Deterministic orchestration               │
+│  Validation                                │
+│  Conditions                                │
+│  External actions                          │
+│                                            │
+│              ┌─────────────────┐           │
+│              │    AI Layer     │           │
+│              │                 │           │
+│              │  Agent          │           │
+│              │  Prompt         │           │
+│              │  Model          │           │
+│              │  Tools          │           │
+│              └─────────────────┘           │
+│                                            │
+└────────────────────────────────────────────┘
+```
+
+The workflow defines the application process.
+
+The AI layer handles tasks where model reasoning or generation provides value.
+
+This separation keeps AI flexible without allowing probabilistic behavior to replace deterministic application logic unnecessarily.
+
+---
+
+## Next steps
+
+Learn how agents combine models and tools in [Agents](/docs/ai/agents).
+
+Explore [Tools](/docs/ai/tools) to give AI components access to external capabilities.
+
+See [Prompts](/docs/ai/prompts) to learn how instructions and context shape model behavior.
+
+For the underlying orchestration model, see [Workflow Execution](/docs/workflows/execution).

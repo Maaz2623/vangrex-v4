@@ -1,0 +1,1157 @@
+---
+title: AI Agents
+description: Build AI agents in Vangrex that reason, use tools, and complete tasks inside controlled workflows.
+---
+
+---
+
+# AI Agents
+
+AI agents are AI systems that can decide what actions to take instead of producing a single response from a single model call.
+
+In Vangrex, an agent can combine:
+
+```text
+Instructions
+    ↓
+Model
+    ↓
+Context
+    ↓
+Tool selection
+    ↓
+Tool execution
+    ↓
+Observation
+    ↓
+Next decision
+    ↓
+Final result
+```
+
+This makes agents useful for tasks where the system needs to inspect information, choose an action, use external capabilities, and continue based on the result.
+
+For example:
+
+```text
+Customer message
+      ↓
+Support Agent
+      ↓
+Check order status
+      ↓
+Inspect order
+      ↓
+Determine issue
+      ↓
+Choose action
+      ↓
+Create support response
+```
+
+---
+
+## Agents vs models
+
+A model generates output based on the input it receives.
+
+An agent uses a model as part of a larger execution loop.
+
+A simple model interaction looks like:
+
+```text
+Input
+  ↓
+Model
+  ↓
+Output
+```
+
+An agent interaction can look like:
+
+```text
+Input
+  ↓
+Agent
+  ↓
+Model
+  ↓
+Decision
+  ↓
+Tool
+  ↓
+Result
+  ↓
+Model
+  ↓
+Decision
+  ↓
+Tool
+  ↓
+Result
+  ↓
+Final output
+```
+
+The model provides the reasoning and generation capability.
+
+The agent provides the execution structure around that model.
+
+---
+
+## When to use an agent
+
+Agents are useful when the next action cannot always be determined ahead of time.
+
+For example, consider a support workflow.
+
+A deterministic workflow might look like:
+
+```text
+Receive message
+      ↓
+Get customer
+      ↓
+Get order
+      ↓
+Return order status
+```
+
+An agent can handle a broader range of requests:
+
+```text
+Receive message
+      ↓
+Understand request
+      ↓
+Determine required information
+      ↓
+Choose appropriate tool
+      ↓
+Inspect result
+      ↓
+Determine next action
+      ↓
+Repeat if necessary
+      ↓
+Return response
+```
+
+Agents are particularly useful for:
+
+- Customer support
+- Research
+- Data analysis
+- Internal assistants
+- Developer assistants
+- Operations automation
+- Multi-step API interactions
+- Knowledge retrieval
+- Decision-support systems
+
+For predictable business logic, deterministic workflow nodes are often a better fit.
+
+---
+
+## Agent architecture
+
+A Vangrex agent can be thought of as several layers working together.
+
+```text
+┌──────────────────────────────┐
+│            Agent             │
+│                              │
+│  Instructions                │
+│  Context                     │
+│  Model                       │
+│  Tools                       │
+│  Output requirements         │
+│                              │
+└──────────────┬───────────────┘
+               │
+               ▼
+        ┌─────────────┐
+        │    Model    │
+        └──────┬──────┘
+               │
+        ┌──────▼──────┐
+        │   Decide    │
+        └──────┬──────┘
+               │
+        ┌──────▼──────┐
+        │    Tool     │
+        └──────┬──────┘
+               │
+        ┌──────▼──────┐
+        │ Tool result │
+        └──────┬──────┘
+               │
+               └──────────────┐
+                              │
+                              ▼
+                           Model
+```
+
+Each component has a different responsibility.
+
+---
+
+## Instructions
+
+Instructions define what the agent is supposed to do.
+
+For example:
+
+```text
+You are a customer support assistant.
+
+Help customers understand their orders.
+
+You may:
+- Look up orders
+- Check shipment status
+- Create support tickets
+
+Never invent order information.
+
+If the required information cannot be retrieved,
+tell the customer that the information is unavailable.
+```
+
+Good instructions should define:
+
+- The agent's role
+- The objective
+- Available actions
+- Constraints
+- Expected behavior
+- Failure behavior
+- Output requirements
+
+Instructions should not attempt to encode every possible decision.
+
+The model should be able to use the available context and tools to determine the appropriate next action.
+
+---
+
+## Context
+
+Agents need context to make useful decisions.
+
+Context can include:
+
+```text
+User message
+Customer information
+Conversation history
+Workflow inputs
+Previous tool results
+Application data
+Runtime metadata
+```
+
+For example:
+
+```ts
+const context = {
+  customerId: "customer_123",
+  message: "Where is my order?",
+  orderId: "order_456",
+};
+```
+
+The agent can use this information while deciding what to do.
+
+Keep context relevant.
+
+Sending unnecessary data to an agent can make instructions harder to follow and increase the amount of information the model needs to process.
+
+---
+
+## Models
+
+The model is the reasoning and generation engine used by the agent.
+
+Different models can have different characteristics:
+
+```text
+Model
+├── Reasoning capability
+├── Context window
+├── Latency
+├── Cost
+├── Tool-calling support
+└── Output capabilities
+```
+
+The agent should generally be designed independently from the specific model.
+
+This makes it possible to change models without rebuilding the entire workflow.
+
+See [Models](/docs/ai/models) for more information.
+
+---
+
+## Tools
+
+Tools allow an agent to interact with systems outside the model.
+
+Without tools, an agent can only reason about the information available in its context.
+
+With tools, it can perform actions such as:
+
+```text
+Search a database
+Call an API
+Retrieve a document
+Check an order
+Create a ticket
+Send a message
+Run application logic
+```
+
+A typical interaction looks like:
+
+```text
+User
+ ↓
+Agent
+ ↓
+Model decides:
+"Need order information"
+ ↓
+Order lookup tool
+ ↓
+Order data
+ ↓
+Agent
+ ↓
+Model decides:
+"Order is delayed"
+ ↓
+Final response
+```
+
+Tools are covered in detail in [Tools](/docs/ai/tools).
+
+---
+
+## Tool descriptions matter
+
+The model needs to understand what each tool does before it can choose one.
+
+A useful tool definition should communicate:
+
+- What the tool does
+- When it should be used
+- What inputs it expects
+- What the inputs mean
+- What it returns
+- Important constraints
+
+For example:
+
+```ts
+{
+  name: "get_order",
+  description: "Retrieve the current status and details of a customer order.",
+  input: {
+    orderId: "The unique identifier of the order to retrieve."
+  }
+}
+```
+
+Compare this with a vague description:
+
+```ts
+{
+  name: "get_order",
+  description: "Gets order."
+}
+```
+
+The first gives the model considerably more information about when and how the tool should be used.
+
+---
+
+## The agent loop
+
+An agent typically operates through an iterative execution loop.
+
+```text
+┌─────────────────────┐
+│ Receive input       │
+└──────────┬──────────┘
+           ↓
+┌─────────────────────┐
+│ Build agent context │
+└──────────┬──────────┘
+           ↓
+┌─────────────────────┐
+│ Call model          │
+└──────────┬──────────┘
+           ↓
+┌─────────────────────┐
+│ Decide next action  │
+└──────────┬──────────┘
+           │
+       ┌───┴────┐
+       │        │
+       ▼        ▼
+     Tool     Final
+      call     output
+       │
+       ▼
+┌─────────────────────┐
+│ Execute tool        │
+└──────────┬──────────┘
+           ↓
+┌─────────────────────┐
+│ Add result to       │
+│ agent context       │
+└──────────┬──────────┘
+           │
+           └───────────────► Model
+```
+
+The important property is that the agent can react to tool results.
+
+For example:
+
+```text
+Model:
+"I need the customer's order."
+
+      ↓
+
+get_order()
+
+      ↓
+
+Tool:
+"Order is delayed."
+
+      ↓
+
+Model:
+"The order is delayed.
+I should explain the delay to the customer."
+
+      ↓
+
+Final response
+```
+
+---
+
+## Agents inside workflows
+
+Agents do not have to replace workflows.
+
+They can operate as one part of a larger workflow.
+
+For example:
+
+```text
+Webhook
+   ↓
+Validate request
+   ↓
+Load customer
+   ↓
+AI Agent
+   ↓
+Determine required action
+   ↓
+Condition
+   ├── Refund ──────→ Refund node
+   │
+   ├── Support ─────→ Ticket node
+   │
+   └── Information ─→ Response node
+```
+
+This pattern gives you a useful separation:
+
+```text
+Workflow
+    = deterministic orchestration
+
+Agent
+    = dynamic reasoning
+```
+
+The workflow controls the overall system.
+
+The agent handles decisions that benefit from model reasoning.
+
+---
+
+## Keep deterministic logic outside the agent
+
+Not every decision should be delegated to an LLM.
+
+For example, if your business rule is:
+
+```text
+If order total > $500
+AND customer has premium status
+THEN require manager approval
+```
+
+That logic can be represented deterministically.
+
+You generally do not need an agent to decide whether:
+
+```text
+500 > orderTotal
+```
+
+Instead:
+
+```text
+Agent
+  ↓
+Determine requested action
+  ↓
+Workflow condition
+  ↓
+Apply business rule
+  ↓
+Continue
+```
+
+This makes important business rules explicit and easier to test.
+
+---
+
+## Agent output
+
+Agents can produce natural-language responses, but many applications need structured data.
+
+For example:
+
+```json
+{
+  "intent": "refund_request",
+  "orderId": "order_123",
+  "requiresApproval": true,
+  "reason": "Customer received a damaged item"
+}
+```
+
+Structured output makes the agent easier to connect to downstream workflow nodes.
+
+```text
+Agent
+  ↓
+Structured output
+  ↓
+Condition
+  ↓
+Business logic
+```
+
+Instead of asking downstream nodes to interpret arbitrary text, the workflow can consume defined fields.
+
+---
+
+## Example: support agent
+
+Imagine a support workflow:
+
+```text
+┌──────────────┐
+│ User message │
+└──────┬───────┘
+       ↓
+┌──────────────┐
+│ Support      │
+│ Agent        │
+└──────┬───────┘
+       │
+       ├───────────────┐
+       ↓               ↓
+ get_order       create_ticket
+       │               │
+       └───────┬───────┘
+               ↓
+        structured result
+               ↓
+        workflow logic
+               ↓
+        customer response
+```
+
+The agent might have access to:
+
+```text
+get_customer
+get_order
+get_shipment
+create_support_ticket
+```
+
+Given:
+
+```text
+"Why hasn't my package arrived?"
+```
+
+The agent might determine:
+
+```text
+1. Identify the customer
+2. Find the relevant order
+3. Check shipment status
+4. Determine the response
+```
+
+The exact tool sequence can depend on the information returned at each step.
+
+---
+
+## Tool failures
+
+Tools can fail.
+
+For example:
+
+```text
+Agent
+  ↓
+get_order
+  ↓
+API timeout
+```
+
+The agent should not assume that the requested information was successfully retrieved.
+
+A robust system distinguishes between:
+
+```text
+Successful tool result
+Tool failure
+Invalid tool input
+Unavailable data
+Permission failure
+Timeout
+```
+
+The surrounding workflow can decide what should happen next.
+
+For example:
+
+```text
+Tool
+ ↓
+Failure
+ ↓
+Retry
+ ↓
+Still failing
+ ↓
+Fallback workflow
+```
+
+Or:
+
+```text
+Tool
+ ↓
+Failure
+ ↓
+Stop execution
+ ↓
+Return structured error
+```
+
+The appropriate behavior depends on the tool and the application.
+
+---
+
+## Limits and guardrails
+
+Agents should have explicit operational boundaries.
+
+Useful boundaries include:
+
+```text
+Maximum iterations
+Maximum tool calls
+Allowed tools
+Input validation
+Output validation
+Timeouts
+Retry policies
+Permission checks
+```
+
+For example:
+
+```text
+Agent
+ ├── Maximum iterations: controlled
+ ├── Allowed tools: explicitly defined
+ ├── Tool inputs: validated
+ ├── Outputs: structured
+ └── Execution: observable
+```
+
+Guardrails are particularly important when tools can modify external systems.
+
+An agent that can read data has a different risk profile from an agent that can:
+
+```text
+Delete records
+Issue refunds
+Send emails
+Modify production data
+Create financial transactions
+```
+
+Keep high-impact operations behind explicit validation and deterministic workflow controls where appropriate.
+
+---
+
+## Read tools vs action tools
+
+A useful design distinction is between read-only and mutating tools.
+
+### Read tools
+
+Read tools retrieve information.
+
+Examples:
+
+```text
+get_customer
+get_order
+search_documents
+get_inventory
+lookup_account
+```
+
+They generally do not modify external state.
+
+### Action tools
+
+Action tools modify state.
+
+Examples:
+
+```text
+create_ticket
+send_email
+issue_refund
+update_customer
+cancel_order
+```
+
+A common architecture is:
+
+```text
+Agent
+  ↓
+Read tools
+  ↓
+Understand situation
+  ↓
+Workflow validation
+  ↓
+Action tool
+```
+
+This gives the agent flexibility while keeping important state changes under explicit control.
+
+---
+
+## Agents and permissions
+
+Tool access should be intentional.
+
+An agent should only receive tools that it actually needs.
+
+For example, a documentation agent might have:
+
+```text
+search_docs
+get_document
+```
+
+There is little reason to expose:
+
+```text
+delete_customer
+issue_refund
+```
+
+to that agent.
+
+A narrower tool set also makes agent behavior easier to understand and debug.
+
+---
+
+## Observability
+
+Agent executions can involve multiple model calls and tool calls.
+
+A useful execution trace can look like:
+
+```text
+Execution
+│
+├── Agent started
+│
+├── Model call
+│   └── 842 tokens
+│
+├── Tool call
+│   └── get_order
+│
+├── Tool result
+│   └── success
+│
+├── Model call
+│   └── 611 tokens
+│
+├── Tool call
+│   └── get_shipment
+│
+├── Tool result
+│   └── success
+│
+└── Agent completed
+```
+
+This makes it easier to understand:
+
+- What the agent did
+- Which tools it used
+- Where execution failed
+- How many model calls occurred
+- Which step produced an unexpected result
+- Where latency was introduced
+
+Agent observability becomes particularly important as workflows become more complex.
+
+---
+
+## Agent design patterns
+
+### Single-agent workflow
+
+Use one agent for a focused task.
+
+```text
+Input
+  ↓
+Agent
+  ↓
+Tools
+  ↓
+Output
+```
+
+This is useful for:
+
+- Support assistants
+- Research assistants
+- Internal automation
+
+---
+
+### Agent with deterministic validation
+
+Let the agent determine intent, then let the workflow enforce business rules.
+
+```text
+Input
+  ↓
+Agent
+  ↓
+Structured decision
+  ↓
+Workflow validation
+  ↓
+Action
+```
+
+This is useful when model reasoning is required but business rules must remain explicit.
+
+---
+
+### Agent with specialist tools
+
+Give one agent a focused set of capabilities.
+
+```text
+                 ┌── Search
+Agent ───────────┼── Database
+                 ├── API
+                 └── Documents
+```
+
+This keeps the agent's operating environment understandable.
+
+---
+
+### Multiple agents
+
+More complex systems can use multiple specialized agents.
+
+```text
+                    ┌── Research Agent
+                    │
+Request ──→ Router ┼── Support Agent
+                    │
+                    └── Data Agent
+```
+
+Each agent can have its own:
+
+```text
+Model
+Instructions
+Tools
+Context
+Output schema
+```
+
+Use multiple agents when specialization provides a clear architectural benefit.
+
+Do not split a simple task into many agents unnecessarily.
+
+---
+
+## Agents and prompts
+
+Agent behavior depends heavily on instructions and context.
+
+A useful prompt structure is:
+
+```text
+Role
+ ↓
+Objective
+ ↓
+Context
+ ↓
+Available tools
+ ↓
+Rules
+ ↓
+Output requirements
+```
+
+For example:
+
+```text
+Role:
+You are a customer support agent.
+
+Objective:
+Help the customer understand their order.
+
+Context:
+Customer ID and order information are provided by the workflow.
+
+Tools:
+You may retrieve order and shipment information.
+
+Rules:
+Never invent order information.
+Use the available tools when information is missing.
+
+Output:
+Return a concise customer-facing explanation.
+```
+
+Prompt design is covered in [Prompts](/docs/ai/prompts).
+
+---
+
+## Agents and workflow state
+
+An agent may operate within a larger workflow execution.
+
+Conceptually:
+
+```text
+Workflow execution
+│
+├── Input
+│
+├── Previous node results
+│
+├── Agent
+│   ├── Model calls
+│   ├── Tool calls
+│   └── Agent output
+│
+├── Next node
+│
+└── Final result
+```
+
+This allows the agent to consume information produced by previous workflow nodes and provide structured information to subsequent nodes.
+
+For example:
+
+```text
+HTTP Request
+    ↓
+Customer lookup
+    ↓
+Agent
+    ↓
+Condition
+    ↓
+Database update
+```
+
+The agent does not need to own the entire application workflow.
+
+---
+
+## Agents should have a clear objective
+
+Avoid creating an agent with an overly broad instruction such as:
+
+```text
+"Handle everything for this application."
+```
+
+Prefer a focused objective:
+
+```text
+"Determine the customer's support intent and
+retrieve the information required to answer it."
+```
+
+A focused objective makes it easier to define:
+
+- Tools
+- Context
+- Output
+- Permissions
+- Failure behavior
+- Validation
+
+---
+
+## Designing reliable agents
+
+A useful agent design process is:
+
+```text
+1. Define the objective
+        ↓
+2. Define required context
+        ↓
+3. Choose the model
+        ↓
+4. Define tools
+        ↓
+5. Define tool permissions
+        ↓
+6. Define output structure
+        ↓
+7. Add deterministic validation
+        ↓
+8. Define failure behavior
+        ↓
+9. Test representative inputs
+        ↓
+10. Observe real executions
+```
+
+Do not start by adding as many tools as possible.
+
+Start with the smallest set of capabilities required to complete the task.
+
+---
+
+## Agent checklist
+
+Before deploying an agent, verify:
+
+- [ ] The objective is clearly defined
+- [ ] Instructions describe the expected behavior
+- [ ] Only relevant context is provided
+- [ ] The model is appropriate for the task
+- [ ] Tools have clear descriptions
+- [ ] Tool inputs are validated
+- [ ] Tool permissions are intentional
+- [ ] High-impact actions have appropriate controls
+- [ ] Output structure is defined when downstream automation needs it
+- [ ] Failure behavior is defined
+- [ ] Execution limits are configured appropriately
+- [ ] Agent executions can be inspected and debugged
+- [ ] Representative inputs have been tested
+
+---
+
+## A complete agent architecture
+
+A production-oriented Vangrex system can look like this:
+
+```text
+                         VANGREX WORKFLOW
+┌──────────────────────────────────────────────────────────┐
+│                                                          │
+│  Trigger                                                 │
+│    │                                                     │
+│    ▼                                                     │
+│  Input validation                                        │
+│    │                                                     │
+│    ▼                                                     │
+│  Load application data                                   │
+│    │                                                     │
+│    ▼                                                     │
+│  ┌────────────────────────────────────────────────────┐  │
+│  │                    AI AGENT                        │  │
+│  │                                                    │  │
+│  │  Instructions                                      │  │
+│  │       │                                            │  │
+│  │       ▼                                            │  │
+│  │  Model                                              │  │
+│  │       │                                            │  │
+│  │       ▼                                            │  │
+│  │  Decision                                            │  │
+│  │       │                                            │  │
+│  │       ├──────→ Tool                                │  │
+│  │       │          │                                  │  │
+│  │       │          ▼                                  │  │
+│  │       │       Tool result                           │  │
+│  │       │          │                                  │  │
+│  │       └──────────┘                                  │  │
+│  │                                                    │  │
+│  │  Structured output                                 │  │
+│  └──────────────────────┬─────────────────────────────┘  │
+│                         │                                │
+│                         ▼                                │
+│                 Workflow validation                     │
+│                         │                                │
+│                         ▼                                │
+│                  Business action                        │
+│                         │                                │
+│                         ▼                                │
+│                     Response                            │
+│                                                          │
+└──────────────────────────────────────────────────────────┘
+```
+
+This architecture combines the flexibility of AI with the predictability of workflow orchestration.
+
+---
+
+## Next steps
+
+Learn how models work in Vangrex in [Models](/docs/ai/models).
+
+Then explore [Tools](/docs/ai/tools) to give agents access to external capabilities.
+
+For agent instructions and context design, see [Prompts](/docs/ai/prompts).
+
+For the broader execution model, see [Workflow Execution](/docs/workflows/execution).
