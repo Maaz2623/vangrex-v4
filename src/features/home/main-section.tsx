@@ -2,75 +2,116 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+
 import { Roboto_Mono } from "next/font/google";
+
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
+import Link from "next/link";
 
 gsap.registerPlugin(ScrollTrigger);
-
-const features = [
-  [
-    "Autonomous engineering",
-    "From intent to pull request, agent teams carry work through with transparent checkpoints.",
-  ],
-  [
-    "Visual workflows",
-    "Design dependable execution paths with branching, memory, retries, and approvals.",
-  ],
-  [
-    "Persistent context",
-    "Every project has a living understanding of your codebase, conventions, and decisions.",
-  ],
-  [
-    "Production awareness",
-    "Connect signals from CI and production to turn incidents into resolved work.",
-  ],
-  [
-    "Human approval gates",
-    "Keep people in control at the moments that carry risk or demand judgment.",
-  ],
-  [
-    "Engineering observability",
-    "See every agent decision, tool call, change, and outcome in one place.",
-  ],
-];
 
 const roboto = Roboto_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
 });
 
-const agents = [
-  "Planner",
-  "Architect",
-  "Backend",
-  "Frontend",
-  "QA",
-  "Security",
-  "DevOps",
-  "Docs",
+/* -------------------------------------------------------------------------- */
+/* Platform features                                                          */
+/* -------------------------------------------------------------------------- */
+
+const features = [
+  [
+    "Visual workflow builder",
+    "Design executable workflows on a canvas using triggers, logic, AI agents, tools, and actions.",
+  ],
+  [
+    "AI agents",
+    "Give your workflows agents that can reason through tasks, use tools, and make decisions.",
+  ],
+  [
+    "Tool integration",
+    "Connect agents and workflows to APIs, services, databases, and application-specific capabilities.",
+  ],
+  [
+    "Reliable execution",
+    "Run workflows with structured execution, branching, retries, state, and observable progress.",
+  ],
+  [
+    "Human-in-the-loop",
+    "Add approval points whenever an action needs review, confirmation, or human judgment.",
+  ],
+  [
+    "Developer SDK",
+    "Trigger Vangrex workflows from your own applications and integrate execution into your products.",
+  ],
 ];
+
+/* -------------------------------------------------------------------------- */
+/* Workflow building blocks                                                   */
+/* -------------------------------------------------------------------------- */
+
+const workflowNodes = [
+  "Trigger",
+  "Input",
+  "AI Agent",
+  "Tool",
+  "Condition",
+  "Action",
+];
+
+/* -------------------------------------------------------------------------- */
+/* Agent capabilities                                                          */
+/* -------------------------------------------------------------------------- */
+
+const agents = [
+  "Reasoning",
+  "Research",
+  "Data",
+  "API",
+  "Code",
+  "Decision",
+  "Validation",
+  "Action",
+];
+
+/* -------------------------------------------------------------------------- */
+/* FAQ                                                                        */
+/* -------------------------------------------------------------------------- */
 
 const faqs = [
   [
-    "Is Vangrex an AI coding assistant?",
-    "No. Vangrex coordinates complete, specialized AI teams across the software lifecycle. It connects planning, implementation, review, deployment, and operational learning in a single system.",
+    "What is Vangrex?",
+    "Vangrex is an AI workflow orchestration platform for building and running intelligent workflows. You can visually compose workflows, add AI agents and tools, execute them, and integrate them into your own applications.",
   ],
   [
-    "How does Vangrex work with our codebase?",
-    "You connect repositories and define the permissions and approval policies appropriate for your organization. Agents develop structured project context as they work.",
+    "What can I build with Vangrex?",
+    "You can build automated workflows, AI-powered processes, internal tools, application backends, agentic systems, data pipelines, and other systems where multiple steps need to be coordinated and executed reliably.",
   ],
   [
-    "Can engineers stay in control?",
-    "Always. Workflows can include mandatory approval gates, scoped permissions, and clear audit trails for every action an agent takes.",
+    "What are AI agents in Vangrex?",
+    "Agents are workflow components that can reason about a task and use the tools available to them. They can be placed inside a larger workflow and work alongside other nodes and application logic.",
   ],
   [
-    "Who is Vangrex for?",
-    "Engineering organizations that want to scale delivery capacity without sacrificing the reliability, context, and judgment that great software requires.",
+    "Can I connect my own tools?",
+    "Yes. Vangrex is designed to connect workflows and agents with external capabilities such as APIs, services, data sources, and application logic.",
+  ],
+  [
+    "Can I trigger Vangrex from my application?",
+    "Yes. The Vangrex SDK allows developers to integrate workflows into their applications and trigger executions programmatically.",
+  ],
+  [
+    "Do workflows always run autonomously?",
+    "Not necessarily. Workflows can be designed for fully automated execution or include conditions, approval steps, and human intervention where needed.",
   ],
 ];
+
+/* -------------------------------------------------------------------------- */
+/* Main sections                                                              */
+/* -------------------------------------------------------------------------- */
 
 export function MainSections() {
   const [open, setOpen] = useState(0);
@@ -80,9 +121,9 @@ export function MainSections() {
     if (!root.current) return;
 
     const ctx = gsap.context(() => {
-      // --------------------------------------------------
-      // Section reveals
-      // --------------------------------------------------
+      /* -------------------------------------------------------------------- */
+      /* Section reveals                                                       */
+      /* -------------------------------------------------------------------- */
 
       gsap.utils.toArray<HTMLElement>(".gsap-reveal").forEach((element) => {
         gsap.fromTo(
@@ -105,9 +146,9 @@ export function MainSections() {
         );
       });
 
-      // --------------------------------------------------
-      // Platform cards
-      // --------------------------------------------------
+      /* -------------------------------------------------------------------- */
+      /* Platform cards                                                        */
+      /* -------------------------------------------------------------------- */
 
       gsap.fromTo(
         ".platform-card",
@@ -129,9 +170,9 @@ export function MainSections() {
         },
       );
 
-      // --------------------------------------------------
-      // Workflow canvas parallax
-      // --------------------------------------------------
+      /* -------------------------------------------------------------------- */
+      /* Workflow canvas                                                       */
+      /* -------------------------------------------------------------------- */
 
       gsap.to(".workflow-parallax", {
         y: -35,
@@ -143,10 +184,6 @@ export function MainSections() {
           scrub: 1.2,
         },
       });
-
-      // --------------------------------------------------
-      // Workflow nodes reveal
-      // --------------------------------------------------
 
       gsap.fromTo(
         ".workflow-node",
@@ -168,9 +205,9 @@ export function MainSections() {
         },
       );
 
-      // --------------------------------------------------
-      // Agents section
-      // --------------------------------------------------
+      /* -------------------------------------------------------------------- */
+      /* Agent section                                                         */
+      /* -------------------------------------------------------------------- */
 
       gsap.fromTo(
         ".agent-card",
@@ -194,7 +231,6 @@ export function MainSections() {
         },
       );
 
-      // Subtle movement of the graph itself.
       gsap.to(".agent-graph", {
         y: -25,
         ease: "none",
@@ -206,9 +242,9 @@ export function MainSections() {
         },
       });
 
-      // --------------------------------------------------
-      // Features
-      // --------------------------------------------------
+      /* -------------------------------------------------------------------- */
+      /* Features                                                              */
+      /* -------------------------------------------------------------------- */
 
       gsap.fromTo(
         ".feature-card",
@@ -230,12 +266,12 @@ export function MainSections() {
         },
       );
 
-      // --------------------------------------------------
-      // Comparison
-      // --------------------------------------------------
+      /* -------------------------------------------------------------------- */
+      /* Integration section                                                    */
+      /* -------------------------------------------------------------------- */
 
       gsap.fromTo(
-        ".comparison-card",
+        ".integration-card",
         {
           opacity: 0,
           y: 25,
@@ -247,39 +283,16 @@ export function MainSections() {
           stagger: 0.1,
           ease: "power2.out",
           scrollTrigger: {
-            trigger: ".comparison-grid",
+            trigger: ".integration-grid",
             start: "top 82%",
             once: true,
           },
         },
       );
 
-      // --------------------------------------------------
-      // Testimonial
-      // --------------------------------------------------
-
-      gsap.fromTo(
-        ".testimonial",
-        {
-          opacity: 0,
-          x: 30,
-        },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.8,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: ".testimonial",
-            start: "top 82%",
-            once: true,
-          },
-        },
-      );
-
-      // --------------------------------------------------
-      // CTA glow parallax
-      // --------------------------------------------------
+      /* -------------------------------------------------------------------- */
+      /* CTA glow                                                              */
+      /* -------------------------------------------------------------------- */
 
       gsap.to(".cta-glow", {
         y: -50,
@@ -293,10 +306,6 @@ export function MainSections() {
         },
       });
 
-      // --------------------------------------------------
-      // Refresh after everything is ready
-      // --------------------------------------------------
-
       ScrollTrigger.refresh();
     }, root);
 
@@ -305,43 +314,43 @@ export function MainSections() {
 
   return (
     <main ref={root}>
-      {/* ------------------------------------------------ */}
-      {/* Trusted by */}
-      {/* ------------------------------------------------ */}
+      {/* ------------------------------------------------------------------ */}
+      {/* What Vangrex is                                                    */}
+      {/* ------------------------------------------------------------------ */}
 
       <section className="border-y border-border bg-muted/20 px-5 py-7 sm:px-7">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-5 text-xs text-muted-foreground">
-          <span className="eyebrow">
-            Trusted by teams building the next era
-          </span>
+          <span className="eyebrow">Build and run intelligent systems</span>
 
-          <div className="flex gap-7 font-semibold tracking-[.12em] sm:gap-12">
-            <span>ARCFORM</span>
-            <span>MONO</span>
-            <span>HYPERLINE</span>
-            <span className="hidden sm:block">ROUTE</span>
+          <div className="flex flex-wrap gap-5 font-semibold tracking-[.12em] sm:gap-10">
+            <span>WORKFLOWS</span>
+            <span>AGENTS</span>
+            <span>TOOLS</span>
+            <span>EXECUTION</span>
+            <span className="hidden sm:block">SDK</span>
           </div>
         </div>
       </section>
 
-      {/* ------------------------------------------------ */}
-      {/* Platform */}
-      {/* ------------------------------------------------ */}
+      {/* ------------------------------------------------------------------ */}
+      {/* Platform                                                            */}
+      {/* ------------------------------------------------------------------ */}
 
       <section id="platform" className="gsap-reveal px-5 py-24 sm:px-7">
         <div className="mx-auto max-w-6xl">
-          <p className="eyebrow">One system. One source of truth.</p>
+          <p className="eyebrow">The Vangrex platform</p>
 
           <div className="mt-5 grid gap-8 lg:grid-cols-2">
             <h2 className="display text-4xl font-semibold sm:text-5xl">
-              The work moves forward.{" "}
-              <span className="text-muted-foreground">Not around.</span>
+              Build the system.
+              <br />
+              <span className="text-muted-foreground">Let it do the work.</span>
             </h2>
 
             <p className="max-w-md self-end text-base leading-7 text-muted-foreground">
-              Vangrex replaces the handoffs and fragmented tools between an idea
-              and a dependable release with an engineering system built to think
-              in sequence.
+              Vangrex gives you the building blocks to create intelligent
+              systems that can reason, interact with tools, make decisions, and
+              execute work without stitching together multiple platforms.
             </p>
           </div>
 
@@ -349,23 +358,23 @@ export function MainSections() {
             {[
               [
                 "01",
-                "Project",
-                "Ground the team in product and repository context.",
+                "Build",
+                "Create workflows visually on a flexible execution canvas.",
               ],
               [
                 "02",
-                "Workflow",
-                "Define how work should move, including the exceptions.",
+                "Compose",
+                "Combine logic, agents, tools, data, and actions into one flow.",
               ],
               [
                 "03",
-                "Agent team",
-                "Give each discipline the focus it needs to do excellent work.",
+                "Execute",
+                "Run workflows with structured execution and observable state.",
               ],
               [
                 "04",
-                "Execution",
-                "Observe autonomous progress and approve what matters.",
+                "Integrate",
+                "Trigger your workflows directly from your applications.",
               ],
             ].map((x) => (
               <motion.article
@@ -386,9 +395,9 @@ export function MainSections() {
         </div>
       </section>
 
-      {/* ------------------------------------------------ */}
-      {/* Workflow */}
-      {/* ------------------------------------------------ */}
+      {/* ------------------------------------------------------------------ */}
+      {/* Workflow Builder                                                    */}
+      {/* ------------------------------------------------------------------ */}
 
       <section
         id="workflows"
@@ -403,14 +412,15 @@ export function MainSections() {
               <p className="eyebrow">Workflow builder</p>
 
               <h2 className="display mt-5 text-4xl font-semibold sm:text-5xl">
-                Engineering judgment,{" "}
-                <span className="text-muted-foreground">made executable.</span>
+                Your logic.
+                <br />
+                <span className="text-muted-foreground">Made executable.</span>
               </h2>
 
               <p className="mt-6 max-w-sm leading-7 text-muted-foreground">
-                Compose intelligent paths through complex work. Conditions,
-                parallel execution, human gates, and recovery are first-class
-                building blocks.
+                Turn complex processes into visual execution graphs. Connect
+                triggers, agents, tools, conditions, and actions into workflows
+                that can actually run.
               </p>
             </div>
 
@@ -419,9 +429,9 @@ export function MainSections() {
         </div>
       </section>
 
-      {/* ------------------------------------------------ */}
-      {/* Agents */}
-      {/* ------------------------------------------------ */}
+      {/* ------------------------------------------------------------------ */}
+      {/* Agents                                                              */}
+      {/* ------------------------------------------------------------------ */}
 
       <section
         id="agents"
@@ -429,12 +439,19 @@ export function MainSections() {
       >
         <div className="mx-auto max-w-6xl">
           <div className="gsap-reveal text-center">
-            <p className="eyebrow">Specialists, in sync</p>
+            <p className="eyebrow">AI agents</p>
 
             <h2 className="display mx-auto mt-5 max-w-2xl text-4xl font-semibold sm:text-5xl">
-              One team.{" "}
-              <span className="text-muted-foreground">Many perspectives.</span>
+              Give workflows{" "}
+              <span className="text-muted-foreground">
+                the ability to think.
+              </span>
             </h2>
+
+            <p className="mx-auto mt-6 max-w-xl leading-7 text-muted-foreground">
+              Add AI agents to your workflows when a task requires reasoning,
+              decisions, context, or interaction with external tools.
+            </p>
           </div>
 
           <div className="agent-graph card relative mt-12 overflow-hidden p-5 sm:p-8">
@@ -454,55 +471,57 @@ export function MainSections() {
             </svg>
 
             <div className="agents-grid relative grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {agents.map((a, i) => (
+              {agents.map((agent, i) => (
                 <motion.div
-                  key={a}
+                  key={agent}
                   whileHover={{ scale: 1.03 }}
                   className="agent-card rounded-xl border border-border bg-card/85 p-4 backdrop-blur"
                 >
                   <span className="text-[10px] text-primary">0{i + 1}</span>
 
-                  <b className="mt-5 block text-sm font-medium">{a}</b>
+                  <b className="mt-5 block text-sm font-medium">{agent}</b>
 
                   <span className="mt-1 block text-[11px] text-muted-foreground">
-                    {i % 3 === 0 ? "Planning" : "Connected"}
+                    Agent capability
                   </span>
                 </motion.div>
               ))}
             </div>
 
             <div className="relative mx-auto mt-7 w-fit rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs text-primary">
-              Shared project memory
+              AI agent + tools + workflow context
             </div>
           </div>
         </div>
       </section>
 
-      {/* ------------------------------------------------ */}
-      {/* Features */}
-      {/* ------------------------------------------------ */}
+      {/* ------------------------------------------------------------------ */}
+      {/* Features                                                            */}
+      {/* ------------------------------------------------------------------ */}
 
       <section className="px-5 pb-24 sm:px-7">
         <div className="mx-auto max-w-6xl">
-          <p className="eyebrow">A platform engineered for the whole loop</p>
+          <p className="eyebrow">
+            Everything needed to build intelligent workflows
+          </p>
 
           <div className="features-grid mt-8 grid gap-3 md:grid-cols-3">
-            {features.map((f, i) => (
+            {features.map((feature, i) => (
               <motion.article
                 whileHover={{ y: -4 }}
-                key={f[0]}
+                key={feature[0]}
                 className="feature-card card p-6"
               >
                 <span className="text-xs text-muted-foreground">0{i + 1}</span>
 
-                <h3 className="mt-10 text-lg font-medium">{f[0]}</h3>
+                <h3 className="mt-10 text-lg font-medium">{feature[0]}</h3>
 
                 <p className="mt-3 max-w-xs text-sm leading-6 text-muted-foreground">
-                  {f[1]}
+                  {feature[1]}
                 </p>
 
                 <span className="mt-7 block text-sm text-foreground">
-                  Learn more <i className="not-italic text-primary">↗</i>
+                  Explore <i className="not-italic text-primary">↗</i>
                 </span>
               </motion.article>
             ))}
@@ -510,51 +529,124 @@ export function MainSections() {
         </div>
       </section>
 
-      {/* ------------------------------------------------ */}
-      {/* Comparison */}
-      {/* ------------------------------------------------ */}
+      {/* ------------------------------------------------------------------ */}
+      {/* Integration / SDK                                                   */}
+      {/* ------------------------------------------------------------------ */}
 
-      <section className="border-y border-border bg-muted/30 px-5 py-24 sm:px-7">
+      <section
+        id="developers"
+        className="border-y border-border bg-muted/30 px-5 py-24 sm:px-7"
+      >
         <div className="mx-auto max-w-6xl">
           <div className="grid gap-8 lg:grid-cols-2">
             <div className="gsap-reveal">
-              <p className="eyebrow">The next evolution</p>
+              <p className="eyebrow">Built for developers</p>
 
               <h2 className="display mt-5 text-4xl font-semibold sm:text-5xl">
-                A new model for software delivery.
+                Build visually.
+                <br />
+                <span className="text-muted-foreground">
+                  Ship programmatically.
+                </span>
               </h2>
             </div>
 
             <p className="gsap-reveal self-end leading-7 text-muted-foreground">
-              Tools make individuals faster. Vangrex makes the entire
-              engineering function more capable, more continuous, and more
-              certain.
+              Vangrex isn't limited to the canvas. Use the SDK to trigger
+              workflows from your own applications and bring AI-powered
+              execution into the products you're already building.
+            </p>
+          </div>
+
+          <div className="integration-grid mt-12 grid gap-3 md:grid-cols-3">
+            {[
+              [
+                "01",
+                "Create",
+                "Design and configure your workflow in Vangrex.",
+              ],
+              [
+                "02",
+                "Trigger",
+                "Start workflow executions from your application using the SDK.",
+              ],
+              [
+                "03",
+                "Receive",
+                "Use execution results and updates inside your application.",
+              ],
+            ].map((item) => (
+              <motion.article
+                whileHover={{ y: -5 }}
+                key={item[1]}
+                className="integration-card card min-h-48 p-6"
+              >
+                <span className="text-xs text-primary">{item[0]}</span>
+
+                <h3 className="mt-10 text-lg font-medium">{item[1]}</h3>
+
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  {item[2]}
+                </p>
+              </motion.article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Comparison                                                          */}
+      {/* ------------------------------------------------------------------ */}
+
+      <section className="px-5 py-24 sm:px-7">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-8 lg:grid-cols-2">
+            <div className="gsap-reveal">
+              <p className="eyebrow">From prompts to systems</p>
+
+              <h2 className="display mt-5 text-4xl font-semibold sm:text-5xl">
+                AI is more than a chat box.
+              </h2>
+            </div>
+
+            <p className="gsap-reveal self-end leading-7 text-muted-foreground">
+              Prompts are useful for interacting with models. Vangrex gives you
+              the infrastructure around those models to build workflows that can
+              perform multi-step work.
             </p>
           </div>
 
           <div className="comparison-grid mt-12 grid overflow-hidden rounded-2xl border border-border md:grid-cols-3">
             {[
-              ["Traditional", "Human capacity is the limiting system."],
-              ["AI assistant", "One developer, accelerated."],
-              ["Vangrex", "A coordinated team, compounding."],
-            ].map((x, i) => (
+              ["AI chat", "Ask a model a question and receive a response."],
+              [
+                "AI automation",
+                "Connect predefined steps and automate repetitive work.",
+              ],
+              [
+                "Vangrex",
+                "Compose workflows with AI agents, tools, logic, and executable actions.",
+              ],
+            ].map((item, i) => (
               <div
-                key={x[0]}
-                className={`comparison-card min-h-48 border-border p-6 ${
-                  i ? "border-t md:border-l md:border-t-0" : ""
-                } ${i === 2 ? "bg-primary/5" : ""}`}
+                key={item[0]}
+                className={cn(
+                  "comparison-card min-h-48 border-border p-6",
+                  i ? "border-t md:border-l md:border-t-0" : "",
+                  i === 2 && "bg-primary/5",
+                )}
               >
                 <span className="text-xs text-muted-foreground">0{i + 1}</span>
 
-                <h3 className="mt-10 text-xl font-medium">{x[0]}</h3>
+                <h3 className="mt-10 text-xl font-medium">{item[0]}</h3>
 
-                <p className="mt-3 max-w-45 text-sm leading-6 text-muted-foreground">
-                  {x[1]}
+                <p className="mt-3 max-w-52 text-sm leading-6 text-muted-foreground">
+                  {item[1]}
                 </p>
 
                 {i === 2 && (
                   <span className="mt-7 inline-block rounded-full border border-primary/30 px-2 py-1 text-[10px] text-primary">
-                    THE VANGREX MODEL
+                    VANGREX
                   </span>
                 )}
               </div>
@@ -563,67 +655,69 @@ export function MainSections() {
         </div>
       </section>
 
-      {/* ------------------------------------------------ */}
-      {/* Company */}
-      {/* ------------------------------------------------ */}
+      {/* ------------------------------------------------------------------ */}
+      {/* Company / Philosophy                                                */}
+      {/* ------------------------------------------------------------------ */}
 
-      <section id="company" className="px-5 py-24 sm:px-7">
-        <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[.8fr_1.2fr]">
+      <section
+        id="company"
+        className="border-y border-border bg-muted/30 px-5 py-24 sm:px-7"
+      >
+        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-2">
           <div className="gsap-reveal">
-            <p className="eyebrow">Built for ambitious teams</p>
+            <p className="eyebrow">The idea behind Vangrex</p>
 
             <h2 className="display mt-5 text-4xl font-semibold sm:text-5xl">
-              Quietly powerful.
-              <br />
-              <span className="text-muted-foreground">Deeply trusted.</span>
+              Make AI <span className="text-muted-foreground">executable.</span>
             </h2>
           </div>
 
-          <blockquote className="testimonial card p-7 sm:p-10">
+          <div className="testimonial card p-7 sm:p-10">
             <p className="text-2xl leading-snug tracking-[-.035em]">
-              “Vangrex changed our mental model from asking AI for help to
-              leading a team that never loses context.”
+              AI shouldn't stop at generating an answer. It should be able to
+              participate in the process, use the right tools, make decisions,
+              and complete the work.
             </p>
 
-            <footer className="mt-10 flex items-center gap-3 text-sm">
+            <div className="mt-10 flex items-center gap-3 text-sm">
               <span className="grid size-9 place-items-center rounded-full bg-muted text-xs">
-                AL
+                VX
               </span>
 
               <span>
-                <b className="block font-medium">Amara Liu</b>
+                <b className="block font-medium">Vangrex</b>
 
                 <small className="text-muted-foreground">
-                  VP Engineering, Northstar
+                  AI workflow orchestration
                 </small>
               </span>
-            </footer>
-          </blockquote>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ------------------------------------------------ */}
-      {/* FAQ */}
-      {/* ------------------------------------------------ */}
+      {/* ------------------------------------------------------------------ */}
+      {/* FAQ                                                                 */}
+      {/* ------------------------------------------------------------------ */}
 
-      <section className="border-y border-border bg-muted/30 px-5 py-24 sm:px-7">
+      <section className="px-5 py-24 sm:px-7">
         <div className="mx-auto max-w-3xl">
           <div className="gsap-reveal">
             <p className="eyebrow text-center">Frequently asked</p>
 
             <h2 className="display mt-5 text-center text-4xl font-semibold sm:text-5xl">
-              Clarity, by design.
+              How Vangrex works.
             </h2>
           </div>
 
           <div className="mt-10">
-            {faqs.map((f, i) => (
-              <div key={f[0]} className="border-b border-border">
+            {faqs.map((faq, i) => (
+              <div key={faq[0]} className="border-b border-border">
                 <button
                   onClick={() => setOpen(open === i ? -1 : i)}
                   className="flex w-full items-center justify-between py-5 text-left text-sm font-medium"
                 >
-                  <span>{f[0]}</span>
+                  <span>{faq[0]}</span>
 
                   <span className="text-xl text-muted-foreground">
                     {open === i ? "−" : "+"}
@@ -633,12 +727,21 @@ export function MainSections() {
                 <AnimatePresence>
                   {open === i && (
                     <motion.p
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
+                      initial={{
+                        height: 0,
+                        opacity: 0,
+                      }}
+                      animate={{
+                        height: "auto",
+                        opacity: 1,
+                      }}
+                      exit={{
+                        height: 0,
+                        opacity: 0,
+                      }}
                       className="overflow-hidden pb-5 pr-10 text-sm leading-6 text-muted-foreground"
                     >
-                      {f[1]}
+                      {faq[1]}
                     </motion.p>
                   )}
                 </AnimatePresence>
@@ -648,9 +751,9 @@ export function MainSections() {
         </div>
       </section>
 
-      {/* ------------------------------------------------ */}
-      {/* CTA */}
-      {/* ------------------------------------------------ */}
+      {/* ------------------------------------------------------------------ */}
+      {/* CTA                                                                 */}
+      {/* ------------------------------------------------------------------ */}
 
       <section
         id="cta"
@@ -659,56 +762,88 @@ export function MainSections() {
         <div className="cta-glow absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/.18),transparent_60%)]" />
 
         <div className="relative mx-auto max-w-3xl gsap-reveal">
-          <p className="eyebrow">The work begins here</p>
+          <p className="eyebrow">Build with Vangrex</p>
 
           <h2 className="display mt-6 text-4xl font-semibold sm:text-6xl">
-            The future of software engineering is autonomous.
+            Turn your AI ideas into{" "}
+            <span className="text-muted-foreground">systems that run.</span>
           </h2>
 
           <p className="mx-auto mt-6 max-w-md leading-7 text-muted-foreground">
-            Build an AI team that understands your product, carries the work,
-            and earns your trust.
+            Build workflows, add AI agents, connect your tools, and bring
+            intelligent execution into your applications.
           </p>
 
-          <a
-            href="mailto:hello@vangrex.com"
+          <Link
+            href="/auth/sign-in"
             className="button-primary mt-8 inline-block rounded-xl px-6 py-3.5 text-sm font-semibold transition"
           >
-            Contact Us <span className="ml-2">→</span>
-          </a>
+            Start building <span className="ml-2">→</span>
+          </Link>
         </div>
       </section>
 
-      {/* ------------------------------------------------ */}
-      {/* Footer */}
-      {/* ------------------------------------------------ */}
+      {/* ------------------------------------------------------------------ */}
+      {/* Footer                                                              */}
+      {/* ------------------------------------------------------------------ */}
 
       <footer className="border-t border-border px-5 py-8 sm:px-7">
-        <div className="mx-auto flex max-w-6xl items-center flex-wrap justify-between gap-5 text-xs text-muted-foreground">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-5 text-xs text-muted-foreground">
           <span
-            className={`font-semibold items-center tracking-wider text-lg text-foreground flex ${roboto.className}`}
+            className={cn(
+              "flex items-center text-lg font-semibold tracking-wider text-foreground",
+              roboto.className,
+            )}
           >
-            <Logo height={35} width={35} /> Vangrex
+            <Logo height={35} width={35} />
+            Vangrex
           </span>
-          <span>© 2026 Vangrex, Inc.</span>
-          <span>Privacy &nbsp; Security &nbsp; Status</span>
+
+          <span>© 2026 Vangrex</span>
+
+          <div className="flex gap-5">
+            <Link
+              href="/privacy"
+              className="transition-colors hover:text-foreground"
+            >
+              Privacy
+            </Link>
+
+            <Link
+              href="/security"
+              className="transition-colors hover:text-foreground"
+            >
+              Security
+            </Link>
+
+            <Link
+              href="/docs"
+              className="transition-colors hover:text-foreground"
+            >
+              Docs
+            </Link>
+          </div>
         </div>
       </footer>
     </main>
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* Workflow canvas                                                            */
+/* -------------------------------------------------------------------------- */
+
 function WorkflowCanvas() {
   return (
     <div className="workflow-canvas card relative min-h-95 overflow-hidden p-4 sm:p-6">
       <div className="mb-3 flex items-center justify-between border-b border-border pb-3 text-[11px]">
         <span className="text-muted-foreground">
-          release /{" "}
-          <b className="font-medium text-foreground">payment-reconciliation</b>
+          workflow /{" "}
+          <b className="font-medium text-foreground">customer-support-agent</b>
         </span>
 
         <span className="rounded bg-primary/10 px-2 py-1 text-primary">
-          Valid
+          Ready
         </span>
       </div>
 
@@ -725,12 +860,21 @@ function WorkflowCanvas() {
       </svg>
 
       <div className="relative grid grid-cols-2 gap-x-10 gap-y-8 pt-8 text-xs sm:grid-cols-3">
-        <Flow label="New issue" tag="TRIGGER" />
-        <Flow label="Plan approach" tag="AGENT" />
-        <Flow label="Risk review" tag="GATE" />
-        <Flow label="Parallel build" tag="TEAM" />
-        <Flow label="Run checks" tag="SYSTEM" />
-        <Flow label="Create release" tag="ACTION" />
+        {workflowNodes.map((node, i) => (
+          <Flow
+            key={node}
+            label={node}
+            tag={
+              i === 0
+                ? "TRIGGER"
+                : i === 2
+                  ? "AGENT"
+                  : i === 4
+                    ? "LOGIC"
+                    : "NODE"
+            }
+          />
+        ))}
       </div>
     </div>
   );

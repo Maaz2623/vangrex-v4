@@ -1,15 +1,18 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
+
 import gsap from "gsap";
+
 import { Button } from "@/components/ui/button";
+
 import Link from "next/link";
 
 const nodes = [
-  ["01", "Project", "Repository context"],
-  ["02", "Workflow", "Release orchestration"],
-  ["03", "Agent team", "8 specialists active"],
-  ["04", "Production", "Monitored continuously"],
+  ["01", "Input", "Receive data or an event"],
+  ["02", "AI Agent", "Reason, decide, and act"],
+  ["03", "Tools", "APIs, services, and data"],
+  ["04", "Output", "Return results to your app"],
 ];
 
 export function Hero() {
@@ -97,7 +100,7 @@ export function Hero() {
         ease: "power2.out",
       });
 
-      // Draw the workflow connection
+      // Draw workflow connection
       gsap.from(".workflow-connection", {
         scaleY: 0,
         transformOrigin: "top center",
@@ -116,7 +119,7 @@ export function Hero() {
         ease: "power2.out",
       });
 
-      // Very subtle background movement
+      // Subtle background movement
       gsap.fromTo(
         ".hero-glow",
         {
@@ -132,7 +135,7 @@ export function Hero() {
         },
       );
 
-      // Small status pulse — deliberately subtle
+      // Subtle status pulse
       gsap.to(".active-status", {
         opacity: 0.45,
         duration: 1.4,
@@ -161,19 +164,20 @@ export function Hero() {
         <div>
           <p className="hero-eyebrow eyebrow mb-5 flex items-center gap-2">
             <span className="size-1.5 rounded-full bg-primary" />
-            The operating system for AI engineering
+            AI workflows that actually run
           </p>
 
           <h1 className="hero-title display max-w-2xl text-[clamp(3rem,6vw,5.5rem)] font-semibold">
-            Build software with{" "}
-            <span className="text-muted-foreground">AI teams,</span> not AI
-            tools.
+            Build AI systems,{" "}
+            <span className="text-muted-foreground">
+              not just AI prompts.
+            </span>
           </h1>
 
           <p className="hero-description mt-6 max-w-lg text-base leading-7 text-muted-foreground">
-            Vangrex brings planning, execution, and production into one
-            system—where specialized agents work together as a reliable
-            engineering team.
+            Vangrex is an AI workflow orchestration platform for building,
+            connecting, and running intelligent systems. Compose workflows,
+            add AI agents and tools, and execute them in production.
           </p>
 
           <div className="hero-actions mt-7 flex flex-wrap gap-3">
@@ -186,27 +190,27 @@ export function Hero() {
               </Link>
             </Button>
 
-            <Button asChild variant={`outline`}>
+            <Button asChild variant="outline">
               <Link
                 href="#platform"
                 className="rounded-xl px-5 py-3 text-sm font-semibold transition"
               >
-                Explore the platform <span className="ml-2">→</span>
+                Explore Vangrex <span className="ml-2">→</span>
               </Link>
             </Button>
           </div>
 
-          <div className="hero-stats mt-10 flex gap-7 border-t border-border pt-5 text-xs text-muted-foreground">
+          <div className="hero-stats mt-10 flex flex-wrap gap-x-7 gap-y-3 border-t border-border pt-5 text-xs text-muted-foreground">
             <span>
-              <b className="mr-1 text-foreground">$20M</b> Series A
+              <b className="mr-1 text-foreground">Visual</b> workflow builder
             </span>
 
             <span>
-              <b className="mr-1 text-foreground">50M+</b> lines reviewed
+              <b className="mr-1 text-foreground">AI</b> agents & tools
             </span>
 
             <span>
-              <b className="mr-1 text-foreground">99.9%</b> task uptime
+              <b className="mr-1 text-foreground">SDK</b> application integration
             </span>
           </div>
         </div>
@@ -216,10 +220,10 @@ export function Hero() {
           <div className="execution-header mb-4 flex items-center justify-between border-b border-border pb-3 text-[11px] text-muted-foreground">
             <span className="flex items-center gap-2">
               <i className="active-status size-2 rounded-full bg-emerald-500" />
-              EXECUTION GRAPH
+              WORKFLOW EXECUTION
             </span>
 
-            <span>LIVE / 08:32:19</span>
+            <span>RUNNING / 08:32:19</span>
           </div>
 
           <div className="relative space-y-2.5">
@@ -242,7 +246,7 @@ export function Hero() {
 
                 <span
                   className={
-                    name === "Agent team"
+                    name === "AI Agent"
                       ? "active-status size-2 rounded-full bg-primary shadow-[0_0_14px_hsl(var(--primary)/.7)]"
                       : "size-1.5 rounded-full bg-muted-foreground/40"
                   }
@@ -258,21 +262,26 @@ export function Hero() {
 
           <div className="execution-stats mt-4 grid grid-cols-3 gap-2 border-t border-border pt-3 text-center">
             <div>
-              <b className="block text-sm">12</b>
+              <b className="block text-sm">04</b>
+
               <small className="text-[10px] text-muted-foreground">
-                Agents
+                Nodes
               </small>
             </div>
 
             <div>
-              <b className="block text-sm">36</b>
-              <small className="text-[10px] text-muted-foreground">Tasks</small>
+              <b className="block text-sm">01</b>
+
+              <small className="text-[10px] text-muted-foreground">
+                Agent
+              </small>
             </div>
 
             <div>
-              <b className="block text-sm text-emerald-500">98%</b>
+              <b className="block text-sm text-emerald-500">LIVE</b>
+
               <small className="text-[10px] text-muted-foreground">
-                On track
+                Execution
               </small>
             </div>
           </div>
