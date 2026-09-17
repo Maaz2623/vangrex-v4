@@ -1,0 +1,631 @@
+---
+title: Core Concepts
+description: Understand the fundamental concepts behind Vangrex workflows, nodes, executions, inputs, outputs, and AI.
+---
+
+---
+
+# Core Concepts
+
+Vangrex is built around a few core concepts that work together to turn visual workflows into executable application infrastructure.
+
+The main concepts are:
+
+- Workflows
+- Nodes
+- Connections
+- Inputs
+- Outputs
+- Executions
+- AI agents
+- Models
+- Tools
+- Publishing
+
+Understanding these concepts makes it easier to build workflows and integrate them into your applications.
+
+## Workflows
+
+A workflow is an executable graph that defines how a process should run.
+
+A workflow consists of nodes connected together to describe the execution path.
+
+For example:
+
+```text
+Input
+  │
+  ▼
+Validate
+  │
+  ▼
+AI
+  │
+  ▼
+Output
+```
+
+The workflow defines the overall orchestration.
+
+You can think of a workflow as a reusable backend operation that can be triggered whenever your application needs it.
+
+For example, a workflow could represent:
+
+- Customer support automation
+- Document processing
+- AI content generation
+- Data transformation
+- API orchestration
+- Lead enrichment
+- Agentic workflows
+- Background processing
+
+A single workflow can be executed many times.
+
+```text
+                    Workflow
+                       │
+        ┌──────────────┼──────────────┐
+        ▼              ▼              ▼
+   Execution 1    Execution 2    Execution 3
+```
+
+## Nodes
+
+Nodes are the individual building blocks inside a workflow.
+
+Each node performs a specific operation.
+
+For example:
+
+```text
+┌───────────┐
+│   Input   │
+└───────────┘
+
+┌───────────┐
+│    AI     │
+└───────────┘
+
+┌───────────┐
+│ HTTP Call │
+└───────────┘
+
+┌───────────┐
+│ Condition │
+└───────────┘
+
+┌───────────┐
+│  Output   │
+└───────────┘
+```
+
+Nodes can represent different types of operations depending on the capabilities available in your Vangrex project.
+
+A workflow combines these nodes into a larger execution graph.
+
+## Connections
+
+Connections define relationships between nodes.
+
+For example:
+
+```text
+[Input]
+   │
+   ▼
+[AI]
+   │
+   ▼
+[Output]
+```
+
+The connection between `Input` and `AI` means that the AI node can execute after the input stage has completed.
+
+Connections also define how data moves through the workflow.
+
+A more complex workflow might look like:
+
+```text
+              ┌─────────────┐
+              │   Search    │
+              └──────▲──────┘
+                     │
+                     │
+┌───────┐      ┌─────┴─────┐
+│ Input │─────►│ AI Agent  │
+└───────┘      └─────┬─────┘
+                     │
+                     ▼
+                ┌─────────┐
+                │ Output  │
+                └─────────┘
+```
+
+The workflow graph determines how nodes are connected and how execution can move through the graph.
+
+## Inputs
+
+Inputs are the data provided to a workflow when an execution begins.
+
+For example:
+
+```json
+{
+  "message": "Summarize this document",
+  "document": "Document content..."
+}
+```
+
+The workflow can use these values during execution.
+
+Inputs can contain different types of structured data depending on what your workflow requires.
+
+For example:
+
+```json
+{
+  "customer": {
+    "id": "customer_123",
+    "name": "Jane Doe"
+  },
+  "request": {
+    "type": "support",
+    "message": "Where is my order?"
+  }
+}
+```
+
+Inputs provide the starting data for an execution.
+
+```text
+Application
+     │
+     │ input
+     ▼
+  Workflow
+     │
+     ▼
+   Nodes
+```
+
+## Outputs
+
+Outputs are the data produced by a workflow.
+
+For example:
+
+```json
+{
+  "response": "Your order is out for delivery.",
+  "status": "resolved"
+}
+```
+
+Outputs should generally be structured so that applications can consume them reliably.
+
+The complete data flow can look like:
+
+```text
+Input
+  │
+  ▼
+Workflow
+  │
+  ├── Node
+  ├── Node
+  ├── Node
+  └── Node
+  │
+  ▼
+Output
+```
+
+Your application can then consume the resulting output.
+
+## Data flow
+
+Data flows through a workflow as nodes execute.
+
+Consider this workflow:
+
+```text
+Input
+  │
+  │ message
+  ▼
+AI
+  │
+  │ response
+  ▼
+Transform
+  │
+  │ formatted response
+  ▼
+Output
+```
+
+Each node can consume data from previous parts of the workflow and produce data for subsequent nodes.
+
+This allows workflows to transform and process data step by step.
+
+## Executions
+
+An execution is one run of a workflow.
+
+If you run the same workflow five times, there are five executions.
+
+```text
+Workflow
+   │
+   ├── Execution #001
+   ├── Execution #002
+   ├── Execution #003
+   ├── Execution #004
+   └── Execution #005
+```
+
+Each execution has its own state and lifecycle.
+
+An execution can contain information such as:
+
+- Input
+- Execution status
+- Node states
+- Node outputs
+- Errors
+- Final output
+- Execution metadata
+- Timing information
+
+This allows you to inspect individual workflow runs.
+
+## Execution lifecycle
+
+An execution moves through different states during its lifecycle.
+
+A simplified lifecycle looks like:
+
+```text
+Created
+   │
+   ▼
+Queued
+   │
+   ▼
+Running
+   │
+   ├───────────────┐
+   │               │
+   ▼               ▼
+Completed        Failed
+```
+
+The exact lifecycle depends on how the workflow and execution system are configured.
+
+The important distinction is:
+
+**Workflow = what should happen**
+
+**Execution = one instance of it happening**
+
+## Workflow state vs execution state
+
+It is useful to distinguish the workflow itself from an execution.
+
+The workflow contains the definition:
+
+```text
+Workflow
+├── Nodes
+├── Connections
+├── Configuration
+└── Input / Output definition
+```
+
+The execution contains runtime information:
+
+```text
+Execution
+├── Input
+├── Current status
+├── Node states
+├── Node results
+├── Errors
+└── Output
+```
+
+This allows the same workflow definition to be executed repeatedly without mixing the state of different runs.
+
+## AI models
+
+AI models can be used as part of workflows.
+
+An AI node can receive input, send it to a configured model, and produce output for the next stage of the workflow.
+
+For example:
+
+```text
+Input
+  │
+  ▼
+AI Model
+  │
+  ▼
+Output
+```
+
+AI models can also be part of more complex workflows:
+
+```text
+Input
+  │
+  ▼
+Process Data
+  │
+  ▼
+AI Model
+  │
+  ▼
+Validate Response
+  │
+  ▼
+Output
+```
+
+The model is one component of the workflow rather than the entire application architecture.
+
+## AI agents
+
+An AI agent is an AI-powered workflow component that can use tools and perform multi-step operations.
+
+A simple agent workflow might look like:
+
+```text
+User Request
+      │
+      ▼
+  AI Agent
+      │
+      ├──────► Search Tool
+      │
+      ├──────► API Tool
+      │
+      └──────► Data Tool
+      │
+      ▼
+Final Response
+```
+
+The agent can use available tools as part of its execution.
+
+This makes agents useful for applications where an AI system needs to interact with external systems instead of only generating a response.
+
+## Tools
+
+Tools provide capabilities that an AI agent or workflow can invoke.
+
+Examples include:
+
+- Search
+- HTTP APIs
+- Data retrieval
+- Database operations
+- External services
+- Calculations
+- Application-specific operations
+
+A tool can be thought of as a capability exposed to the workflow.
+
+```text
+AI Agent
+   │
+   ├── Tool A
+   ├── Tool B
+   └── Tool C
+```
+
+The agent can decide when a tool is needed based on its configuration and the current execution context.
+
+## Conditional logic
+
+Workflows can contain logic that determines which path execution should follow.
+
+For example:
+
+```text
+              ┌──────────────┐
+              │   Condition  │
+              └──────┬───────┘
+                     │
+             ┌───────┴───────┐
+             │               │
+          true             false
+             │               │
+             ▼               ▼
+        [Process A]     [Process B]
+```
+
+This allows workflows to represent different execution paths based on input or intermediate results.
+
+Conditional logic is useful for:
+
+- Validation
+- Routing
+- Business rules
+- Error handling
+- AI decisions
+- Data classification
+
+## Workflow composition
+
+Complex workflows can be built by combining multiple types of nodes.
+
+For example:
+
+```text
+Input
+  │
+  ▼
+Validate
+  │
+  ▼
+Condition
+  │
+  ├───────────────┐
+  │               │
+  ▼               ▼
+AI Agent        HTTP API
+  │               │
+  └───────┬───────┘
+          │
+          ▼
+       Transform
+          │
+          ▼
+        Output
+```
+
+Each node has a focused responsibility while the workflow coordinates the complete process.
+
+## Workflow configuration
+
+A workflow contains configuration that determines how it behaves.
+
+Configuration can include:
+
+- Node configuration
+- Connections
+- Input definitions
+- Output definitions
+- AI model configuration
+- Prompt configuration
+- Tool configuration
+- Workflow metadata
+
+The configuration describes the intended behavior of the workflow.
+
+Runtime execution data is separate from this configuration.
+
+## Publishing
+
+Workflows can exist in a development state before being made available for application integration.
+
+A simplified lifecycle is:
+
+```text
+Draft
+  │
+  ▼
+Testing
+  │
+  ▼
+Published
+```
+
+Publishing creates a clear boundary between workflow development and application usage.
+
+Your application can then trigger the published workflow using the Vangrex SDK.
+
+See [Publishing Workflows](/docs/workflows/publishing).
+
+## API and SDK integration
+
+Vangrex workflows can be integrated into applications through the SDK.
+
+The general architecture is:
+
+```text
+Your Application
+       │
+       │ SDK
+       ▼
+    Vangrex
+       │
+       ▼
+    Workflow
+       │
+       ▼
+   Execution
+       │
+       ▼
+     Result
+```
+
+For example:
+
+```ts
+import { Vangrex } from "@vangrex/sdk";
+
+const vangrex = new Vangrex({
+  apiKey: process.env.VANGREX_API_KEY,
+});
+
+const execution = await vangrex.workflows.run("workflow_id", {
+  message: "Hello from my application",
+});
+```
+
+The SDK provides the application-facing interface, while Vangrex handles the workflow execution.
+
+## A complete mental model
+
+All of the concepts come together like this:
+
+```text
+                         Vangrex
+                            │
+                     ┌──────▼──────┐
+                     │   Workflow  │
+                     └──────┬──────┘
+                            │
+                ┌───────────┼───────────┐
+                │           │           │
+                ▼           ▼           ▼
+              Node        Node        Node
+                │           │           │
+                └───────────┼───────────┘
+                            │
+                            ▼
+                       Execution
+                            │
+                ┌───────────┼───────────┐
+                │           │           │
+                ▼           ▼           ▼
+              Input      Node State   Output
+                            │
+                            ▼
+                          Result
+```
+
+The relationship can be summarized as:
+
+- **Workflow** defines the process.
+- **Nodes** perform individual operations.
+- **Connections** define the execution graph.
+- **Inputs** provide data to the workflow.
+- **Outputs** provide data from the workflow.
+- **Execution** represents one run.
+- **Models** provide AI capabilities.
+- **Agents** coordinate AI-driven operations.
+- **Tools** provide external capabilities.
+- **Publishing** makes a workflow available for application use.
+- **SDK** provides the application integration layer.
+
+## Where to go next
+
+Now that you understand the core Vangrex concepts, continue with the area that matches what you're building.
+
+### Build workflows
+
+Learn how to create and configure workflows in [Workflows](/docs/workflows).
+
+### Integrate Vangrex
+
+Learn how to authenticate and connect your application in [Authentication](/docs/authentication).
+
+Then continue with the [SDK](/docs/sdk).
+
+### Build AI systems
+
+Learn about AI workflows, agents, models, tools, and prompts in the [AI documentation](/docs/ai).

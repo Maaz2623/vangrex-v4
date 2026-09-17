@@ -1,0 +1,431 @@
+---
+title: SDK Overview
+description: Learn how the Vangrex SDK connects your application to workflows and executions.
+---
+
+---
+
+# SDK
+
+The Vangrex SDK provides a programmatic interface for integrating Vangrex into your applications.
+
+Instead of manually communicating with the Vangrex API, you can use the SDK to trigger workflows and work with their executions from your application code.
+
+```text id="n4f7qp"
+Your Application
+       │
+       │ @vangrex/sdk
+       ▼
+    Vangrex
+       │
+       ▼
+   Workflow
+       │
+       ▼
+  Execution
+```
+
+This makes Vangrex workflows usable as application infrastructure.
+
+## Installation
+
+Install the SDK using your preferred package manager.
+
+```bash id="4v5q4e"
+npm install @vangrex/sdk
+```
+
+Or:
+
+```bash id="2x1r6b"
+pnpm add @vangrex/sdk
+```
+
+Or:
+
+```bash id="xq9h7j"
+yarn add @vangrex/sdk
+```
+
+Or:
+
+```bash id="7z0x6p"
+bun add @vangrex/sdk
+```
+
+## Initialize the client
+
+Create a Vangrex client with your API key.
+
+```ts id="g8yq2w"
+import { Vangrex } from "@vangrex/sdk";
+
+const vangrex = new Vangrex({
+  apiKey: process.env.VANGREX_API_KEY,
+});
+```
+
+The client can then be used throughout your server-side application.
+
+## Run a workflow
+
+Once you have a published workflow, you can trigger it from your application.
+
+```ts id="q6v1da"
+const execution = await vangrex.workflows.run("workflow_id", {
+  message: "Hello from my application",
+});
+```
+
+The input object is passed to the workflow as execution input.
+
+A successful request returns information about the created execution.
+
+```ts id="j8c4fz"
+console.log(execution);
+```
+
+Conceptually:
+
+```text id="c9m4yk"
+Application
+    │
+    │ workflows.run()
+    ▼
+Vangrex
+    │
+    ▼
+Workflow
+    │
+    ▼
+New Execution
+```
+
+## Workflow IDs
+
+Each workflow has an identifier that you can use when triggering it.
+
+For example:
+
+```ts id="m7s2re"
+await vangrex.workflows.run("workflow_123", {
+  message: "Process this request",
+});
+```
+
+Keep the workflow ID in your application's configuration when appropriate rather than scattering it throughout your codebase.
+
+For example:
+
+```env id="f0r4ne"
+VANGREX_WORKFLOW_ID=workflow_123
+```
+
+Then:
+
+```ts id="q2m5xs"
+const execution = await vangrex.workflows.run(
+  process.env.VANGREX_WORKFLOW_ID!,
+  {
+    message: "Process this request",
+  },
+);
+```
+
+This makes it easier to change which workflow your application uses without changing application logic.
+
+## Inputs
+
+Workflow inputs are passed as the second argument to `workflows.run`.
+
+```ts id="t4k7nd"
+const execution = await vangrex.workflows.run("workflow_id", {
+  customerId: "customer_123",
+  message: "Where is my order?",
+});
+```
+
+The input structure should match what your workflow expects.
+
+Inputs can contain nested objects and arrays.
+
+```ts id="z8v3hc"
+const execution = await vangrex.workflows.run("workflow_id", {
+  customer: {
+    id: "customer_123",
+    name: "Jane Doe",
+  },
+  order: {
+    id: "order_456",
+    items: [
+      {
+        name: "Product",
+        quantity: 2,
+      },
+    ],
+  },
+});
+```
+
+This allows workflows to receive structured application data.
+
+## Executions
+
+Calling a workflow creates an execution.
+
+```ts id="b3x8pa"
+const execution = await vangrex.workflows.run("workflow_id", {
+  message: "Generate a response",
+});
+```
+
+The execution represents that specific workflow run.
+
+You can use the execution information returned by the SDK to identify and work with the run.
+
+```text id="v5s6jm"
+Workflow
+    │
+    ├── Execution A
+    ├── Execution B
+    └── Execution C
+```
+
+Each execution is independent.
+
+## Asynchronous execution
+
+Workflow execution can involve multiple nodes, external services, AI models, and other operations.
+
+Your application does not need to perform those operations itself.
+
+Instead, your application triggers the workflow:
+
+```text id="q8c0az"
+Application
+    │
+    │ Trigger
+    ▼
+Vangrex
+    │
+    │ Execute
+    ▼
+Workflow
+    │
+    ├── Node
+    ├── AI
+    ├── Tool
+    └── Node
+    │
+    ▼
+Result
+```
+
+This allows your application to delegate orchestration to Vangrex.
+
+## Server-side integration
+
+The SDK is intended to be used from trusted application environments where your API key can be securely stored.
+
+For example:
+
+```ts id="d4s8kn"
+import { Vangrex } from "@vangrex/sdk";
+
+const vangrex = new Vangrex({
+  apiKey: process.env.VANGREX_API_KEY,
+});
+
+export async function processCustomerRequest(message: string) {
+  return vangrex.workflows.run("customer-support", {
+    message,
+  });
+}
+```
+
+Your frontend can then call your own backend endpoint.
+
+```text id="h2k7vf"
+Browser
+   │
+   ▼
+Your API
+   │
+   ▼
+Vangrex SDK
+   │
+   ▼
+Vangrex Workflow
+```
+
+This keeps your Vangrex API key on your server.
+
+## Use Vangrex as application infrastructure
+
+The SDK is useful when Vangrex workflows represent operations inside a larger application.
+
+For example:
+
+```text id="k1r5cz"
+                    Your Application
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+          ▼               ▼               ▼
+      User API       Background Job    Webhook
+          │               │               │
+          └───────────────┼───────────────┘
+                          │
+                    Vangrex SDK
+                          │
+                          ▼
+                      Workflow
+```
+
+A workflow can therefore become a reusable backend capability.
+
+For example, an application might use separate workflows for:
+
+- Processing documents
+- Generating AI responses
+- Enriching customer data
+- Running background tasks
+- Calling multiple external APIs
+- Handling support requests
+- Generating structured content
+
+## SDK and Vangrex responsibilities
+
+The SDK and the Vangrex platform have different responsibilities.
+
+### Your application
+
+Your application decides:
+
+- When a workflow should run
+- What input should be provided
+- How results should be used
+- How users interact with the result
+
+### Vangrex
+
+Vangrex handles:
+
+- Workflow execution
+- Node orchestration
+- AI operations
+- Tool execution
+- Execution state
+- Workflow results
+
+The SDK provides the bridge between the two.
+
+```text id="p0k3rx"
+┌────────────────────┐
+│   Your Application  │
+│                    │
+│ Business Logic     │
+└─────────┬──────────┘
+          │
+          │ SDK
+          ▼
+┌────────────────────┐
+│      Vangrex       │
+│                    │
+│ Workflow Engine    │
+│ AI / Tools         │
+│ Executions         │
+└────────────────────┘
+```
+
+## SDK architecture
+
+A typical integration can be organized around a shared Vangrex client.
+
+```ts id="u3n7hm"
+import { Vangrex } from "@vangrex/sdk";
+
+export const vangrex = new Vangrex({
+  apiKey: process.env.VANGREX_API_KEY,
+});
+```
+
+Application services can then use the client.
+
+```ts id="e6q1vs"
+import { vangrex } from "./vangrex";
+
+export async function generateContent(input: string) {
+  return vangrex.workflows.run("content-generator", {
+    input,
+  });
+}
+```
+
+This keeps Vangrex configuration centralized.
+
+## Error handling
+
+Workflow requests can fail for different reasons, including authentication problems, invalid workflow configuration, invalid inputs, or execution errors.
+
+Wrap SDK calls when your application needs to handle failures explicitly.
+
+```ts id="r4m9ty"
+try {
+  const execution = await vangrex.workflows.run("workflow_id", {
+    message: "Hello",
+  });
+
+  console.log(execution);
+} catch (error) {
+  console.error("Vangrex workflow failed", error);
+}
+```
+
+For detailed error handling patterns, see [SDK Errors](/docs/sdk/errors).
+
+## SDK workflow
+
+The basic SDK workflow is:
+
+```text id="a6q2we"
+1. Install SDK
+       │
+       ▼
+2. Create API key
+       │
+       ▼
+3. Initialize Vangrex client
+       │
+       ▼
+4. Select published workflow
+       │
+       ▼
+5. Provide input
+       │
+       ▼
+6. Trigger execution
+       │
+       ▼
+7. Handle execution/result
+```
+
+This is the fundamental integration pattern for Vangrex.
+
+## Next steps
+
+### Install the SDK
+
+Follow [SDK Installation](/docs/sdk/installation) for a focused installation guide.
+
+### Trigger workflows
+
+Learn how to pass inputs and execute workflows in [SDK Workflows](/docs/sdk/workflows).
+
+### Work with executions
+
+Learn how to inspect and handle workflow executions in [SDK Executions](/docs/sdk/executions).
+
+### Handle errors
+
+Learn about SDK failures and error handling in [SDK Errors](/docs/sdk/errors).

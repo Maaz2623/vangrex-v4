@@ -1,0 +1,580 @@
+---
+title: Introduction
+description: Build, orchestrate, and run AI-powered workflows with Vangrex.
+---
+
+Vangrex is a workflow and AI orchestration platform for building applications that need reliable execution, reusable workflows, and AI-powered automation.
+
+Instead of implementing every integration, execution path, retry mechanism, and AI orchestration layer inside your application, you can build that logic as a workflow in Vangrex and invoke it from your application.
+
+## What is Vangrex?
+
+Vangrex provides a visual environment for defining workflows composed of connected nodes.
+
+A workflow can contain things such as:
+
+- Inputs and outputs
+- HTTP requests
+- Data transformations
+- Conditional logic
+- AI models
+- AI agents
+- Tools
+- External integrations
+- Custom workflow logic
+- Execution state
+
+The workflow becomes an executable unit that your application can trigger.
+
+## The basic architecture
+
+A typical Vangrex application looks like this:
+
+```text
+Your Application
+       │
+       │ trigger
+       ▼
+   Vangrex
+       │
+       ▼
+   Workflow
+       │
+       ├── Input
+       ├── Logic
+       ├── AI
+       ├── Tools
+       └── Output
+       │
+       ▼
+   Execution
+```
+
+Your application is responsible for the product experience.
+
+Vangrex is responsible for orchestrating the workflow execution.
+
+## Workflows as application infrastructure
+
+A workflow can represent a single operation or an entire backend process.
+
+For example, an application could have a workflow that:
+
+1. Receives a customer request.
+2. Validates the input.
+3. Retrieves relevant data.
+4. Sends the data to an AI model.
+5. Processes the model response.
+6. Calls an external service.
+7. Returns structured output.
+
+Your application only needs to trigger the workflow and consume its result.
+
+```text
+Application
+     │
+     │ input
+     ▼
+┌─────────────┐
+│   Vangrex   │
+│  Workflow   │
+└──────┬──────┘
+       │
+       ├── Validate
+       │
+       ├── Retrieve Data
+       │
+       ├── Run AI
+       │
+       ├── Process
+       │
+       └── External API
+       │
+       ▼
+    Output
+```
+
+This allows complex application logic to be represented as a reusable execution graph.
+
+## Why use workflows?
+
+As applications grow, business logic often becomes distributed across API routes, background jobs, utility functions, cron jobs, and third-party services.
+
+Vangrex provides an orchestration layer for this logic.
+
+Instead of manually coordinating every step in your application, you can define the execution flow visually and let Vangrex manage the workflow execution.
+
+Workflows are useful for:
+
+- AI automation
+- Backend automation
+- Data processing
+- API orchestration
+- Customer support systems
+- Internal tools
+- Agentic applications
+- Background jobs
+- Multi-step integrations
+
+## Developers and Vangrex
+
+Vangrex is designed to work alongside your existing application stack.
+
+You don't need to replace your frontend, backend, database, or infrastructure.
+
+Instead, Vangrex can act as an orchestration layer between your application and the operations your application needs to perform.
+
+```text
+┌──────────────────────────┐
+│     Your Application     │
+│                          │
+│  Frontend / Backend      │
+│  Next.js / Node.js       │
+│  Python / Go / etc.      │
+└────────────┬─────────────┘
+             │
+             │ API / SDK
+             ▼
+┌──────────────────────────┐
+│         Vangrex          │
+│                          │
+│       Workflows          │
+│       AI Agents          │
+│       Tools              │
+│       Execution          │
+└────────────┬─────────────┘
+             │
+             ▼
+┌──────────────────────────┐
+│    External Systems      │
+│                          │
+│ APIs / Databases         │
+│ AI Models / Services     │
+└──────────────────────────┘
+```
+
+This separation allows your application and orchestration logic to evolve independently.
+
+## Build visually, integrate programmatically
+
+Vangrex gives you a visual workflow builder for creating and configuring workflows.
+
+Once a workflow is ready, developers can integrate it into their applications programmatically.
+
+The workflow becomes a reusable execution layer.
+
+For example, an application might have a customer-support feature:
+
+```text
+User Message
+     │
+     ▼
+Your Application
+     │
+     │ trigger workflow
+     ▼
+   Vangrex
+     │
+     ├── Validate message
+     │
+     ├── Retrieve context
+     │
+     ├── Run AI agent
+     │
+     ├── Use tools
+     │
+     └── Generate response
+     │
+     ▼
+Execution Result
+     │
+     ▼
+Your Application
+```
+
+The application does not need to implement every step itself.
+
+It can provide the input, trigger the workflow, and consume the resulting output.
+
+## Workflows and AI
+
+Vangrex is not limited to traditional automation.
+
+Workflows can also be used to build AI-powered systems.
+
+An AI workflow can combine:
+
+- AI models
+- AI agents
+- Prompts
+- Tools
+- Structured inputs
+- Structured outputs
+- Conditional logic
+- External APIs
+- Multiple execution steps
+
+This allows you to build AI systems that go beyond a single model call.
+
+For example:
+
+```text
+User Input
+    │
+    ▼
+Analyze Request
+    │
+    ▼
+AI Agent
+    │
+    ├── Search Tool
+    │
+    ├── API Tool
+    │
+    └── Data Tool
+    │
+    ▼
+Process Result
+    │
+    ▼
+Structured Output
+```
+
+Each part of the workflow can be represented as a node and connected to the next stage of execution.
+
+## AI agents
+
+Vangrex workflows can be used to build AI agents that interact with tools and external systems.
+
+A simple agent workflow might look like:
+
+```text
+Input
+  │
+  ▼
+AI Agent
+  │
+  ├──────────► Tool
+  │              │
+  │              ▼
+  │          Tool Result
+  │              │
+  ◄──────────────┘
+  │
+  ▼
+Final Response
+```
+
+This makes it possible to build applications where an AI model can perform actions instead of simply generating text.
+
+## Tools
+
+Tools allow AI workflows to interact with external functionality.
+
+A tool might:
+
+- Retrieve data
+- Call an API
+- Search a system
+- Modify application data
+- Perform a calculation
+- Execute a business operation
+
+The workflow controls how and when these capabilities are used.
+
+```text
+AI Agent
+   │
+   ├── Tool A
+   ├── Tool B
+   └── Tool C
+```
+
+This creates a controlled execution environment around your AI system.
+
+## Inputs and outputs
+
+Workflows can accept structured input and produce structured output.
+
+For example, an application could trigger a workflow with:
+
+```json
+{
+  "message": "Summarize this document",
+  "document": "Document content..."
+}
+```
+
+The workflow processes the input and can return:
+
+```json
+{
+  "summary": "The document discusses..."
+}
+```
+
+Structured inputs and outputs make workflows easier to integrate with APIs, SDKs, backend services, and other applications.
+
+## Execution
+
+A workflow defines what should happen.
+
+An execution represents what actually happened during a specific run.
+
+For example, one workflow can have many executions:
+
+```text
+Workflow
+   │
+   ├── Execution #001
+   ├── Execution #002
+   ├── Execution #003
+   ├── Execution #004
+   └── Execution #005
+```
+
+Each execution has its own state.
+
+Depending on the workflow, an execution can contain information such as:
+
+- Input
+- Node states
+- Execution status
+- Outputs
+- Errors
+- Timing information
+- Execution metadata
+
+This separation allows you to build a workflow once and execute it repeatedly.
+
+## Execution lifecycle
+
+A simplified workflow execution looks like:
+
+```text
+Created
+   │
+   ▼
+Queued
+   │
+   ▼
+Running
+   │
+   ├───────────────┐
+   │               │
+   ▼               ▼
+Completed        Failed
+   │
+   ▼
+Result
+```
+
+The execution state can be used by your application to understand what happened during a workflow run.
+
+## From prototype to production
+
+Vangrex can be used during development as well as in production applications.
+
+A typical development cycle looks like this:
+
+```text
+Build
+  │
+  ▼
+Test
+  │
+  ▼
+Inspect Execution
+  │
+  ▼
+Modify Workflow
+  │
+  ▼
+Test Again
+  │
+  ▼
+Publish
+  │
+  ▼
+Integrate
+```
+
+You can iterate on orchestration logic without having to rewrite the surrounding application.
+
+## The Vangrex SDK
+
+For developers, Vangrex provides an SDK that allows applications to interact with workflows programmatically.
+
+A typical integration looks like:
+
+```ts
+import { Vangrex } from "@vangrex/sdk";
+
+const vangrex = new Vangrex({
+  apiKey: process.env.VANGREX_API_KEY,
+});
+
+const execution = await vangrex.workflows.run("workflow_id", {
+  message: "Hello from my application",
+});
+```
+
+Your API key authenticates your application with Vangrex.
+
+The SDK provides an application-friendly interface for triggering and working with workflow executions.
+
+> [!IMPORTANT]
+> Keep your Vangrex API key on the server. Never expose it in client-side code or commit it to your source repository.
+
+Learn more in the [SDK documentation](/docs/sdk).
+
+## Integrating Vangrex into your backend
+
+A common architecture is to trigger Vangrex from your application's server.
+
+For example:
+
+```text
+Browser
+   │
+   │ request
+   ▼
+Your Backend
+   │
+   │ Vangrex SDK
+   ▼
+Vangrex
+   │
+   ▼
+Workflow Execution
+   │
+   ▼
+Result
+   │
+   ▼
+Your Backend
+   │
+   ▼
+Browser
+```
+
+This keeps authentication credentials on the server while allowing your application to expose the workflow's functionality through its own API.
+
+## Vangrex as an orchestration layer
+
+Vangrex does not need to own your entire application.
+
+Your application can continue to manage:
+
+- Authentication
+- Users
+- UI
+- Application state
+- Databases
+- Billing
+- Product-specific business logic
+
+Vangrex can handle the workflow orchestration layer.
+
+```text
+┌─────────────────────────────────┐
+│         Your Application        │
+│                                 │
+│  Users                          │
+│  Authentication                │
+│  UI                             │
+│  Product Logic                  │
+│  Database                       │
+└────────────────┬────────────────┘
+                 │
+                 │
+                 ▼
+┌─────────────────────────────────┐
+│             Vangrex             │
+│                                 │
+│  Workflow Orchestration         │
+│  AI Workflows                   │
+│  Agents                         │
+│  Tools                          │
+│  Executions                     │
+└─────────────────────────────────┘
+```
+
+This gives developers a dedicated layer for complex, multi-step execution.
+
+## What you can build
+
+Vangrex can be used as an orchestration layer for many types of applications.
+
+### AI applications
+
+Build AI-powered features that combine models, tools, data, and application logic.
+
+### Automation
+
+Automate repetitive multi-step operations across APIs and services.
+
+### Backend workflows
+
+Move complex backend processes into reusable workflows.
+
+### AI agents
+
+Create agents that can use tools, interact with external systems, and produce structured results.
+
+### Data processing
+
+Build workflows that transform, validate, enrich, and route data.
+
+### API orchestration
+
+Connect multiple APIs and services into a single executable workflow.
+
+### Background processing
+
+Run operations independently from the request-response lifecycle of your application.
+
+## A simple mental model
+
+The easiest way to think about Vangrex is:
+
+```text
+Your Application
+       │
+       │
+       ▼
+   "Run this"
+       │
+       ▼
+     Vangrex
+       │
+       ▼
+"Execute this workflow"
+       │
+       ▼
+    Workflow
+       │
+       ▼
+   Execution
+       │
+       ▼
+     Result
+```
+
+Your application decides **when** something needs to happen.
+
+The workflow defines **how** it happens.
+
+The execution represents **what happened**.
+
+## Where to start
+
+If you're new to Vangrex, start with the [Quickstart](/docs/quickstart).
+
+If you want to understand how Vangrex works, read [Core Concepts](/docs/core-concepts).
+
+If you're integrating Vangrex into an application, continue with [Authentication](/docs/authentication) and then explore the [SDK](/docs/sdk).
+
+If you're building workflows inside Vangrex, start with [Workflows](/docs/workflows).
+
+If you're building AI-powered systems, continue to the [AI documentation](/docs/ai).

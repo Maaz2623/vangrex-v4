@@ -1,0 +1,609 @@
+---
+title: SDK Errors
+description: Handle authentication, request, and workflow execution errors when using the Vangrex SDK.
+---
+
+---
+
+# Errors
+
+Errors are an expected part of integrating external infrastructure into your application.
+
+The Vangrex SDK can encounter errors while authenticating requests, validating inputs, starting executions, or communicating with Vangrex.
+
+Your application should handle these failures explicitly.
+
+## Basic error handling
+
+Wrap SDK operations in `try/catch` when you need to respond to failures.
+
+```ts id="n4f7ps"
+try {
+  const execution = await vangrex.workflows.run("workflow_id", {
+    message: "Hello Vangrex",
+  });
+
+  console.log(execution);
+} catch (error) {
+  console.error("Vangrex request failed", error);
+}
+```
+
+Do not assume that every failure is caused by the workflow itself.
+
+The failure can happen before an execution is created.
+
+## Error categories
+
+It is useful to think about failures in several categories:
+
+```text id="a8x3km"
+Application
+    │
+    ▼
+Vangrex SDK
+    │
+    ├── Authentication error
+    ├── Request / validation error
+    ├── Workflow error
+    ├── Network error
+    └── Unexpected error
+```
+
+Each category should be handled differently.
+
+## Authentication errors
+
+Authentication errors occur when Vangrex cannot authenticate the request.
+
+Common causes include:
+
+- Missing API key
+- Invalid API key
+- Revoked API key
+- Incorrect environment configuration
+- API key unavailable in the runtime
+
+Check your environment:
+
+```ts id="q6z1vr"
+const apiKey = process.env.VANGREX_API_KEY;
+
+console.log({
+  configured: Boolean(apiKey),
+});
+```
+
+Never log the actual API key.
+
+If the key is missing, make sure your deployment environment contains:
+
+```env id="w2m7cp"
+VANGREX_API_KEY=vx_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+For more information, see [Authentication](/docs/authentication).
+
+## Invalid workflow errors
+
+A request can fail if the workflow identifier is invalid or the requested workflow cannot be executed.
+
+For example:
+
+```ts id="e7y4qm"
+await vangrex.workflows.run("invalid-workflow-id", {
+  message: "Hello",
+});
+```
+
+Verify that:
+
+- The workflow ID is correct.
+- The workflow exists in the expected project.
+- The workflow is available for execution.
+- Your API key has access to the relevant resource.
+
+## Invalid input
+
+Your workflow may expect a particular input structure.
+
+For example:
+
+```ts id="p8k2wd"
+await vangrex.workflows.run("support-workflow", {
+  message: 123,
+});
+```
+
+If the workflow expects `message` to be a string, the input is invalid.
+
+Validate application data before calling Vangrex.
+
+```ts id="m5r9xs"
+import { z } from "zod";
+
+const inputSchema = z.object({
+  message: z.string().min(1),
+});
+
+const input = inputSchema.parse({
+  message: "Where is my order?",
+});
+
+const execution = await vangrex.workflows.run("support-workflow", input);
+```
+
+Validation at the application boundary makes failures easier to diagnose.
+
+## Execution errors
+
+A workflow can fail after an execution has started.
+
+For example:
+
+```text id="f4w8qa"
+Workflow
+   │
+   ▼
+Execution
+   │
+   ├── Node A ✓
+   ├── Node B ✓
+   ├── Node C ✕
+   │
+   ▼
+Failed execution
+```
+
+An execution failure is different from a failure to create the execution.
+
+Your application should keep these cases separate.
+
+```text id="r6t3ny"
+Request failed
+     │
+     └── No execution created
+
+Execution failed
+     │
+     └── Execution exists but did not complete
+```
+
+The exact execution error information available depends on the SDK and API version.
+
+## Network errors
+
+Network failures can happen even when your workflow and credentials are correct.
+
+Examples include:
+
+- Temporary connectivity problems
+- DNS failures
+- Connection timeouts
+- Service interruptions
+- Deployment networking issues
+
+Your application should decide whether retrying the request is appropriate.
+
+For example:
+
+```ts id="u3c7vh"
+async function startWorkflow() {
+  try {
+    return await vangrex.workflows.run("workflow_id", {
+      message: "Process this",
+    });
+  } catch (error) {
+    console.error("Unable to reach Vangrex", error);
+    throw error;
+  }
+}
+```
+
+Do not blindly retry every failure.
+
+## Retries
+
+Retries can be useful for transient failures.
+
+A basic retry strategy looks like:
+
+```text id="j2v6pf"
+Request
+  │
+  ▼
+Failed
+  │
+  ▼
+Retry?
+ ┌┴───────────┐
+ │            │
+Yes           No
+ │             │
+ ▼             ▼
+Wait         Return error
+ │
+ ▼
+Retry request
+```
+
+Use bounded retries with an appropriate delay.
+
+For example:
+
+```ts id="c9m4yx"
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  attempts = 3,
+): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+
+      if (attempt === attempts) {
+        break;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+    }
+  }
+
+  throw lastError;
+}
+```
+
+Then:
+
+```ts id="h7p3ws"
+const execution = await withRetry(() =>
+  vangrex.workflows.run("workflow_id", {
+    message: "Process this",
+  }),
+);
+```
+
+Only use retries where repeating the operation is safe.
+
+## Duplicate executions
+
+Retries can create duplicate workflow executions if the original request succeeded but your application did not receive the response.
+
+For example:
+
+```text id="v5n8rq"
+Application
+    │
+    │ Request
+    ▼
+Vangrex
+    │
+    │ Execution created
+    ▼
+Network failure
+    │
+    ▼
+Application retries
+    │
+    ▼
+Second execution
+```
+
+For operations that must not be duplicated, design an idempotency strategy around your application request.
+
+A request identifier can help your application track the operation:
+
+```ts id="x8d2mc"
+const requestId = "request_123";
+
+const execution = await vangrex.workflows.run("payment-processing", {
+  requestId,
+  paymentId: "payment_456",
+});
+```
+
+The exact idempotency functionality supported by Vangrex should be checked against the SDK version you are using.
+
+## Logging errors
+
+Log enough information to diagnose failures without exposing secrets.
+
+Good:
+
+```ts id="q1f6zm"
+try {
+  const execution = await vangrex.workflows.run("support-workflow", {
+    message: "Where is my order?",
+  });
+
+  console.log({
+    workflowId: "support-workflow",
+    executionId: execution.id,
+  });
+} catch (error) {
+  console.error("Vangrex workflow request failed", {
+    workflowId: "support-workflow",
+    error,
+  });
+}
+```
+
+Avoid:
+
+```ts id="w3k8pa"
+console.error({
+  apiKey: process.env.VANGREX_API_KEY,
+});
+```
+
+Never include API keys in application logs.
+
+## Return safe errors to users
+
+Internal errors should not automatically be returned directly to end users.
+
+Avoid:
+
+```ts id="y7m2qe"
+return Response.json({
+  error: String(error),
+});
+```
+
+Instead, return a controlled application-level error:
+
+```ts id="r9c4vk"
+return Response.json(
+  {
+    error: "Unable to process your request.",
+  },
+  {
+    status: 500,
+  },
+);
+```
+
+Keep detailed error information in server-side logs.
+
+## API route error handling
+
+A server-side route can handle Vangrex failures like this:
+
+```ts id="b6x1wd"
+import { vangrex } from "@/lib/vangrex";
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+
+    const execution = await vangrex.workflows.run("support-workflow", {
+      message: body.message,
+    });
+
+    return Response.json(execution);
+  } catch (error) {
+    console.error("Support workflow failed", error);
+
+    return Response.json(
+      {
+        error: "Unable to start support workflow.",
+      },
+      {
+        status: 500,
+      },
+    );
+  }
+}
+```
+
+This creates a clear boundary between internal infrastructure errors and your public API.
+
+## Validate before calling Vangrex
+
+A robust request flow is:
+
+```text id="k8q5vs"
+Incoming Request
+       │
+       ▼
+Validate Input
+       │
+   ┌───┴────┐
+   │        │
+ Invalid   Valid
+   │        │
+   ▼        ▼
+ 400       SDK
+            │
+            ▼
+         Vangrex
+```
+
+For example:
+
+```ts id="t4y8qn"
+import { z } from "zod";
+import { vangrex } from "@/lib/vangrex";
+
+const schema = z.object({
+  message: z.string().min(1),
+});
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const input = schema.parse(body);
+
+    const execution = await vangrex.workflows.run("support-workflow", input);
+
+    return Response.json(execution);
+  } catch (error) {
+    console.error(error);
+
+    return Response.json(
+      {
+        error: "Unable to process request.",
+      },
+      {
+        status: 400,
+      },
+    );
+  }
+}
+```
+
+In production, distinguish validation errors from infrastructure failures so that clients receive appropriate HTTP status codes.
+
+## Handling long-running failures
+
+For workflows that run asynchronously, a successful request to start the workflow does not necessarily mean the workflow itself completed successfully.
+
+```text id="s6w2je"
+Start request
+     │
+     ▼
+Execution created
+     │
+     ▼
+Running
+     │
+     ├───────────────┐
+     │               │
+     ▼               ▼
+Completed          Failed
+```
+
+Your application should track the execution separately from the initial SDK request.
+
+See [SDK Executions](/docs/sdk/executions).
+
+## Debugging workflow failures
+
+When a workflow fails, investigate the execution rather than only the original API request.
+
+A useful debugging chain is:
+
+```text id="c5r9xm"
+Request
+   │
+   ▼
+Workflow ID
+   │
+   ▼
+Execution ID
+   │
+   ▼
+Failed Node
+   │
+   ▼
+Error
+```
+
+Keep the execution ID available in logs and application records.
+
+For example:
+
+```ts id="n2w7fk"
+console.log({
+  requestId,
+  workflowId,
+  executionId: execution.id,
+});
+```
+
+This makes it easier to correlate application activity with a specific workflow run.
+
+## Error boundaries
+
+Your application should establish clear boundaries between different error types.
+
+```text id="d8k4qp"
+User Input
+    │
+    ▼
+Application Validation
+    │
+    ▼
+SDK Request
+    │
+    ▼
+Vangrex
+    │
+    ▼
+Workflow Execution
+    │
+    ▼
+Application Result
+```
+
+Each layer should handle the errors appropriate to that layer.
+
+For example:
+
+- Input validation belongs at the application boundary.
+- Authentication configuration belongs to the server environment.
+- SDK/network failures belong to the integration layer.
+- Workflow failures belong to execution handling.
+- User-facing messages belong to the application layer.
+
+## Production error handling
+
+A production integration should generally:
+
+- Validate inputs before triggering workflows.
+- Keep API keys server-side.
+- Never log secrets.
+- Log workflow and execution identifiers.
+- Distinguish request failures from execution failures.
+- Use bounded retries for transient failures where safe.
+- Consider duplicate execution scenarios.
+- Return safe errors to clients.
+- Preserve enough context to debug failed executions.
+
+## Error handling pattern
+
+A practical architecture looks like:
+
+```text id="p7v3ks"
+                Application
+                     │
+                     ▼
+              Validate Input
+                     │
+                     ▼
+                Vangrex SDK
+                     │
+              ┌──────┴──────┐
+              │             │
+           Success         Error
+              │             │
+              ▼             ▼
+          Execution     Handle Error
+              │
+              ▼
+       Track Execution
+              │
+         ┌────┴────┐
+         │         │
+     Completed   Failed
+         │         │
+         ▼         ▼
+       Result    Recovery
+```
+
+This keeps error handling predictable as your integration grows.
+
+## Next steps
+
+The SDK section is now complete:
+
+- [SDK Overview](/docs/sdk)
+- [Installation](/docs/sdk/installation)
+- [Workflows](/docs/sdk/workflows)
+- [Executions](/docs/sdk/executions)
+- [Errors](/docs/sdk/errors)
+
+Next, move into the core platform documentation with [Workflows](/docs/workflows), starting with [Workflows Overview](/docs/workflows/overview).

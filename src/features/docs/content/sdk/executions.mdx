@@ -1,0 +1,589 @@
+---
+title: SDK Executions
+description: Track, inspect, and work with Vangrex workflow executions from your application.
+---
+
+---
+
+# Executions
+
+An execution represents a single run of a Vangrex workflow.
+
+Every time your application triggers a workflow, Vangrex creates an execution.
+
+```text id="6d9w3p"
+Workflow
+   │
+   ├── Execution #001
+   ├── Execution #002
+   ├── Execution #003
+   └── Execution #004
+```
+
+Executions are separate from the workflow definition.
+
+The workflow describes **what should happen**.
+
+The execution represents **one instance of that workflow running**.
+
+## Start an execution
+
+Use `workflows.run()` to start a workflow execution.
+
+```ts id="q3n5v8"
+const execution = await vangrex.workflows.run("workflow_id", {
+  message: "Process this request",
+});
+```
+
+The returned value contains information about the execution created by Vangrex.
+
+```ts id="f7k2ra"
+console.log(execution);
+```
+
+## Execution ID
+
+Each execution has an identifier.
+
+```ts id="m9c4ze"
+const execution = await vangrex.workflows.run("workflow_id", {
+  message: "Hello",
+});
+
+console.log(execution.id);
+```
+
+The execution ID is useful when you need to associate application state with a particular workflow run.
+
+For example:
+
+```text id="2w5d8x"
+Your Request
+     │
+     ▼
+Execution ID
+     │
+     ├── Logs
+     ├── Node state
+     ├── Status
+     └── Result
+```
+
+Store the execution ID when your application needs to track the workflow after it has been triggered.
+
+## Execution lifecycle
+
+An execution progresses through a lifecycle as Vangrex processes the workflow.
+
+A simplified representation is:
+
+```text id="k1p7mx"
+Created
+   │
+   ▼
+Queued
+   │
+   ▼
+Running
+   │
+   ├──────────────┐
+   │              │
+   ▼              ▼
+Completed       Failed
+```
+
+The exact states and transitions depend on the execution system and workflow configuration.
+
+Your application should treat execution status as runtime state rather than workflow configuration.
+
+## Workflow versus execution
+
+It is important to keep these two concepts separate.
+
+### Workflow
+
+A workflow contains:
+
+```text id="j8w0pc"
+Workflow
+├── Nodes
+├── Connections
+├── Configuration
+├── Input definitions
+└── Output definitions
+```
+
+### Execution
+
+An execution contains runtime information:
+
+```text id="t6c3ya"
+Execution
+├── Execution ID
+├── Input
+├── Status
+├── Node state
+├── Node results
+├── Errors
+└── Output
+```
+
+A single workflow can therefore have many executions.
+
+## Tracking executions
+
+When your application starts a workflow, save the execution identifier if you need to track it.
+
+```ts id="h3j7qe"
+const execution = await vangrex.workflows.run("document-processing", {
+  documentId: "document_123",
+});
+
+const executionId = execution.id;
+
+// Store executionId in your application's database.
+console.log(executionId);
+```
+
+Your database might contain:
+
+```text id="8a6s2m"
+Application Record
+       │
+       ├── customerId
+       ├── requestId
+       ├── executionId
+       └── createdAt
+```
+
+This creates a relationship between your application's request and the Vangrex execution.
+
+## Execution state
+
+During execution, nodes can move through different runtime states.
+
+For example:
+
+```text id="m8f2zr"
+Workflow
+   │
+   ▼
+┌─────────┐
+│ Input   │ ── completed
+└─────────┘
+     │
+     ▼
+┌─────────┐
+│ AI      │ ── running
+└─────────┘
+     │
+     ▼
+┌─────────┐
+│ Output  │ ── pending
+└─────────┘
+```
+
+This information is useful when building execution dashboards, debugging workflows, or showing progress to users.
+
+## Polling
+
+Some applications need to wait for an execution to reach a terminal state.
+
+A polling architecture looks like:
+
+```text id="n6x4sd"
+Start execution
+      │
+      ▼
+Get execution status
+      │
+      ▼
+   Completed?
+    /      \
+  No        Yes
+  │          │
+  ▼          ▼
+Wait        Result
+  │
+  └───────────►
+```
+
+When implementing polling, use a reasonable interval rather than continuously requesting the execution state.
+
+For example:
+
+```ts id="u2p7qm"
+const execution = await vangrex.workflows.run("workflow_id", {
+  message: "Generate a report",
+});
+
+const executionId = execution.id;
+
+// Poll according to your application's requirements.
+```
+
+Use the SDK execution APIs available in your installed version to retrieve the current execution state.
+
+## Webhook-based tracking
+
+For long-running workflows, your application can use an event-driven architecture when supported by your Vangrex integration.
+
+```text id="v9c5ht"
+Vangrex
+   │
+   │ execution event
+   ▼
+Your Webhook
+   │
+   ▼
+Application Database
+   │
+   ▼
+Frontend
+```
+
+This avoids requiring the client to continuously request the execution status.
+
+A typical flow is:
+
+```text id="p4x1kc"
+1. Application starts workflow
+          │
+          ▼
+2. Vangrex creates execution
+          │
+          ▼
+3. Workflow runs
+          │
+          ▼
+4. Execution changes state
+          │
+          ▼
+5. Application receives event
+          │
+          ▼
+6. Application updates state
+```
+
+Use the event mechanism supported by your Vangrex deployment and SDK version.
+
+## Handling completed executions
+
+When an execution completes, your application can use the resulting output.
+
+Conceptually:
+
+```ts id="y7z3mf"
+const execution = await vangrex.workflows.run("workflow_id", {
+  message: "Summarize this document",
+});
+
+// Use the execution information returned by Vangrex.
+console.log(execution);
+```
+
+For workflows that return structured output, your application can map that result into its own domain model.
+
+For example:
+
+```ts id="c2m8vx"
+const result = {
+  status: "completed",
+  executionId: execution.id,
+};
+```
+
+Keep your application's response format independent from internal Vangrex execution details when possible.
+
+## Handling failed executions
+
+Executions can fail.
+
+For example:
+
+```text id="r5h7yd"
+Running
+   │
+   ▼
+Node fails
+   │
+   ▼
+Execution failed
+```
+
+Your application should distinguish between:
+
+- Failure to start an execution
+- Failure during workflow execution
+- Application-level failures after receiving a result
+
+For example:
+
+```ts id="k4q9ps"
+try {
+  const execution = await vangrex.workflows.run("workflow_id", {
+    message: "Process this",
+  });
+
+  console.log(execution);
+} catch (error) {
+  console.error("Unable to start workflow", error);
+}
+```
+
+Execution-level failures should be handled according to the error information exposed by the SDK.
+
+See [SDK Errors](/docs/sdk/errors).
+
+## Idempotency and duplicate requests
+
+When an application can retry requests, consider the possibility of triggering the same workflow more than once.
+
+For example:
+
+```text id="7e2rqa"
+Application
+   │
+   ├── Request
+   │
+   ├── Retry
+   │
+   └── Retry
+        │
+        ▼
+   Multiple executions
+```
+
+If the operation must only happen once, your application should use an idempotency strategy appropriate to the operation.
+
+A common application-side pattern is to associate a unique request ID with the workflow execution:
+
+```ts id="1h6w0x"
+const requestId = "request_123";
+
+const execution = await vangrex.workflows.run("workflow_id", {
+  requestId,
+  message: "Process this request",
+});
+```
+
+Your application can then track whether that request has already created an execution.
+
+The exact idempotency capabilities available depend on the Vangrex API and SDK version you are using.
+
+## Persist execution IDs
+
+For important application workflows, persist the execution ID.
+
+For example:
+
+```ts id="a8k3nz"
+const execution = await vangrex.workflows.run("order-processing", {
+  orderId: "order_123",
+});
+
+await database.orders.update({
+  where: {
+    id: "order_123",
+  },
+  data: {
+    vangrexExecutionId: execution.id,
+  },
+});
+```
+
+This allows your application to associate its domain object with the corresponding Vangrex execution.
+
+```text id="s4n9kp"
+Order
+  │
+  └── Vangrex execution
+          │
+          ├── Status
+          ├── Nodes
+          ├── Errors
+          └── Output
+```
+
+## Execution dashboards
+
+Execution IDs can also be used to build application-level progress interfaces.
+
+For example:
+
+```text id="f3v8qm"
+┌────────────────────────────────────┐
+│ Document Processing                │
+│                                    │
+│ Execution: exec_123                │
+│                                    │
+│ ✓ Upload                           │
+│ ✓ Extract                          │
+│ ● Analyze                          │
+│ ○ Transform                        │
+│ ○ Complete                         │
+└────────────────────────────────────┘
+```
+
+The application can use execution state to display progress without implementing the workflow itself.
+
+## Logging
+
+When logging workflow operations, execution IDs are useful correlation identifiers.
+
+```ts id="z7q2wd"
+const execution = await vangrex.workflows.run("workflow_id", {
+  message: "Process request",
+});
+
+console.log({
+  executionId: execution.id,
+});
+```
+
+Avoid logging sensitive workflow input or credentials unnecessarily.
+
+A useful logging structure is:
+
+```text id="r8m3vx"
+requestId
+executionId
+workflowId
+timestamp
+application operation
+```
+
+This makes it easier to correlate application activity with workflow executions.
+
+## Execution architecture
+
+A production application can use Vangrex executions as part of a larger request lifecycle:
+
+```text id="q9f4zs"
+                    Application
+                         │
+                         ▼
+                    API Request
+                         │
+                         ▼
+                  Vangrex SDK
+                         │
+                         ▼
+                    Workflow
+                         │
+                         ▼
+                    Execution
+                         │
+              ┌──────────┼──────────┐
+              │          │          │
+              ▼          ▼          ▼
+            Nodes       AI        Tools
+              │          │          │
+              └──────────┼──────────┘
+                         │
+                         ▼
+                       Result
+                         │
+                         ▼
+                    Application
+```
+
+This separation allows Vangrex to handle workflow orchestration while your application manages users, authentication, business state, and presentation.
+
+## Long-running workflows
+
+Some workflows may take longer than a normal HTTP request.
+
+For these workflows, avoid coupling the workflow execution directly to the lifetime of a browser request.
+
+Instead:
+
+```text id="z1w6kc"
+Client
+  │
+  ▼
+Your API
+  │
+  │ Start
+  ▼
+Vangrex
+  │
+  ▼
+Execution
+  │
+  │ runs independently
+  ▼
+Completed
+```
+
+Your application can then track the execution and update the user when the workflow completes.
+
+## Execution records
+
+A useful application database model might look like:
+
+```text id="m4d7ps"
+WorkflowExecution
+├── id
+├── workflowId
+├── vangrexExecutionId
+├── requestId
+├── status
+├── createdAt
+└── completedAt
+```
+
+The exact schema is up to your application.
+
+The important concept is that your application can maintain its own record while Vangrex manages the actual workflow execution.
+
+## Execution best practices
+
+When integrating executions into production systems:
+
+- Store execution IDs for important operations.
+- Use execution IDs for logging and correlation.
+- Handle failed executions explicitly.
+- Avoid exposing sensitive execution data to clients.
+- Consider retries and duplicate requests.
+- Use event-driven tracking for long-running operations when available.
+- Keep application state separate from Vangrex runtime state.
+- Treat workflow execution as asynchronous infrastructure when appropriate.
+
+## The execution mental model
+
+The complete relationship looks like:
+
+```text id="u5c9wx"
+Workflow Definition
+       │
+       │ trigger
+       ▼
+Execution
+       │
+       ├── Input
+       │
+       ├── Node execution
+       │      ├── Node A
+       │      ├── Node B
+       │      └── Node C
+       │
+       ├── Runtime state
+       │
+       ├── Errors
+       │
+       └── Output
+```
+
+The workflow is reusable.
+
+The execution is the individual runtime instance.
+
+## Next steps
+
+You now know how to trigger workflows and work with their executions.
+
+Continue with [SDK Errors](/docs/sdk/errors) to learn how to handle authentication failures, invalid requests, workflow failures, and other errors in your application.
+
+You can also return to [SDK Workflows](/docs/sdk/workflows) for the workflow-triggering API.

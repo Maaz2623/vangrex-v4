@@ -1,0 +1,531 @@
+---
+title: Quickstart
+description: Build your first Vangrex workflow and trigger it from your application.
+---
+
+# Quickstart
+
+Build a workflow, test it, and trigger it from your application using the Vangrex SDK.
+
+This guide covers the core workflow from creating your first workflow to receiving its execution result.
+
+## Prerequisites
+
+Before you begin, make sure you have:
+
+- A Vangrex account
+- A Vangrex project
+- A published workflow
+- A Vangrex API key
+- A JavaScript or TypeScript application
+
+If you haven't created a Vangrex project yet, start by creating one from your Vangrex dashboard.
+
+## The workflow
+
+For this quickstart, we'll build a simple workflow:
+
+```text
+Input
+  │
+  ▼
+AI
+  │
+  ▼
+Output
+```
+
+The workflow will receive a message, process it using an AI node, and return the result to your application.
+
+## Step 1: Create a workflow
+
+Create a new workflow in your Vangrex project.
+
+Give your workflow a descriptive name.
+
+For example:
+
+```text
+Customer Support Assistant
+```
+
+A workflow is represented as a graph of connected nodes.
+
+```text
+┌───────────┐
+│   Input   │
+└─────┬─────┘
+      │
+      ▼
+┌───────────┐
+│    AI     │
+└─────┬─────┘
+      │
+      ▼
+┌───────────┐
+│  Output   │
+└───────────┘
+```
+
+## Step 2: Add an input
+
+Add an input to your workflow.
+
+For this example, we'll use a `message` field.
+
+The input can look like:
+
+```json
+{
+  "message": "How do I reset my password?"
+}
+```
+
+The input represents the data provided to the workflow when an execution starts.
+
+## Step 3: Add an AI node
+
+Add an AI node to the workflow.
+
+Configure the node with the model and prompt you want to use.
+
+For example, your prompt could instruct the model to act as a customer support assistant:
+
+```text
+You are a helpful customer support assistant.
+
+Answer the user's question clearly and concisely.
+
+User message:
+{{message}}
+```
+
+The exact configuration available depends on the AI node you're using.
+
+## Step 4: Connect the nodes
+
+Connect the input to the AI node.
+
+Then connect the AI node to the output.
+
+Your workflow should now look like:
+
+```text
+┌───────────┐
+│   Input   │
+│           │
+│  message  │
+└─────┬─────┘
+      │
+      ▼
+┌───────────┐
+│    AI     │
+│           │
+│  Prompt   │
+│  Model    │
+└─────┬─────┘
+      │
+      ▼
+┌───────────┐
+│  Output   │
+└───────────┘
+```
+
+The connections define how data moves through the workflow.
+
+## Step 5: Configure the output
+
+Configure the workflow output so that your application receives a predictable result.
+
+For example:
+
+```json
+{
+  "response": "You can reset your password from the account settings page."
+}
+```
+
+Using structured outputs makes your workflows easier to integrate with applications.
+
+## Step 6: Test the workflow
+
+Before connecting your application, run the workflow from the Vangrex interface.
+
+Provide test input:
+
+```json
+{
+  "message": "How do I reset my password?"
+}
+```
+
+Then execute the workflow.
+
+You should be able to inspect the execution and see how the input moved through each node.
+
+```text
+Input
+  │
+  │ message
+  ▼
+AI
+  │
+  │ response
+  ▼
+Output
+```
+
+## Step 7: Inspect the execution
+
+Every workflow run creates an execution.
+
+For example:
+
+```text
+Workflow
+   │
+   ├── Execution #001
+   ├── Execution #002
+   └── Execution #003
+```
+
+An execution represents one specific run of your workflow.
+
+Depending on the workflow, you can inspect:
+
+- Input
+- Node execution state
+- Node output
+- Execution status
+- Errors
+- Final output
+- Execution metadata
+
+Inspecting executions is useful when developing and debugging workflows.
+
+## Step 8: Publish the workflow
+
+Once your workflow is working as expected, publish it.
+
+Publishing makes the workflow available for application integrations.
+
+The development lifecycle is:
+
+```text
+Draft
+  │
+  ▼
+Test
+  │
+  ▼
+Inspect
+  │
+  ▼
+Iterate
+  │
+  ▼
+Publish
+```
+
+See [Publishing Workflows](/docs/workflows/publishing) for more information.
+
+## Step 9: Install the SDK
+
+The Vangrex SDK allows your application to communicate with Vangrex.
+
+Install it with npm:
+
+```bash
+npm install @vangrex/sdk
+```
+
+Then import the SDK:
+
+```ts
+import { Vangrex } from "@vangrex/sdk";
+```
+
+## Step 10: Add your API key
+
+Create a server-side environment variable containing your Vangrex API key.
+
+```env
+VANGREX_API_KEY=your_api_key
+```
+
+Then initialize the client:
+
+```ts
+import { Vangrex } from "@vangrex/sdk";
+
+const vangrex = new Vangrex({
+  apiKey: process.env.VANGREX_API_KEY,
+});
+```
+
+> [!IMPORTANT]
+> Keep your Vangrex API key private. Never expose it in browser-side JavaScript, client components, or public repositories.
+
+For more information, see [Authentication](/docs/authentication).
+
+## Step 11: Trigger your workflow
+
+Use the SDK to trigger your published workflow.
+
+```ts
+import { Vangrex } from "@vangrex/sdk";
+
+const vangrex = new Vangrex({
+  apiKey: process.env.VANGREX_API_KEY,
+});
+
+const execution = await vangrex.workflows.run("workflow_id", {
+  message: "How do I reset my password?",
+});
+```
+
+Replace `workflow_id` with the ID of your published Vangrex workflow.
+
+The basic request flow is:
+
+```text
+Your Application
+       │
+       │ workflow input
+       ▼
+Vangrex SDK
+       │
+       ▼
+Vangrex
+       │
+       ▼
+Workflow
+       │
+       ▼
+Execution
+```
+
+## Step 12: Work with the result
+
+The SDK returns information about the workflow execution.
+
+For example:
+
+```ts
+const execution = await vangrex.workflows.run("workflow_id", {
+  message: "How do I reset my password?",
+});
+
+console.log(execution);
+```
+
+Your application can use the execution information according to the SDK API and execution lifecycle.
+
+For more information, see [Executions](/docs/sdk/executions).
+
+## Complete example
+
+A basic server-side integration can look like:
+
+```ts
+import { Vangrex } from "@vangrex/sdk";
+
+const vangrex = new Vangrex({
+  apiKey: process.env.VANGREX_API_KEY,
+});
+
+async function runSupportWorkflow(message: string) {
+  const execution = await vangrex.workflows.run("workflow_id", {
+    message,
+  });
+
+  return execution;
+}
+
+const result = await runSupportWorkflow("How do I reset my password?");
+
+console.log(result);
+```
+
+The architecture is:
+
+```text
+┌──────────────────────┐
+│   Your Application   │
+└──────────┬───────────┘
+           │
+           │ SDK
+           ▼
+┌──────────────────────┐
+│       Vangrex        │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│      Workflow        │
+│                      │
+│  Input → AI → Output │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│      Execution       │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│   Application Result │
+└──────────────────────┘
+```
+
+## Using Vangrex from an API route
+
+Vangrex can be triggered from your application's backend API.
+
+For example, with a Next.js route:
+
+```ts
+import { Vangrex } from "@vangrex/sdk";
+import { NextResponse } from "next/server";
+
+const vangrex = new Vangrex({
+  apiKey: process.env.VANGREX_API_KEY,
+});
+
+export async function POST(request: Request) {
+  const body = await request.json();
+
+  const execution = await vangrex.workflows.run("workflow_id", {
+    message: body.message,
+  });
+
+  return NextResponse.json(execution);
+}
+```
+
+Your frontend can then call your own API:
+
+```text
+Browser
+   │
+   │ POST /api/support
+   ▼
+Your Backend
+   │
+   │ Vangrex SDK
+   ▼
+Vangrex
+   │
+   ▼
+Workflow
+   │
+   ▼
+Execution
+   │
+   ▼
+Your Backend
+   │
+   ▼
+Browser
+```
+
+This architecture keeps your Vangrex credentials on the server.
+
+## Handling errors
+
+Workflow execution can fail for different reasons.
+
+For example:
+
+- Invalid workflow configuration
+- Invalid input
+- Authentication errors
+- Node execution errors
+- External API failures
+- AI provider errors
+- Network failures
+
+Your application should handle SDK and execution errors appropriately.
+
+```ts
+try {
+  const execution = await vangrex.workflows.run("workflow_id", {
+    message: "How do I reset my password?",
+  });
+
+  console.log(execution);
+} catch (error) {
+  console.error("Workflow execution failed:", error);
+}
+```
+
+See [SDK Errors](/docs/sdk/errors) for more information.
+
+## The complete lifecycle
+
+At this point, the complete Vangrex lifecycle looks like:
+
+```text
+┌────────────────────┐
+│ Create Workflow    │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Configure Nodes    │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Connect Nodes      │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Test Workflow      │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Publish Workflow   │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Install SDK        │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Authenticate       │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Trigger Workflow   │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Workflow Execution │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Consume Result     │
+└────────────────────┘
+```
+
+## Next steps
+
+Now that you've created and triggered a workflow, explore the concepts behind Vangrex.
+
+- [Core Concepts](/docs/core-concepts) — Understand workflows, nodes, executions, inputs, and outputs.
+- [Authentication](/docs/authentication) — Learn how Vangrex API keys work.
+- [SDK Overview](/docs/sdk) — Explore the Vangrex SDK.
+- [Workflows](/docs/workflows) — Learn how to build and manage workflows.
+- [AI](/docs/ai) — Build AI-powered workflows and agents.
+
+```
+
+```

@@ -1,0 +1,348 @@
+---
+title: SDK Installation
+description: Install and configure the Vangrex SDK in your application.
+---
+
+---
+
+# Installation
+
+The Vangrex SDK allows your application to interact with Vangrex workflows programmatically.
+
+The package is published as `@vangrex/sdk`.
+
+## Install
+
+Choose the package manager used by your project.
+
+```bash
+npm install @vangrex/sdk
+```
+
+```bash
+pnpm add @vangrex/sdk
+```
+
+```bash
+yarn add @vangrex/sdk
+```
+
+```bash
+bun add @vangrex/sdk
+```
+
+After installation, import the SDK into your application:
+
+```ts
+import { Vangrex } from "@vangrex/sdk";
+```
+
+## Create an API key
+
+Your application needs a Vangrex API key to authenticate SDK requests.
+
+Create an API key from your Vangrex project and store it as an environment variable.
+
+```env
+VANGREX_API_KEY=vx_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+Do not commit API keys to source control.
+
+For more information about credentials, see [Authentication](/docs/authentication).
+
+## Initialize the client
+
+Create a Vangrex client using your API key.
+
+```ts
+import { Vangrex } from "@vangrex/sdk";
+
+const vangrex = new Vangrex({
+  apiKey: process.env.VANGREX_API_KEY,
+});
+```
+
+The client is now ready to communicate with Vangrex.
+
+## Create a shared client
+
+For most applications, create the Vangrex client once and reuse it.
+
+For example:
+
+```ts
+// lib/vangrex.ts
+
+import { Vangrex } from "@vangrex/sdk";
+
+export const vangrex = new Vangrex({
+  apiKey: process.env.VANGREX_API_KEY,
+});
+```
+
+You can then import the client wherever you need to interact with Vangrex.
+
+```ts
+import { vangrex } from "@/lib/vangrex";
+
+const execution = await vangrex.workflows.run("workflow_id", {
+  message: "Hello from my application",
+});
+```
+
+This keeps your Vangrex configuration in one place.
+
+## TypeScript
+
+The SDK is designed to work with TypeScript applications.
+
+```ts
+import { Vangrex } from "@vangrex/sdk";
+
+const vangrex = new Vangrex({
+  apiKey: process.env.VANGREX_API_KEY,
+});
+```
+
+TypeScript projects can use the SDK directly without creating a separate API wrapper for basic workflow operations.
+
+## Next.js
+
+For a Next.js application, keep the Vangrex client on the server.
+
+For example:
+
+```ts
+// lib/vangrex.ts
+
+import { Vangrex } from "@vangrex/sdk";
+
+export const vangrex = new Vangrex({
+  apiKey: process.env.VANGREX_API_KEY,
+});
+```
+
+Then use it from a server-side function or route handler:
+
+```ts
+import { vangrex } from "@/lib/vangrex";
+
+export async function POST(request: Request) {
+  const body = await request.json();
+
+  const execution = await vangrex.workflows.run("workflow_id", {
+    message: body.message,
+  });
+
+  return Response.json(execution);
+}
+```
+
+Your browser communicates with your application server, not directly with Vangrex using a private API key.
+
+```text
+Browser
+   │
+   │ HTTPS
+   ▼
+Next.js Server
+   │
+   │ @vangrex/sdk
+   ▼
+Vangrex
+```
+
+## Node.js
+
+The SDK can be used from a Node.js backend.
+
+```ts
+import { Vangrex } from "@vangrex/sdk";
+
+const vangrex = new Vangrex({
+  apiKey: process.env.VANGREX_API_KEY,
+});
+
+async function main() {
+  const execution = await vangrex.workflows.run("workflow_id", {
+    message: "Process this request",
+  });
+
+  console.log(execution);
+}
+
+main();
+```
+
+Make sure the environment variable is available to the Node.js process.
+
+## Environment configuration
+
+Different environments should generally have their own configuration.
+
+```text
+Development
+    │
+    └── VANGREX_API_KEY
+
+Staging
+    │
+    └── VANGREX_API_KEY
+
+Production
+    │
+    └── VANGREX_API_KEY
+```
+
+Your deployment platform should provide the appropriate environment variable for each environment.
+
+## Verify the installation
+
+After installing the package and configuring your API key, run a simple workflow request.
+
+```ts
+import { Vangrex } from "@vangrex/sdk";
+
+const vangrex = new Vangrex({
+  apiKey: process.env.VANGREX_API_KEY,
+});
+
+const execution = await vangrex.workflows.run("workflow_id", {
+  message: "Hello Vangrex",
+});
+
+console.log(execution);
+```
+
+If the request succeeds, your application is connected to Vangrex.
+
+## Common setup mistakes
+
+### API key is undefined
+
+If the SDK cannot authenticate, first verify that the environment variable exists.
+
+```ts
+console.log({
+  configured: Boolean(process.env.VANGREX_API_KEY),
+});
+```
+
+Do not print the actual API key.
+
+### Environment variables are not loaded
+
+Make sure the environment variable is available to the runtime where the SDK is initialized.
+
+For local development, restart your development server after changing environment variables.
+
+### API key is exposed to the browser
+
+Do not put your Vangrex API key in client-side code.
+
+Avoid using a private Vangrex key in code marked with:
+
+```ts
+"use client";
+```
+
+Instead:
+
+```text
+Client
+  │
+  ▼
+Your Server
+  │
+  ▼
+Vangrex SDK
+```
+
+### Workflow ID is incorrect
+
+The workflow ID passed to the SDK must identify the workflow you intend to execute.
+
+```ts
+await vangrex.workflows.run("workflow_id", {
+  message: "Hello",
+});
+```
+
+Verify the workflow ID in your Vangrex project.
+
+## Recommended project structure
+
+A simple application can organize its Vangrex integration like this:
+
+```text
+src/
+├── lib/
+│   └── vangrex.ts
+├── services/
+│   └── workflows.ts
+└── app/
+    └── api/
+        └── workflow/
+            └── route.ts
+```
+
+The Vangrex client stays centralized:
+
+```ts
+// lib/vangrex.ts
+
+import { Vangrex } from "@vangrex/sdk";
+
+export const vangrex = new Vangrex({
+  apiKey: process.env.VANGREX_API_KEY,
+});
+```
+
+Application-specific workflow logic can then live in a service:
+
+```ts
+// services/workflows.ts
+
+import { vangrex } from "@/lib/vangrex";
+
+export function runCustomerSupportWorkflow(message: string) {
+  return vangrex.workflows.run("customer-support", {
+    message,
+  });
+}
+```
+
+Your API layer can call the service:
+
+```ts
+import { runCustomerSupportWorkflow } from "@/services/workflows";
+
+export async function POST(request: Request) {
+  const { message } = await request.json();
+
+  const execution = await runCustomerSupportWorkflow(message);
+
+  return Response.json(execution);
+}
+```
+
+This separation keeps SDK configuration, workflow logic, and HTTP handling independent.
+
+## Installation checklist
+
+Before moving on, verify:
+
+- [ ] `@vangrex/sdk` is installed.
+- [ ] A Vangrex API key has been created.
+- [ ] `VANGREX_API_KEY` is configured.
+- [ ] The API key is kept server-side.
+- [ ] The Vangrex client is initialized.
+- [ ] A published workflow is available.
+- [ ] You can successfully trigger the workflow.
+
+## Next steps
+
+Your SDK is now installed and configured.
+
+Continue with [SDK Workflows](/docs/sdk/workflows) to learn how to trigger workflows, pass inputs, and integrate executions into your application.
