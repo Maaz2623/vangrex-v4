@@ -35,6 +35,7 @@ export function DocsSearch() {
           title: item.title,
           href: item.href!,
           section: section.title,
+          // @ts-ignore
           description: item.description,
         })),
     );
