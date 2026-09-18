@@ -60,12 +60,14 @@ export function SiteHeader() {
             Developers
           </a>
 
-          <Link
-            href="/docs"
+          <a
+            href="https://www.npmjs.com/package/@vangrex/sdk"
+            target="_blank"
+            rel="noopener noreferrer"
             className="transition-colors hover:text-foreground"
           >
-            Docs
-          </Link>
+            SDK
+          </a>
         </div>
 
         {/* CTA */}
