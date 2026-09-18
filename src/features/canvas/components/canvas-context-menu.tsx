@@ -26,12 +26,6 @@ import {
   FolderOutputIcon,
   ComputerIcon,
 } from "lucide-react";
-import { useCreateNode } from "../hooks/node.hooks";
-import { useCallback } from "react";
-import { AppFlowNode } from "./nodes/node-config";
-import { createFlowNode } from "../services/nodes/create-node";
-import { useCanvasStore } from "../store/canvas-store";
-import { FaGithub } from "react-icons/fa";
 
 interface Props {
   addNode: (
@@ -83,18 +77,6 @@ export const CanvasContextMenu = ({ addNode }: Props) => {
 
           <ContextMenuItem
             onClick={() =>
-              addNode("variable", {
-                x: 0,
-                y: 0,
-              })
-            }
-          >
-            <VariableIcon className="mr-2 h-4 w-4" />
-            Variable
-          </ContextMenuItem>
-
-          <ContextMenuItem
-            onClick={() =>
               addNode("output", {
                 x: 0,
                 y: 0,
@@ -116,54 +98,8 @@ export const CanvasContextMenu = ({ addNode }: Props) => {
             <ComputerIcon className="mr-2 h-4 w-4" />
             Sandbox
           </ContextMenuItem>
-
-          <ContextMenuItem>
-            <Code2 className="mr-2 h-4 w-4" />
-            Code
-          </ContextMenuItem>
-
-          <ContextMenuItem>
-            <Globe className="mr-2 h-4 w-4" />
-            API
-          </ContextMenuItem>
-
-          <ContextMenuItem>
-            <Brain className="mr-2 h-4 w-4" />
-            Human Input
-          </ContextMenuItem>
-
-          <ContextMenuItem>
-            <Sparkles className="mr-2 h-4 w-4" />
-            AI Generated...
-          </ContextMenuItem>
         </ContextMenuSubContent>
       </ContextMenuSub>
-
-      <ContextMenuSeparator />
-
-      <ContextMenuItem>
-        <Copy className="mr-2 h-4 w-4" />
-        Copy
-      </ContextMenuItem>
-
-      <ContextMenuItem>
-        <ClipboardPasteIcon className="mr-2 h-4 w-4" />
-        Paste
-      </ContextMenuItem>
-
-      <ContextMenuSeparator />
-
-      <ContextMenuItem>
-        <ScanSearch className="mr-2 h-4 w-4" />
-        Fit View
-      </ContextMenuItem>
-
-      <ContextMenuSeparator />
-
-      <ContextMenuItem className="text-destructive focus:text-destructive">
-        <Trash2 className="mr-2 h-4 w-4" />
-        Delete Selection
-      </ContextMenuItem>
     </ContextMenuContent>
   );
 };

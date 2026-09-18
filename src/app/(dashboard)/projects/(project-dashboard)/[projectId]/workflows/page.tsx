@@ -34,7 +34,7 @@ const WorkflowsPage = async ({ params }: Props) => {
           description="Create and manage your workflows"
           action={<CreateWorkflow projectId={projectId} />}
         />
-        <SearchWorkflow />
+        {/* <SearchWorkflow /> */}
         <ErrorBoundary fallback={<div>Something went wrong</div>}>
           <Suspense fallback={<div>loading...</div>}>
             <Workflows projectId={projectId} />

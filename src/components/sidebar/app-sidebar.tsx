@@ -99,16 +99,6 @@ const teams = [
     logo: GalleryVerticalEnd,
     plan: "Workspace",
   },
-  {
-    name: "Acme Corp.",
-    logo: AudioWaveform,
-    plan: "Startup",
-  },
-  {
-    name: "Evil Corp.",
-    logo: Command,
-    plan: "Enterprise",
-  },
 ];
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {

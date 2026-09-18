@@ -166,7 +166,7 @@ export function CreateWorkflow({ projectId }: { projectId: string }) {
               }
             >
               <PlusIcon className="h-4 w-4" />
-              Create Project
+              Create Workflow
             </Button>
           </DialogFooter>
         </DialogContent>
