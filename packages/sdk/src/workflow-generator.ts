@@ -1,4 +1,5 @@
 import type { JSONSchema } from "./workflow-types.js";
+
 import {
   generateWorkflowTypes,
   type VangrexWorkflowSchema,
@@ -6,7 +7,6 @@ import {
 
 export interface GenerateWorkflowTypesOptions {
   apiKey: string;
-  baseUrl?: string;
 }
 
 interface WorkflowApiResponse {
@@ -28,10 +28,7 @@ export async function fetchWorkflowTypes(
     throw new Error("Vangrex API key is required");
   }
 
-  const baseUrl = (options.baseUrl ?? "https://api.vangrex.com").replace(
-    /\/$/,
-    "",
-  );
+  const baseUrl = "https://vangrex.vercel.app";
 
   const response = await fetch(`${baseUrl}/api/v1/workflows`, {
     method: "GET",

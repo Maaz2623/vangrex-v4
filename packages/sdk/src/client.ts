@@ -2,12 +2,11 @@ import { VangrexError } from "./errors.js";
 
 export interface VangrexClientOptions {
   apiKey: string;
-  baseUrl?: string;
 }
 
 export class VangrexClient {
   private readonly apiKey: string;
-  private readonly baseUrl: string;
+  private readonly baseUrl = "https://vangrex.vercel.app";
 
   constructor(options: VangrexClientOptions) {
     if (!options.apiKey) {
@@ -15,11 +14,6 @@ export class VangrexClient {
     }
 
     this.apiKey = options.apiKey;
-
-    this.baseUrl = (options.baseUrl ?? "https://api.vangrex.com").replace(
-      /\/$/,
-      "",
-    );
   }
 
   async request<T>(path: string, options: RequestInit = {}): Promise<T> {

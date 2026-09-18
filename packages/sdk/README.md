@@ -211,25 +211,6 @@ try {
 
 Aborting an SDK request or event stream only closes the client connection. It does **not** cancel the underlying Vangrex workflow execution.
 
-## Custom API URL
-
-By default, the SDK connects to:
-
-```text
-https://api.vangrex.com
-```
-
-A custom API URL can be provided when creating the client:
-
-```ts
-const vangrex = new Vangrex({
-  apiKey: process.env.VANGREX_API_KEY!,
-  baseUrl: "http://localhost:3000",
-});
-```
-
-This is useful for local development and testing.
-
 ## API
 
 ### `Vangrex`
@@ -237,9 +218,10 @@ This is useful for local development and testing.
 ```ts
 new Vangrex({
   apiKey: string;
-  baseUrl?: string;
 })
 ```
+
+The SDK automatically connects to the Vangrex API.
 
 ### `vangrex.workflows.run()`
 

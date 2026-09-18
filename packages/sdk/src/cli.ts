@@ -9,7 +9,6 @@ import { fetchWorkflowTypes } from "./workflow-generator.js";
 
 interface CliOptions {
   apiKey?: string;
-  baseUrl?: string;
   output: string;
 }
 
@@ -22,29 +21,33 @@ Vangrex CLI
 Generate TypeScript types from your Vangrex workflows.
 
 Usage:
+
   vangrex generate
 
 Options:
+
   --api-key <key>       Vangrex API key
-  --base-url <url>      Vangrex API base URL
   --output <path>       Output file
   -o <path>             Alias for --output
   --help, -h            Show this help
 
 Environment:
+
   VANGREX_API_KEY       Vangrex API key
-  VANGREX_BASE_URL      Vangrex API base URL
 
 Defaults:
+
   Output:
     ${DEFAULT_OUTPUT}
 
 Examples:
+
   vangrex generate
 
   vangrex generate --output src/vangrex-workflows.ts
 
   vangrex generate --api-key vx_live_xxx
+
 `);
 }
 
@@ -69,11 +72,6 @@ function parseArgs(args: string[]): CliOptions {
     switch (arg) {
       case "--api-key":
         options.apiKey = getNextArg(args, index, "--api-key");
-        index++;
-        break;
-
-      case "--base-url":
-        options.baseUrl = getNextArg(args, index, "--base-url");
         index++;
         break;
 
@@ -106,15 +104,12 @@ async function generate(options: CliOptions): Promise<void> {
     );
   }
 
-  const baseUrl = options.baseUrl ?? process.env.VANGREX_BASE_URL;
-
   const outputPath = resolve(process.cwd(), options.output);
 
   console.log("Fetching Vangrex workflows...");
 
   const generatedTypes = await fetchWorkflowTypes({
     apiKey,
-    baseUrl,
   });
 
   await mkdir(dirname(outputPath), {
