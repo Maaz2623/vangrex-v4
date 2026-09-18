@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import "dotenv/config";
+
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
@@ -11,6 +13,8 @@ interface CliOptions {
   output: string;
 }
 
+const DEFAULT_OUTPUT = "vangrex/vangrex-workflows.ts";
+
 function printHelp(): void {
   console.log(`
 Vangrex CLI
@@ -18,7 +22,7 @@ Vangrex CLI
 Generate TypeScript types from your Vangrex workflows.
 
 Usage:
-  vangrex generate [options]
+  vangrex generate
 
 Options:
   --api-key <key>       Vangrex API key
@@ -30,6 +34,10 @@ Options:
 Environment:
   VANGREX_API_KEY       Vangrex API key
   VANGREX_BASE_URL      Vangrex API base URL
+
+Defaults:
+  Output:
+    ${DEFAULT_OUTPUT}
 
 Examples:
   vangrex generate
@@ -52,7 +60,7 @@ function getNextArg(args: string[], index: number, option: string): string {
 
 function parseArgs(args: string[]): CliOptions {
   const options: CliOptions = {
-    output: "vangrex-workflows.ts",
+    output: DEFAULT_OUTPUT,
   };
 
   for (let index = 0; index < args.length; index++) {
@@ -94,7 +102,7 @@ async function generate(options: CliOptions): Promise<void> {
   if (!apiKey) {
     throw new Error(
       "Vangrex API key is required.\n\n" +
-        "Set VANGREX_API_KEY or use --api-key.",
+        "Set VANGREX_API_KEY in your environment or use --api-key.",
     );
   }
 
