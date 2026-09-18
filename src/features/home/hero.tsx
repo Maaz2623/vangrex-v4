@@ -162,22 +162,26 @@ export function Hero() {
       <div className="mx-auto grid min-h-[650px] max-w-6xl items-center gap-10 pb-12 pt-10 lg:grid-cols-[1.05fr_.95fr] lg:gap-8">
         {/* LEFT */}
         <div>
-          <p className="hero-eyebrow eyebrow mb-5 flex items-center gap-2">
-            <span className="size-1.5 rounded-full bg-primary" />
-            AI workflows that actually run
+          <p className="hero-eyebrow eyebrow mb-5 flex flex-wrap items-center gap-3">
+            <span className="flex items-center gap-2">
+              <span className="size-1.5 rounded-full bg-primary" />
+              AI workflows that actually run
+            </span>
+
+            <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[10px] font-medium tracking-[.08em] text-primary">
+              PUBLIC BETA
+            </span>
           </p>
 
           <h1 className="hero-title display max-w-2xl text-[clamp(3rem,6vw,5.5rem)] font-semibold">
             Build AI systems,{" "}
-            <span className="text-muted-foreground">
-              not just AI prompts.
-            </span>
+            <span className="text-muted-foreground">not just AI prompts.</span>
           </h1>
 
           <p className="hero-description mt-6 max-w-lg text-base leading-7 text-muted-foreground">
             Vangrex is an AI workflow orchestration platform for building,
-            connecting, and running intelligent systems. Compose workflows,
-            add AI agents and tools, and execute them in production.
+            connecting, and running intelligent systems. Compose workflows, add
+            AI agents and tools, and execute them in production.
           </p>
 
           <div className="hero-actions mt-7 flex flex-wrap gap-3">
@@ -210,7 +214,8 @@ export function Hero() {
             </span>
 
             <span>
-              <b className="mr-1 text-foreground">SDK</b> application integration
+              <b className="mr-1 text-foreground">SDK</b> application
+              integration
             </span>
           </div>
         </div>
@@ -264,17 +269,13 @@ export function Hero() {
             <div>
               <b className="block text-sm">04</b>
 
-              <small className="text-[10px] text-muted-foreground">
-                Nodes
-              </small>
+              <small className="text-[10px] text-muted-foreground">Nodes</small>
             </div>
 
             <div>
               <b className="block text-sm">01</b>
 
-              <small className="text-[10px] text-muted-foreground">
-                Agent
-              </small>
+              <small className="text-[10px] text-muted-foreground">Agent</small>
             </div>
 
             <div>

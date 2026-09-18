@@ -1,8 +1,8 @@
 # @vangrex/sdk
 
-Official TypeScript/JavaScript SDK for the Vangrex AI workflow platform.
+Official TypeScript/JavaScript SDK for the [Vangrex](https://vangrex.vercel.app) AI workflow platform.
 
-Vangrex lets you build AI workflows visually and trigger them from your own applications.
+Vangrex lets you build AI workflows visually and run them from your own applications.
 
 ## Installation
 
@@ -112,6 +112,26 @@ const result = await vangrex.executions.get(execution.executionId);
 console.log("Status:", result.status);
 console.log("Output:", result.output);
 ```
+
+## Type-Safe Workflows
+
+Vangrex supports generated TypeScript workflow types so your application can work with workflow inputs and outputs using TypeScript's type system.
+
+Generate workflow types from your Vangrex project:
+
+```bash
+npx vangrex generate
+```
+
+After generating the types, import them into your application:
+
+```ts
+import type { Workflows } from "./vangrex-workflows";
+```
+
+You can then use the generated workflow definitions when integrating your Vangrex workflows into your application.
+
+> Generated workflow types are based on the workflows and schemas configured in your Vangrex project.
 
 ## Error Handling
 
@@ -270,7 +290,7 @@ Returns an async generator of execution events.
 
 ## Environment Variables
 
-For applications, keep your API key in an environment variable rather than hard-coding it:
+Keep your API key in an environment variable rather than hard-coding it:
 
 ```bash
 VANGREX_API_KEY=your_api_key
@@ -284,7 +304,7 @@ const vangrex = new Vangrex({
 });
 ```
 
-Never commit your Vangrex API key to source control.
+**Never commit your Vangrex API key to source control.**
 
 ## TypeScript
 
@@ -299,6 +319,14 @@ import type {
   RunWorkflowResponse,
 } from "@vangrex/sdk";
 ```
+
+## Public Beta
+
+Vangrex is currently in **public beta**.
+
+The SDK and platform are actively evolving, and APIs may change as we improve the product.
+
+If you encounter an issue or have feedback, please report it through the Vangrex project repository.
 
 ## License
 

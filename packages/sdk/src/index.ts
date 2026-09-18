@@ -38,4 +38,4 @@ export type {
 
 export type { WorkflowInput, VangrexWorkflows } from "./workflow-contract.js";
 
-export const VERSION = "0.1.2";
+export const VERSION = "0.1.3";
