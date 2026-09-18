@@ -17,7 +17,8 @@ export default function DashboardLayout({
         <main className="flex-1">
           <div className="border-b flex justify-between items-center px-6 py-2">
             <DashboardBreadcrumb />
-            <TopBarActions />
+            {/* <TopBarActions /> */}
+            <div />
           </div>
 
           <div className="h-[93%]">{children}</div>
